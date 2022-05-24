@@ -8,8 +8,14 @@
 *.userprefs
 
 Test/
-bin/
+bin/Debug
 obj/
+FSofTUtils/bin
+GarminCore/bin
+GarminImageCreator/bin
+GMap.NET.CoreExt/bin
+SmallMapControl/bin
+Sqlite4Garmin/bin
 .vs/
 
 [Bb]ackup/
@@ -18,6 +24,8 @@ obj/
 *.pdn
 *.cmd
 *.txt
+*.pdb
+*.xml
 
 GarminSymbols/
 Test_GDB/

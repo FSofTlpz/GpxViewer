@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30709.132
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GarminImageCreator.Skia", "GarminImageCreator.Skia.csproj", "{F8F4AB46-EB3C-43DA-9E37-6727BE627982}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GarminCore.Skia", "..\GarminCore\GarminCore.Skia.csproj", "{69ECDE9A-FDF4-431D-A77A-80C6697A8087}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sqlite4Garmin", "..\Sqlite4Garmin\Sqlite4Garmin.csproj", "{CEDD6263-05CF-4B43-A3E3-BA3353968B39}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F8F4AB46-EB3C-43DA-9E37-6727BE627982}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8F4AB46-EB3C-43DA-9E37-6727BE627982}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8F4AB46-EB3C-43DA-9E37-6727BE627982}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8F4AB46-EB3C-43DA-9E37-6727BE627982}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69ECDE9A-FDF4-431D-A77A-80C6697A8087}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69ECDE9A-FDF4-431D-A77A-80C6697A8087}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69ECDE9A-FDF4-431D-A77A-80C6697A8087}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69ECDE9A-FDF4-431D-A77A-80C6697A8087}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEDD6263-05CF-4B43-A3E3-BA3353968B39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEDD6263-05CF-4B43-A3E3-BA3353968B39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEDD6263-05CF-4B43-A3E3-BA3353968B39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEDD6263-05CF-4B43-A3E3-BA3353968B39}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A54DDAAA-7876-497B-A0F5-930D92FF9557}
+	EndGlobalSection
+EndGlobal

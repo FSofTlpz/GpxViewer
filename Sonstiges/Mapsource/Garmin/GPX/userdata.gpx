@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" creator="MapSource 6.16.3" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+
+  <metadata>
+    <link href="http://www.garmin.com">
+      <text>Garmin International</text>
+    </link>
+    <time>2021-05-10T07:49:22Z</time>
+    <bounds maxlat="51.308335326611996" maxlon="12.449054131284356" minlat="51.306580910459161" minlon="12.441347558051348"/>
+  </metadata>
+
+  <wpt lat="51.30831646732986" lon="12.441347558051348">
+    <ele>138</ele>
+    <time>2021-05-10T07:41:33Z</time>
+    <name>Acker</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Flag, Red</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.30825980566442" lon="12.441949630156159">
+    <ele>137</ele>
+    <time>2021-05-10T07:41:41Z</time>
+    <name>Acker1</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Flag, Green</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.308266092091799" lon="12.442772481590509">
+    <ele>136</ele>
+    <time>2021-05-10T07:41:48Z</time>
+    <name>Acker2</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Pin, Red</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.308278664946556" lon="12.443565241992474">
+    <ele>136</ele>
+    <time>2021-05-10T07:41:56Z</time>
+    <name>Acker3</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Diamond, Red</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.307781953364611" lon="12.441387707367539">
+    <ele>138</ele>
+    <time>2021-05-10T07:42:27Z</time>
+    <name>Acker4</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Circle with X</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.307819671928883" lon="12.442029928788543">
+    <ele>137</ele>
+    <time>2021-05-10T07:42:35Z</time>
+    <name>Acker5</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Waypoint</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.307813385501504" lon="12.442792514339089">
+    <ele>137</ele>
+    <time>2021-05-10T07:42:40Z</time>
+    <name>Acker6</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Lodging</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.307807099074125" lon="12.443394586443901">
+    <ele>137</ele>
+    <time>2021-05-10T07:42:56Z</time>
+    <name>Acker7</name>
+    <cmt>Acker</cmt>
+    <desc>Acker</desc>
+    <sym>Shopping Center</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.308278664946556" lon="12.44404686614871">
+    <ele>137</ele>
+    <time>2021-05-10T07:42:02Z</time>
+    <name>Park, Grünanlage</name>
+    <cmt>Park, Grünanlage</cmt>
+    <desc>Park, Grünanlage</desc>
+    <sym>Triangle, Red</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.308291237801313" lon="12.44460878893733">
+    <ele>137</ele>
+    <time>2021-05-10T07:42:08Z</time>
+    <name>Park, Grünanlage1</name>
+    <cmt>Park, Grünanlage</cmt>
+    <desc>Park, Grünanlage</desc>
+    <sym>Square, Red</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.308297524228692" lon="12.446093894541264">
+    <ele>135</ele>
+    <time>2021-05-10T07:42:21Z</time>
+    <name>Park, Grünanlage2</name>
+    <cmt>Park, Grünanlage</cmt>
+    <desc>Park, Grünanlage</desc>
+    <sym>Oval, Red</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.307750521227717" lon="12.444107048213482">
+    <ele>137</ele>
+    <time>2021-05-10T07:43:04Z</time>
+    <name>Park, Grünanlage3</name>
+    <cmt>Park, Grünanlage</cmt>
+    <desc>Park, Grünanlage</desc>
+    <sym>Lodge</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.308265505358577" lon="12.445481596514583">
+    <ele>136</ele>
+    <time>2021-05-10T07:42:14Z</time>
+    <name>Ri</name>
+    <cmt>Ri</cmt>
+    <desc>Ri</desc>
+    <sym>Circle, Red</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <wpt lat="51.307799639180303" lon="12.444830071181059">
+    <ele>137</ele>
+    <time>2021-05-10T07:43:22Z</time>
+    <name>Ri1</name>
+    <cmt>Ri</cmt>
+    <desc>Ri</desc>
+    <sym>Residence</sym>
+    <extensions>
+      <gpxx:WaypointExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayMode>SymbolAndName</gpxx:DisplayMode>
+      </gpxx:WaypointExtension>
+    </extensions>
+  </wpt>
+
+  <trk>
+    <name>Track</name>
+    <trkseg>
+      <trkpt lat="51.307486407458782" lon="12.444006716832519">
+        <ele>137.3671875</ele>
+      </trkpt>
+      <trkpt lat="51.307234866544604" lon="12.444739211350679">
+        <ele>138.4140625</ele>
+      </trkpt>
+      <trkpt lat="51.30768128670752" lon="12.447207765653729">
+        <ele>136.85546875</ele>
+      </trkpt>
+      <trkpt lat="51.307687573134899" lon="12.447207765653729">
+        <ele>136.83984375</ele>
+      </trkpt>
+      <trkpt lat="51.308335326611996" lon="12.448552390560508">
+        <ele>134.50390625</ele>
+      </trkpt>
+    </trkseg>
+  </trk>
+
+  <trk>
+    <name>Track 001</name>
+    <extensions>
+      <gpxx:TrackExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+        <gpxx:DisplayColor>DarkGreen</gpxx:DisplayColor>
+      </gpxx:TrackExtension>
+    </extensions>
+    <trkseg>
+      <trkpt lat="51.306951893493533" lon="12.446204284206033">
+        <ele>137.796875</ele>
+      </trkpt>
+      <trkpt lat="51.306580910459161" lon="12.447538934648037">
+        <ele>138.44140625</ele>
+      </trkpt>
+      <trkpt lat="51.306580910459161" lon="12.447558967396617">
+        <ele>138.515625</ele>
+      </trkpt>
+      <trkpt lat="51.307165715843439" lon="12.449054131284356">
+        <ele>140.328125</ele>
+      </trkpt>
+    </trkseg>
+  </trk>
+
+</gpx>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta name="viewport" content="width=device-width" /><title>https://www8.garmin.com/xmlschemas/GpxExtensionsv3.xsd</title><link rel="stylesheet" type="text/css" href="resource://content-accessible/viewsource.css" /></head><body id="viewsource" class="highlight" style="-moz-tab-size: 4" contextmenu="actions"><pre id="line1"><span></span><span class="pi">&lt;?xml version="1.0"?&gt;</span><span>
+<span id="line2"></span></span><span>&lt;<span class="start-tag">xsd:schema</span> <span class="attribute-name">targetNamespace</span>="<a class="attribute-value">http://www.garmin.com/xmlschemas/GpxExtensions/v3</a>"
+<span id="line3"></span>  <span class="attribute-name">elementFormDefault</span>="<a class="attribute-value">qualified</a>"
+<span id="line4"></span>  <span class="attribute-name">xmlns</span>="<a class="attribute-value">http://www.garmin.com/xmlschemas/GpxExtensions/v3</a>"
+<span id="line5"></span>  <span class="attribute-name">xmlns:xsd</span>="<a class="attribute-value">http://www.w3.org/2001/XMLSchema</a>"&gt;</span><span>
+<span id="line6"></span>
+<span id="line7"></span>  </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line8"></span>  This schema defines the Garmin extensions to be used with the GPX 1.1 schema.
+<span id="line9"></span>  The root elements defined by this schema are intended to be used as child
+<span id="line10"></span>  elements of the "extensions" elements in the GPX 1.1 schema. The GPX 1.1
+<span id="line11"></span>  schema is available at http://www.topografix.com/GPX/1/1/gpx.xsd.
+<span id="line12"></span>  </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line13"></span>
+<span id="line14"></span>  </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">WaypointExtension</a>" <span class="attribute-name">type</span>="<a class="attribute-value">WaypointExtension_t</a>" <span>/</span>&gt;</span><span>
+<span id="line15"></span>
+<span id="line16"></span>  </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">RouteExtension</a>" <span class="attribute-name">type</span>="<a class="attribute-value">RouteExtension_t</a>" <span>/</span>&gt;</span><span>
+<span id="line17"></span>  
+<span id="line18"></span>  </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">RoutePointExtension</a>" <span class="attribute-name">type</span>="<a class="attribute-value">RoutePointExtension_t</a>" <span>/</span>&gt;</span><span>
+<span id="line19"></span>
+<span id="line20"></span>  </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">TrackExtension</a>" <span class="attribute-name">type</span>="<a class="attribute-value">TrackExtension_t</a>" <span>/</span>&gt;</span><span>
+<span id="line21"></span>
+<span id="line22"></span>  </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">TrackPointExtension</a>" <span class="attribute-name">type</span>="<a class="attribute-value">TrackPointExtension_t</a>" <span>/</span>&gt;</span><span>
+<span id="line23"></span>
+<span id="line24"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">WaypointExtension_t</a>"&gt;</span><span>
+<span id="line25"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line26"></span>    This type contains data fields available in Garmin GDB waypoints that cannot
+<span id="line27"></span>    be represented in waypoints in GPX 1.1 instances.
+<span id="line28"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line29"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line30"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Proximity</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Meters_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span>/</span>&gt;</span><span>
+<span id="line31"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Temperature</a>" <span class="attribute-name">type</span>="<a class="attribute-value">DegreesCelsius_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span>/</span>&gt;</span><span>
+<span id="line32"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Depth</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Meters_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span>/</span>&gt;</span><span>
+<span id="line33"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">DisplayMode</a>" <span class="attribute-name">type</span>="<a class="attribute-value">DisplayMode_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span>/</span>&gt;</span><span>
+<span id="line34"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Categories</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Categories_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span>/</span>&gt;</span><span>
+<span id="line35"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Address</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Address_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line36"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">PhoneNumber</a>" <span class="attribute-name">type</span>="<a class="attribute-value">PhoneNumber_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span class="attribute-name">maxOccurs</span>="<a class="attribute-value">unbounded</a>"<span>/</span>&gt;</span><span>
+<span id="line37"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Extensions</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Extensions_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line38"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line39"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line40"></span>
+<span id="line41"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">Categories_t</a>"&gt;</span><span>
+<span id="line42"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line43"></span>    This type contains a list of categories to which a waypoint has been assigned.
+<span id="line44"></span>    Note that this list may contain categories which do not exist for a particular
+<span id="line45"></span>    application installation.
+<span id="line46"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line47"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line48"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Category</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:string</a>" <span class="attribute-name">maxOccurs</span>="<a class="attribute-value">unbounded</a>" <span>/</span>&gt;</span><span>
+<span id="line49"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line50"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line51"></span>
+<span id="line52"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">Address_t</a>"&gt;</span><span>
+<span id="line53"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line54"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">StreetAddress</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:token</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span class="attribute-name">maxOccurs</span>="<a class="attribute-value">2</a>"<span>/</span>&gt;</span><span>
+<span id="line55"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">City</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:token</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line56"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">State</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:token</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line57"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Country</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:token</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line58"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">PostalCode</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:token</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line59"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Extensions</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Extensions_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line60"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line61"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line62"></span>
+<span id="line63"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">PhoneNumber_t</a>"&gt;</span><span>
+<span id="line64"></span>    </span><span>&lt;<span class="start-tag">xsd:simpleContent</span>&gt;</span><span>
+<span id="line65"></span>      </span><span>&lt;<span class="start-tag">xsd:extension</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:token</a>"&gt;</span><span>
+<span id="line66"></span>        </span><span>&lt;<span class="start-tag">xsd:attribute</span> <span class="attribute-name">name</span>="<a class="attribute-value">Category</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:token</a>"&gt;</span><span>
+<span id="line67"></span>        </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line68"></span>        </span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>Category provides the ability to specify the type of a 
+<span id="line69"></span>        phone number. For example, a phone number can be categorized as
+<span id="line70"></span>        "Home", "Work", "Mobile" e.t.c</span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line71"></span>        </span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line72"></span>        </span><span>&lt;/<span class="end-tag">xsd:attribute</span>&gt;</span><span>
+<span id="line73"></span>      </span><span>&lt;/<span class="end-tag">xsd:extension</span>&gt;</span><span>
+<span id="line74"></span>    </span><span>&lt;/<span class="end-tag">xsd:simpleContent</span>&gt;</span><span>
+<span id="line75"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line76"></span>
+<span id="line77"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">RouteExtension_t</a>"&gt;</span><span>
+<span id="line78"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line79"></span>    This type contains data fields available in Garmin GDB routes that cannot
+<span id="line80"></span>    be represented in routes in GPX 1.1 instances.
+<span id="line81"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line82"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line83"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">IsAutoNamed</a>" <span class="attribute-name">type</span>="<a class="attribute-value">xsd:boolean</a>" <span>/</span>&gt;</span><span>
+<span id="line84"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">DisplayColor</a>" <span class="attribute-name">type</span>="<a class="attribute-value">DisplayColor_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line85"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Extensions</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Extensions_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line86"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line87"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line88"></span>
+<span id="line89"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">RoutePointExtension_t</a>"&gt;</span><span>
+<span id="line90"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line91"></span>    This type contains data fields available in Garmin GDB routes that cannot
+<span id="line92"></span>    be represented in routes in GPX 1.1 instances.
+<span id="line93"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line94"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line95"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Subclass</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Subclass_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line96"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">rpt</a>" <span class="attribute-name">type</span>="<a class="attribute-value">AutoroutePoint_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span class="attribute-name">maxOccurs</span>="<a class="attribute-value">unbounded</a>"<span>/</span>&gt;</span><span>
+<span id="line97"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Extensions</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Extensions_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line98"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line99"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line100"></span>
+<span id="line101"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">TrackExtension_t</a>"&gt;</span><span>
+<span id="line102"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line103"></span>    This type contains data fields available in Garmin GDB tracks that cannot
+<span id="line104"></span>    be represented in routes in GPX 1.1 instances.
+<span id="line105"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line106"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line107"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">DisplayColor</a>" <span class="attribute-name">type</span>="<a class="attribute-value">DisplayColor_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line108"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Extensions</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Extensions_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line109"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line110"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line111"></span>
+<span id="line112"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">TrackPointExtension_t</a>"&gt;</span><span>
+<span id="line113"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line114"></span>    This type contains data fields available in Garmin GDB track points that cannot
+<span id="line115"></span>    be represented in track points in GPX 1.1 instances.
+<span id="line116"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line117"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line118"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Temperature</a>" <span class="attribute-name">type</span>="<a class="attribute-value">DegreesCelsius_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span>/</span>&gt;</span><span>
+<span id="line119"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Depth</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Meters_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span>/</span>&gt;</span><span>
+<span id="line120"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Extensions</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Extensions_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line121"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line122"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line123"></span>
+<span id="line124"></span>  </span><span>&lt;<span class="start-tag">xsd:simpleType</span> <span class="attribute-name">name</span>="<a class="attribute-value">DegreesCelsius_t</a>"&gt;</span><span>
+<span id="line125"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line126"></span>    This type contains a temperature value measured in degrees Celsius.
+<span id="line127"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line128"></span>    </span><span>&lt;<span class="start-tag">xsd:restriction</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:double</a>"<span>/</span>&gt;</span><span>
+<span id="line129"></span>  </span><span>&lt;/<span class="end-tag">xsd:simpleType</span>&gt;</span><span>
+<span id="line130"></span>
+<span id="line131"></span>  </span><span>&lt;<span class="start-tag">xsd:simpleType</span> <span class="attribute-name">name</span>="<a class="attribute-value">Meters_t</a>"&gt;</span><span>
+<span id="line132"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line133"></span>    This type contains a distance value measured in meters.
+<span id="line134"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line135"></span>    </span><span>&lt;<span class="start-tag">xsd:restriction</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:double</a>"<span>/</span>&gt;</span><span>
+<span id="line136"></span>  </span><span>&lt;/<span class="end-tag">xsd:simpleType</span>&gt;</span><span>
+<span id="line137"></span>
+<span id="line138"></span>  </span><span>&lt;<span class="start-tag">xsd:simpleType</span> <span class="attribute-name">name</span>="<a class="attribute-value">DisplayMode_t</a>"&gt;</span><span>
+<span id="line139"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line140"></span>    This type contains a string that specifies how a waypoint should be
+<span id="line141"></span>    displayed on a map.
+<span id="line142"></span>    </span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line143"></span>    </span><span>&lt;<span class="start-tag">xsd:restriction</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:token</a>"&gt;</span><span>
+<span id="line144"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">SymbolOnly</a>"<span>/</span>&gt;</span><span>
+<span id="line145"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">SymbolAndName</a>"<span>/</span>&gt;</span><span>
+<span id="line146"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">SymbolAndDescription</a>"<span>/</span>&gt;</span><span>
+<span id="line147"></span>    </span><span>&lt;/<span class="end-tag">xsd:restriction</span>&gt;</span><span>
+<span id="line148"></span>  </span><span>&lt;/<span class="end-tag">xsd:simpleType</span>&gt;</span><span>
+<span id="line149"></span>
+<span id="line150"></span>  </span><span>&lt;<span class="start-tag">xsd:simpleType</span> <span class="attribute-name">name</span>="<a class="attribute-value">DisplayColor_t</a>"&gt;</span><span>
+<span id="line151"></span>    </span><span>&lt;<span class="start-tag">xsd:restriction</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:token</a>"&gt;</span><span>
+<span id="line152"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Black</a>"<span>/</span>&gt;</span><span>
+<span id="line153"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">DarkRed</a>"<span>/</span>&gt;</span><span>
+<span id="line154"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">DarkGreen</a>"<span>/</span>&gt;</span><span>
+<span id="line155"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">DarkYellow</a>"<span>/</span>&gt;</span><span>
+<span id="line156"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">DarkBlue</a>"<span>/</span>&gt;</span><span>
+<span id="line157"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">DarkMagenta</a>"<span>/</span>&gt;</span><span>
+<span id="line158"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">DarkCyan</a>"<span>/</span>&gt;</span><span>
+<span id="line159"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">LightGray</a>"<span>/</span>&gt;</span><span>
+<span id="line160"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">DarkGray</a>"<span>/</span>&gt;</span><span>
+<span id="line161"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Red</a>"<span>/</span>&gt;</span><span>
+<span id="line162"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Green</a>"<span>/</span>&gt;</span><span>
+<span id="line163"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Yellow</a>"<span>/</span>&gt;</span><span>
+<span id="line164"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Blue</a>"<span>/</span>&gt;</span><span>
+<span id="line165"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Magenta</a>"<span>/</span>&gt;</span><span>
+<span id="line166"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Cyan</a>"<span>/</span>&gt;</span><span>
+<span id="line167"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">White</a>"<span>/</span>&gt;</span><span>
+<span id="line168"></span>      </span><span>&lt;<span class="start-tag">xsd:enumeration</span> <span class="attribute-name">value</span>="<a class="attribute-value">Transparent</a>"<span>/</span>&gt;</span><span>
+<span id="line169"></span>    </span><span>&lt;/<span class="end-tag">xsd:restriction</span>&gt;</span><span>
+<span id="line170"></span>  </span><span>&lt;/<span class="end-tag">xsd:simpleType</span>&gt;</span><span>
+<span id="line171"></span>
+<span id="line172"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">AutoroutePoint_t</a>"&gt;</span><span>
+<span id="line173"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line174"></span>      </span><span>&lt;<span class="start-tag">xsd:element</span> <span class="attribute-name">name</span>="<a class="attribute-value">Subclass</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Subclass_t</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>"<span>/</span>&gt;</span><span>
+<span id="line175"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line176"></span>    </span><span>&lt;<span class="start-tag">xsd:attribute</span> <span class="attribute-name">name</span>="<a class="attribute-value">lat</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Latitude_t</a>" <span class="attribute-name">use</span>="<a class="attribute-value">required</a>"<span>/</span>&gt;</span><span>
+<span id="line177"></span>    </span><span>&lt;<span class="start-tag">xsd:attribute</span> <span class="attribute-name">name</span>="<a class="attribute-value">lon</a>" <span class="attribute-name">type</span>="<a class="attribute-value">Longitude_t</a>" <span class="attribute-name">use</span>="<a class="attribute-value">required</a>"<span>/</span>&gt;</span><span>
+<span id="line178"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line179"></span>  
+<span id="line180"></span>  </span><span>&lt;<span class="start-tag">xsd:simpleType</span> <span class="attribute-name">name</span>="<a class="attribute-value">Subclass_t</a>"&gt;</span><span>
+<span id="line181"></span>    </span><span>&lt;<span class="start-tag">xsd:restriction</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:hexBinary</a>"&gt;</span><span>
+<span id="line182"></span>      </span><span>&lt;<span class="start-tag">xsd:length</span> <span class="attribute-name">value</span>="<a class="attribute-value">18</a>"<span>/</span>&gt;</span><span>
+<span id="line183"></span>    </span><span>&lt;/<span class="end-tag">xsd:restriction</span>&gt;</span><span>    
+<span id="line184"></span>  </span><span>&lt;/<span class="end-tag">xsd:simpleType</span>&gt;</span><span>
+<span id="line185"></span>
+<span id="line186"></span>  </span><span>&lt;<span class="start-tag">xsd:simpleType</span> <span class="attribute-name">name</span>="<a class="attribute-value">Latitude_t</a>"&gt;</span><span>
+<span id="line187"></span>	</span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line188"></span>    The latitude of the point.  Decimal degrees, WGS84 datum.
+<span id="line189"></span>	</span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line190"></span>    </span><span>&lt;<span class="start-tag">xsd:restriction</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:decimal</a>"&gt;</span><span>
+<span id="line191"></span>      </span><span>&lt;<span class="start-tag">xsd:minInclusive</span> <span class="attribute-name">value</span>="<a class="attribute-value">-90.0</a>"<span>/</span>&gt;</span><span>
+<span id="line192"></span>      </span><span>&lt;<span class="start-tag">xsd:maxInclusive</span> <span class="attribute-name">value</span>="<a class="attribute-value">90.0</a>"<span>/</span>&gt;</span><span>
+<span id="line193"></span>    </span><span>&lt;/<span class="end-tag">xsd:restriction</span>&gt;</span><span>
+<span id="line194"></span>  </span><span>&lt;/<span class="end-tag">xsd:simpleType</span>&gt;</span><span>
+<span id="line195"></span>
+<span id="line196"></span>  </span><span>&lt;<span class="start-tag">xsd:simpleType</span> <span class="attribute-name">name</span>="<a class="attribute-value">Longitude_t</a>"&gt;</span><span>
+<span id="line197"></span>	</span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span></span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line198"></span>    The longitude of the point.  Decimal degrees, WGS84 datum.
+<span id="line199"></span>	</span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span></span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line200"></span>    </span><span>&lt;<span class="start-tag">xsd:restriction</span> <span class="attribute-name">base</span>="<a class="attribute-value">xsd:decimal</a>"&gt;</span><span>
+<span id="line201"></span>      </span><span>&lt;<span class="start-tag">xsd:minInclusive</span> <span class="attribute-name">value</span>="<a class="attribute-value">-180.0</a>"<span>/</span>&gt;</span><span>
+<span id="line202"></span>      </span><span>&lt;<span class="start-tag">xsd:maxExclusive</span> <span class="attribute-name">value</span>="<a class="attribute-value">180.0</a>"<span>/</span>&gt;</span><span>
+<span id="line203"></span>    </span><span>&lt;/<span class="end-tag">xsd:restriction</span>&gt;</span><span>
+<span id="line204"></span>  </span><span>&lt;/<span class="end-tag">xsd:simpleType</span>&gt;</span><span>
+<span id="line205"></span>    
+<span id="line206"></span>  </span><span>&lt;<span class="start-tag">xsd:complexType</span> <span class="attribute-name">name</span>="<a class="attribute-value">Extensions_t</a>"&gt;</span><span>
+<span id="line207"></span>    </span><span>&lt;<span class="start-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line208"></span>    </span><span>&lt;<span class="start-tag">xsd:documentation</span>&gt;</span><span>This type provides the ability to extend any data type that includes it.</span><span>&lt;/<span class="end-tag">xsd:documentation</span>&gt;</span><span>
+<span id="line209"></span>    </span><span>&lt;/<span class="end-tag">xsd:annotation</span>&gt;</span><span>
+<span id="line210"></span>    </span><span>&lt;<span class="start-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line211"></span>    </span><span>&lt;<span class="start-tag">xsd:any</span> <span class="attribute-name">namespace</span>="<a class="attribute-value">##other</a>" <span class="attribute-name">processContents</span>="<a class="attribute-value">lax</a>" <span class="attribute-name">minOccurs</span>="<a class="attribute-value">0</a>" <span class="attribute-name">maxOccurs</span>="<a class="attribute-value">unbounded</a>"<span>/</span>&gt;</span><span>
+<span id="line212"></span>    </span><span>&lt;/<span class="end-tag">xsd:sequence</span>&gt;</span><span>
+<span id="line213"></span>  </span><span>&lt;/<span class="end-tag">xsd:complexType</span>&gt;</span><span>
+<span id="line214"></span>
+<span id="line215"></span></span><span>&lt;/<span class="end-tag">xsd:schema</span>&gt;</span><span>
+<span id="line216"></span></span></pre><menu type="context" id="actions"><menuitem id="goToLine" label="Zu Zeile springen…" accesskey="L"></menuitem><menuitem id="wrapLongLines" label="Lange Zeilen umbrechen" type="checkbox"></menuitem><menuitem id="highlightSyntax" label="Syntax-Hervorhebung" type="checkbox" checked="true"></menuitem></menu></body></html>

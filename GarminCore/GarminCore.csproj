@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{38020956-623A-49C4-A9CA-12240D191ADD}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>GarminCore</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>IDE1006</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>GarminCore</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BinaryReaderWriter.cs" />
+    <Compile Include="Bit.cs" />
+    <Compile Include="BitReader.cs" />
+    <Compile Include="Bound.cs" />
+    <Compile Include="ClipperLib\clipper.cs" />
+    <Compile Include="Coord.cs" />
+    <Compile Include="CRC32.cs" />
+    <Compile Include="DataBlock.cs" />
+    <Compile Include="DataBlockWithRecordsize.cs" />
+    <Compile Include="DskImg\FATBlock.cs" />
+    <Compile Include="DskImg\Header.cs" />
+    <Compile Include="DskImg\MyStream.cs" />
+    <Compile Include="DskImg\SimpleFilesystem.cs" />
+    <Compile Include="DskImg\SimpleFilesystemReadOnly.cs" />
+    <Compile Include="Files\DEM\SubtileTableitem.cs" />
+    <Compile Include="Files\DEM\ZoomlevelTableitem.cs" />
+    <Compile Include="Files\FileSections.cs" />
+    <Compile Include="Files\File_MDX.cs" />
+    <Compile Include="Files\File_MPS.cs" />
+    <Compile Include="Files\File_TDB.cs" />
+    <Compile Include="Files\Label.cs" />
+    <Compile Include="Files\LabelCodec.cs" />
+    <Compile Include="Files\StdFile.cs" />
+    <Compile Include="Files\StdFile_DEM.cs" />
+    <Compile Include="Files\StdFile_GMP.cs" />
+    <Compile Include="Files\StdFile_LBL.cs" />
+    <Compile Include="Files\StdFile_MAR.cs" />
+    <Compile Include="Files\StdFile_MDR.cs" />
+    <Compile Include="Files\StdFile_NET.cs" />
+    <Compile Include="Files\StdFile_NOD.cs" />
+    <Compile Include="Files\StdFile_RGN.cs" />
+    <Compile Include="Files\StdFile_SRT.cs" />
+    <Compile Include="Files\StdFile_TRE.cs" />
+    <Compile Include="Files\StdFile_TYP.cs" />
+    <Compile Include="Files\Typ\BinaryColor.cs" />
+    <Compile Include="Files\Typ\GraphicElement.cs" />
+    <Compile Include="Files\Typ\MultiText.cs" />
+    <Compile Include="Files\Typ\PixData.cs" />
+    <Compile Include="Files\Typ\PixMap.cs" />
+    <Compile Include="Files\Typ\POI.cs" />
+    <Compile Include="Files\Typ\PolygonDraworderTableItem.cs" />
+    <Compile Include="Files\Typ\Polygone.cs" />
+    <Compile Include="Files\Typ\Polyline.cs" />
+    <Compile Include="Files\Typ\TableItem.cs" />
+    <Compile Include="Files\Typ\Text.cs" />
+    <Compile Include="Garmin.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="Latitude.cs" />
+    <Compile Include="Longitude.cs" />
+    <Compile Include="MapUnitPoint.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs" />
+    <Compile Include="ShortDataBlock.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="License.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

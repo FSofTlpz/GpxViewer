@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>GarminImageCreator</AssemblyName>
+    <RootNamespace>GarminImageCreator</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DRAWWITHSKIA;_WITHOUT_SQLITECACHE;_DRAWBITMAPSEQUENTIEL</DefineConstants>
+    <NoWarn>1701;1702;IDE1006</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;DRAWWITHSKIA;WITHOUT_SQLITECACHE;NO_DRAWBITMAPSEQUENTIEL</DefineConstants>
+    <NoWarn>1701;1702;IDE1006</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="GarminMapDefinitionData.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="!notes.txt" />
+    <None Remove="Step0.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FSofTUtils\FSofTUtils.Skia.csproj" />
+    <ProjectReference Include="..\GarminCore\GarminCore.Skia.csproj" />
+    <ProjectReference Include="..\Sqlite4Garmin\Sqlite4Garmin.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+</Project>

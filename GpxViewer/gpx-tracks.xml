@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<gpxlist>
+  <name>Meine Track-Sammlung</name>
+  <group name="KMZ/KML">
+    <gpxfile gpxfile="../../Sonstiges/gpx/GoogleEarth.kmz"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/gdal.kmz"
+             name="GDAL-Test"
+             trackcolorno="3"/>
+  </group>"
+  <group name="">
+    <gpxfile name="Radtour 29.4.2012, Flämingskate, 92,8km"
+             gpxfile="../../Sonstiges/gpx/20120429.gpx"
+             picturegpxfile=""
+             trackcolorno="2"/>
+  </group>"
+  <group name="">
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20160626, Cospudener See, 14,7km.gpx"
+             name="26.06.2016, Cospudener See, 14,7km"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20160703, Zwenkauer See, 22,8km.gpx"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20170121, Markkleeberger See, 18,1km.gpx"
+             name="21.01.2017, Markkleeberger See, 18,1km"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20170521, Markkleeberger und Cospudener See, 22,1km.gpx"
+             name="21.05.2017, Markkleeberger und Cospudener See, 22,1km"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20170917, Markkleeberger See, 11,6km.gpx"
+             name="17.09.2017, Markkleeberger See, 11,6km"/>
+  </group>"
+  <group name="Test">
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20200211, Stralsund, 7,9km.gpx"
+             trackcolorno="3"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20200212, Klausdorf - Stralsund, 23,1+1,6+4,2km.gpx"
+             name="12.02.2020, Klausdorf - Stralsund, 23,1+1,6+4,2km"
+             trackcolorno="3"
+             picturegpxfile="../../Sonstiges/gpx/Bilder20200212.gpx"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20200213, Breesen - Altefähr, 24,5+2,1km.gpx"
+             name="13.02.2020, Breesen - Altefähr, 24,5+2,1km"
+             trackcolorno="3"
+             picturegpxfile="../../Sonstiges/gpx/Bilder20200213.gpx"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20200214, Zingst, 21,1+2,1km.gpx"
+             name="14.02.2020, Zingst, 21,1+2,1km"
+             trackcolorno="3"
+             picturegpxfile="../../Sonstiges/gpx/Bilder20200214.gpx"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20200215, Stralsund, 23,0+4,1km.gpx"
+             name="15.02.2020, Stralsund, 23,0+4,1km"
+             trackcolorno="3"
+             picturegpxfile="../../Sonstiges/gpx/Bilder20200215.gpx"/>
+  </group>"
+  <group name="">
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20180311, Markkleeberger See, 17,7km.gpx"
+             name="11.03.2018, Markkleeberger See, 17,7km"   />
+    <gpxfile gpxfile="../../Sonstiges/gpx/W 20190825, Kanupark Markkleeberg, 14,5km.gpx"
+             name="25.08.2019, Kanupark Markkleeberg, 14,5km"/>
+  </group>"
+  <group name="Radtour Flämingskate 4/2012">
+    <gpxfile gpxfile="../../Sonstiges/gpx/20120430.gpx"
+             name="Radtour 30.4.2012, Flämingskate, 104,6km"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/20120429.gpx"
+             name="Radtour 29.4.2012, Flämingskate, 92,8km"
+             trackcolorno="2"
+             picturegpxfile="../../Sonstiges/gpx/Bilder20120429.gpx"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/20120428.gpx"
+             name="Radtour 28.4.2012, Flämingskate, 87,1km"
+             trackcolorno="2"
+             picturegpxfile="../../Sonstiges/gpx/Bilder20120428.gpx"/>
+    <gpxfile gpxfile="../../Sonstiges/gpx/20120427.gpx"
+             name="Radtour 27.4.2012, Flämingskate, 34,3km"                                                                                          />
+  </group>"
+</gpxlist>

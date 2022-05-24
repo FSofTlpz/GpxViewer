@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>GMap.NET.Ext</AssemblyName>
+    <RootNamespace>GMap.NET.Ext</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;IDE1006</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;IDE1006</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="WindowsForms\**" />
+    <EmbeddedResource Remove="WindowsForms\**" />
+    <None Remove="WindowsForms\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="FSofTUtils\Geo\GeoFeatures.cs" />
+    <Compile Remove="FSofTUtils\Geo\GeoFeatures1.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="app.config" />
+    <None Remove="packages.config" />
+    <None Remove="SRID.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.639" />
+    <PackageReference Include="GeoAPI.CoordinateSystems" Version="1.7.5" />
+    <PackageReference Include="GeoAPI.Core" Version="1.7.5" />
+    <PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GarminCore\GarminCore.Skia.csproj" />
+    <ProjectReference Include="..\GarminImageCreator\GarminImageCreator.Skia.csproj" />
+    <ProjectReference Include="..\GMap.NET\GMap.NET.Core\GMap.NET.Core.Android.csproj" />
+  </ItemGroup>
+
+</Project>

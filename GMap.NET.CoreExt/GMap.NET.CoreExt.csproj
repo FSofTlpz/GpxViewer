@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{016DD415-1E3C-4A32-A418-EA1CD07E2C29}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GMap.NET.CoreExt</RootNamespace>
+    <AssemblyName>GMap.NET.CoreExt</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FSofTUtils\Drawing\BitmapHelper.cs" />
+    <Compile Include="FSofTUtils\Geography\KmzMap.cs" />
+    <Compile Include="FSofTUtils\Geography\DEM\DEM1x1.cs" />
+    <Compile Include="FSofTUtils\Geography\DEM\DemData.cs" />
+    <Compile Include="FSofTUtils\Geography\DEM\DEMHGTReader.cs" />
+    <Compile Include="FSofTUtils\Geography\DEM\DEMNoValues.cs" />
+    <Compile Include="FSofTUtils\Geography\DEM\DEMTiffReader.cs" />
+    <Compile Include="FSofTUtils\Geography\SRIDReader.cs" />
+    <Compile Include="FSofTUtils\Geography\WMS_Capabilities.cs" />
+    <Compile Include="MapProviders\GMapProviderWithHillshade.cs" />
+    <Compile Include="MapProviders\MapProviderDefinition.cs" />
+    <Compile Include="MapProviders\WMSProvider.cs" />
+    <Compile Include="MapProviders\GarminKmzProvider.cs" />
+    <Compile Include="MapProviders\GarminProvider.cs" />
+    <Compile Include="PointUTM.cs" />
+    <Compile Include="Projections\GarminProjection.cs" />
+    <Compile Include="Projections\MercatorProjection2.cs" />
+    <Compile Include="Projections\UTMProjection.cs" />
+    <Compile Include="WindowsForms\GMapPolygonExt.cs" />
+    <Compile Include="WindowsForms\Markers\GMarkerText.cs" />
+    <Compile Include="WindowsForms\ToolTips\GMapMarkerToolTip.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GarminImageCreator\GarminImageCreator.csproj">
+      <Project>{29c115fc-77e6-44c1-a46e-5eb4d0385428}</Project>
+      <Name>GarminImageCreator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GMap.NET-master\GMap.NET\GMap.NET.Core\GMap.NET.Core.csproj">
+      <Project>{1e53793f-a6ec-435f-bbe2-097e4009a6d8}</Project>
+      <Name>GMap.NET.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GMap.NET-master\GMap.NET\GMap.NET.WindowsForms\GMap.NET.WindowsForms.csproj">
+      <Project>{a092251c-ef53-4f2a-aaed-b631bf84fcb4}</Project>
+      <Name>GMap.NET.WindowsForms</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BitMiracle.LibTiff.NET">
+      <Version>2.4.639</Version>
+    </PackageReference>
+    <PackageReference Include="GeoAPI.CoordinateSystems">
+      <Version>1.7.5</Version>
+    </PackageReference>
+    <PackageReference Include="ProjNET4GeoAPI">
+      <Version>1.4.1</Version>
+    </PackageReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

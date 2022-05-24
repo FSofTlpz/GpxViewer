@@ -1,16 +1,38 @@
-# PdfArranger
-With this tool you can create new arrangements of PDF-Pages from different PDF-Files.
+# GpxViewer
 
-You can also direct insert a scanned page.
+The main purpose of GpxViewer is the readonly-view of a lot of gpx-tracks.
+   
+But it is also possible to create new tracks or edit a copy of the readonly-tracks.
 
-The tool use different nuget-packages:
+Under the hood work the GMap.NET project for using different sources for the maps. It exist additional map-providers
+for offline garmin-maps, geotiffs and garmin-kmz-maps. You can also use DEM-data.
 
-"Ghostscript", Version 9.2.0
-The ghostscript dlls. To be used with Ghostscript.NET or Ghostscriptsharp
+### necessary nuget-projects
 
-"Ghostscript.NET", Version 1.2.3
-Ghostscript.NET (written in C#) is the most completed managed wrapper library around the Ghostscript library (32-bit & 64-bit), an interpreter for the PostScript language, PDF, related software and documentation.
+*BitMiracle.LibTiff.NET*
+.NET version of LibTiff library made by Bit Miracle
 
-"itext7", Version 7.2.2
-iText 7 represents the next level of SDKs for developers that want to take advantage of the benefits PDF can bring. Equipped with a better document engine, high- and low-level programming capabilities and the ability to create, edit and enhance PDF documents, iText 7 can be a boon to nearly every workflow. iText 7 allows you to build custom PDF scenarios for web, mobile, desktop or cloud apps in .NET.
+*GeoAPI.CoordinateSystems*
+GeoAPI.NET project provides a common framework based on OGC/ISO standards to improve interoperability among .NET GIS projects.
 
+*Microsoft.Data.Sqlite*
+Microsoft.Data.Sqlite is a lightweight ADO.NET provider for SQLite.
+
+*NETStandard.Library*
+A set of standard .NET APIs that are prescribed to be used and supported together. 
+
+*Newtonsoft.Json*
+Json.NET is a popular high-performance JSON framework for .NET
+
+*ProjNET4GeoAPI*
+.NET Spatial Reference and Projection Engine.
+Proj.NET performs point-to-point coordinate conversions between geodetic coordinate systems for use in fx. Geographic Information Systems (GIS) or GPS applications. The spatial reference model used adheres to the Simple Features specification.
+
+*SQLitePCLRaw.bundle_e_sqlite3*
+This 'batteries-included' bundle brings in SQLitePCLRaw.core and the necessary stuff for certain common use cases.  Call SQLitePCL.Batteries.Init().  Policy of this bundle: e_sqlite3 included
+
+*System.Data.SQLite*
+Provides the data provider for SQL Server. These classes provide access to versions of SQL Server and encapsulate database-specific protocols, including tabular data stream (TDS)
+
+*System.Security.Principal.Windows*
+Provides classes for retrieving the current Windows user and for interacting with Windows users and groups.

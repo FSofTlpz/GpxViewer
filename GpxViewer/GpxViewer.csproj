@@ -420,8 +420,8 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>xcopy /Y /S /I $(SolutionDir)SQLite.Interop.dll\x64 $(TargetDir)x64
-xcopy /Y /S /I $(SolutionDir)SQLite.Interop.dll\x86 $(TargetDir)x86
+    <PreBuildEvent>rem xcopy /Y /S /I $(SolutionDir)SQLite.Interop.dll\x64 $(TargetDir)x64
+rem xcopy /Y /S /I $(SolutionDir)SQLite.Interop.dll\x86 $(TargetDir)x86
 </PreBuildEvent>
   </PropertyGroup>
 </Project>

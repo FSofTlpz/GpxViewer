@@ -19,3 +19,7 @@ obj/
 *.cmd
 *.txt
 
+GarminSymbols/
+Test_GDB/
+Sonstiges/
+GMap.NET-master/Build/

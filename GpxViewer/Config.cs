@@ -8,6 +8,10 @@ namespace GpxViewer {
 
       const string XML_ROOT = "gpxview";
 
+      const string XML_MINIMALTRACKPOINTDISTANCE = "minimaltrackpointdistance";
+      const string XML_MINIMALTRACKPOINTDISTANCE_X = "@x";
+      const string XML_MINIMALTRACKPOINTDISTANCE_Y = "@y";
+
       const string XML_SECTION_PROXY = "proxy";
       const string XML_PROXYNAME = "proxyname";
       const string XML_PROXYPORT = "proxyport";
@@ -87,6 +91,18 @@ namespace GpxViewer {
          base(configfile, XML_ROOT, xsdfile) {
          Validating = false;
          LoadData();
+      }
+
+      public int MinimalTrackpointDistanceX {
+         get {
+            return ReadValue("/" + XML_ROOT + "/" + XML_MINIMALTRACKPOINTDISTANCE + "/" + XML_MINIMALTRACKPOINTDISTANCE_X, 14);
+         }
+      }
+
+      public int MinimalTrackpointDistanceY {
+         get {
+            return ReadValue("/" + XML_ROOT + "/" + XML_MINIMALTRACKPOINTDISTANCE + "/" + XML_MINIMALTRACKPOINTDISTANCE_Y, 14);
+         }
       }
 
       public string CacheLocation {

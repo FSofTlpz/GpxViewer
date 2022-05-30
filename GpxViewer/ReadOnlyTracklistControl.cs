@@ -272,10 +272,7 @@ namespace GpxViewer {
          /// <param name="idx"></param>
          public new void RemoveChildAt(int idx) {
             base.RemoveChildAt(idx);
-            if (0 <= idx && idx < Childs + 1) {
-               if (VisualNode != null)
-                  visualNode_Remove(VisualNode, idx);
-            }
+            visualNode_Remove(VisualNode, idx);
          }
 
          /// <summary>
@@ -284,7 +281,7 @@ namespace GpxViewer {
          /// <param name="child"></param>
          public void RemoveChild(TNode child) {
             base.RemoveChild(child);
-            if (VisualNode != null && child.VisualNode != null)
+            if (child != null)
                visualNode_Remove(VisualNode, child.VisualNode);
          }
 
@@ -349,14 +346,38 @@ namespace GpxViewer {
             VisualNode?.Collapse();
          }
 
+
+         Control getMasterAndTreeNodeCollection(TreeNode parent, out TreeNodeCollection tnc) {
+            Control master = null;
+            tnc = null;
+
+            if (parent == null) {   // dann für root
+               if (this is Tree) {
+                  master = (this as Tree).VisualTree.Parent;
+                  tnc = (this as Tree).VisualTree.Nodes;
+               }
+            } else {
+               master = parent.TreeView.Parent;
+               tnc = parent.Nodes;
+            }
+            return master;
+         }
+
+
          /// <summary>
          /// löscht den visuellen Childnode
          /// </summary>
          /// <param name="parent"></param>
          /// <param name="child"></param>
          void visualNode_Remove(TreeNode parent, TreeNode child) {
-            //parent.Nodes.Remove(child);
-            InvokeMethod4TreeNodeCollection(parent.TreeView.Parent, parent.Nodes, "Remove", new object[] { child });
+            Control master = getMasterAndTreeNodeCollection(parent, out TreeNodeCollection tnc);
+            if (master != null &&
+                tnc != null &&
+                child != null)
+               InvokeMethod4TreeNodeCollection(parent.TreeView.Parent,
+                                               parent.Nodes,
+                                               "Remove",
+                                               new object[] { child });
          }
 
          /// <summary>
@@ -365,10 +386,22 @@ namespace GpxViewer {
          /// <param name="parent"></param>
          /// <param name="idx"></param>
          void visualNode_Remove(TreeNode parent, int idx) {
-            if (0 <= idx && idx < VisualNode.Nodes.Count) {
-               //parent.Nodes.RemoveAt(idx);
-               InvokeMethod4TreeNodeCollection(parent.TreeView.Parent, parent.Nodes, "RemoveAt", new object[] { idx });
-            }
+            //parent.Nodes.RemoveAt(idx);
+
+            Control master = getMasterAndTreeNodeCollection(parent, out TreeNodeCollection tnc);
+            if (master != null &&
+                tnc != null &&
+                0 <= idx && idx < tnc.Count)
+               InvokeMethod4TreeNodeCollection(master,
+                                               tnc,
+                                               "RemoveAt",
+                                               new object[] { idx });
+
+            //if (0 <= idx && idx < VisualNode.Nodes.Count) 
+            //   InvokeMethod4TreeNodeCollection(parent.TreeView.Parent, 
+            //                                   parent.Nodes, 
+            //                                   "RemoveAt", 
+            //                                   new object[] { idx });
          }
 
          /// <summary>
@@ -1120,7 +1153,7 @@ namespace GpxViewer {
       /// <param name="tn"></param>
       void visualTreeClick(TNode tn) {
          if (tn != null &&
-             !tn.IsEnabled)
+             tn.IsEnabled)
             tn.GetTree().SelectedNode = tn;
       }
 
@@ -1591,10 +1624,21 @@ namespace GpxViewer {
             BaseTreenode.Walk(tn,
                               (BaseTreenode btn) => {
                                  TNode tnode = btn as TNode;
-                                 if (tnode.Nodetype == TNode.NodeType.Track &&
-                                     tnode.Track.Equals(track)) {
-                                    result = tnode;
-                                    return true;      // Abbruch der Suche
+                                 switch (tnode.Nodetype) {
+                                    case TNode.NodeType.Track:
+                                       if (tnode.Track.Equals(track)) {
+                                          result = tnode;
+                                          return true;      // Abbruch der Suche
+                                       }
+                                       break;
+
+                                    case TNode.NodeType.GpxObject: // falls GPX-Datei mit nur einem Track
+                                       if (tnode.Gpx.TrackList.Count == 1 &&
+                                           tnode.Gpx.TrackList[0].Equals(track)) {
+                                          result = tnode;
+                                          return true;      // Abbruch der Suche
+                                       }
+                                       break;
                                  }
                                  return false;
                               });

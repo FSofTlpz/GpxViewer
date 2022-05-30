@@ -218,7 +218,7 @@
             this.toolStripMenuItem_ReadOnlyTrackClone,
             this.toolStripMenuItem_ReadOnlyGpxRemove});
          this.contextMenuStripReadOnlyTracks.Name = "contextMenuStripTrack";
-         this.contextMenuStripReadOnlyTracks.Size = new System.Drawing.Size(265, 275);
+         this.contextMenuStripReadOnlyTracks.Size = new System.Drawing.Size(265, 300);
          this.contextMenuStripReadOnlyTracks.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenuStripReadOnlyTracks_Closed);
          this.contextMenuStripReadOnlyTracks.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripReadOnlyTracks_Opening);
          // 
@@ -317,7 +317,7 @@
             0,
             0});
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Name = "numericUpDownMenuItem_ReadOnlyLineThickness";
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Size = new System.Drawing.Size(133, 30);
+         this.numericUpDownMenuItem_ReadOnlyLineThickness.Size = new System.Drawing.Size(139, 33);
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Text = "Liniendicke";
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Value = new decimal(new int[] {
             5,
@@ -981,8 +981,6 @@
          this.Text = "Form1";
          this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
          this.Load += new System.EventHandler(this.FormMain_Load);
-         this.DragDrop += new System.Windows.Forms.DragEventHandler(this.FormMain_DragDrop);
-         this.DragEnter += new System.Windows.Forms.DragEventHandler(this.FormMain_DragEnter);
          this.panelMap.ResumeLayout(false);
          this.splitContainer1.Panel1.ResumeLayout(false);
          this.splitContainer1.Panel2.ResumeLayout(false);

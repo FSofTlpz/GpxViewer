@@ -26,12 +26,6 @@ namespace GpxViewer {
    public partial class FormMain : Form {
 
       /// <summary>
-      /// Größe des Quadrates für <see cref="rectLastMouseMovePosition"/>
-      /// </summary>
-      const int RECTSIZE4LASTMOUSEMOVEPOS = 14;
-
-
-      /// <summary>
       /// für den threadübergreifenden Aufruf von Close() und <see cref="RefreshProgramState"/>() nötig (keine Parameter, kein Ergebnis)
       /// </summary>
       private delegate void SafeCallDelegate4Void2Void();
@@ -301,16 +295,16 @@ namespace GpxViewer {
       #region Dra&Drop für Prog
 
       private void FormMain_DragEnter(object sender, DragEventArgs e) {
-         if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            e.Effect = DragDropEffects.All;
-         else
-            e.Effect = DragDropEffects.None;
+         //if (e.Data.GetDataPresent(DataFormats.FileDrop))
+         //   e.Effect = DragDropEffects.All;
+         //else
+         //   e.Effect = DragDropEffects.None;
       }
 
       private void FormMain_DragDrop(object sender, DragEventArgs e) {
-         string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-         for (int i = 0; i < files.Length; i++)
-            readOnlyTracklistControl1.AddFile(files[i]);
+         //string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+         //for (int i = 0; i < files.Length; i++)
+         //   readOnlyTracklistControl1.AddFile(files[i]);
       }
 
       #endregion
@@ -726,7 +720,7 @@ im 'Track zeichnen'-Modus:
       /// <summary>
       /// letzte Pos. bei einer Kartenverschiebung (als Quadrat, damit winzige Verschiebungen nicht das Setzen eines Punktes verhinden)
       /// </summary>
-      Rectangle rectLastMouseMovePosition = new Rectangle(int.MinValue, int.MinValue, RECTSIZE4LASTMOUSEMOVEPOS, RECTSIZE4LASTMOUSEMOVEPOS);
+      Rectangle rectLastMouseMovePosition = new Rectangle(int.MinValue, int.MinValue, 0, 0);
 
       private void mapControl1_MapMouseEvent(object sender, SmallMapCtrl.MapMouseEventArgs e) {
          Track markedtrack;
@@ -779,6 +773,8 @@ im 'Track zeichnen'-Modus:
                               if (rectLastMouseMovePosition.Left <= e.Location.X && e.Location.X <= rectLastMouseMovePosition.Right &&
                                   rectLastMouseMovePosition.Top <= e.Location.Y && e.Location.Y <= rectLastMouseMovePosition.Bottom) {
                                  rectLastMouseMovePosition.X = rectLastMouseMovePosition.Y = int.MinValue;
+                                 rectLastMouseMovePosition.Width = config.MinimalTrackpointDistanceX;
+                                 rectLastMouseMovePosition.Height = config.MinimalTrackpointDistanceY;
                                  break;
                               }
 
@@ -1817,6 +1813,9 @@ im 'Track zeichnen'-Modus:
          }
 
          VisualMarker.RegisterExternSymbols(GarminMarkerSymbols);
+
+         // Größe des Quadrates festgelegt
+         rectLastMouseMovePosition = new Rectangle(int.MinValue, int.MinValue, config.MinimalTrackpointDistanceX, config.MinimalTrackpointDistanceY);
 
          MapControl.MapCacheIsActiv = !config.ServerOnly;
          MapControl.MapSetProxy(config.WebProxyName,

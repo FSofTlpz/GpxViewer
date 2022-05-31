@@ -7,6 +7,8 @@ But it is also possible to create new tracks or edit a copy of the readonly-trac
 Under the hood work the GMap.NET project for using different sources for the maps. It exist additional map-providers
 for offline garmin-maps, geotiffs and garmin-kmz-maps. You can also use DEM-data.
 
+The program can read GPX-, Garmin-GDB-, Google-KMZ- and -KML-Files.
+
 ### necessary nuget-projects
 
 **BitMiracle.LibTiff.NET**
@@ -37,12 +39,19 @@ Provides the data provider for SQL Server. These classes provide access to versi
 **System.Security.Principal.Windows**
 Provides classes for retrieving the current Windows user and for interacting with Windows users and groups.
 
+Also used:
+
+ColorWheel, ColorSelector, ColorFader from Yves Goergen (http://unclassified.software/source/colorwheel ...)
+
 
 ### example for gpxviewer.xml
 
 ```
 <?xml version="1.0" encoding="Windows-1252"?>
 <gpxview xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="gpxview.xsd">
+
+	<minimaltrackpointdistance x="14" y="14"/>
+
 	<proxy>
     <!-- falls Internet nur über Proxy erreichbar ist -->
     <proxyname></proxyname>

@@ -374,8 +374,8 @@ namespace GpxViewer {
             if (master != null &&
                 tnc != null &&
                 child != null)
-               InvokeMethod4TreeNodeCollection(parent.TreeView.Parent,
-                                               parent.Nodes,
+               InvokeMethod4TreeNodeCollection(master,
+                                               tnc,
                                                "Remove",
                                                new object[] { child });
          }

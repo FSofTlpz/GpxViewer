@@ -634,12 +634,19 @@ namespace SmallMapControl {
                switch (obj.ObjectHeader.ObjectType) {
                   case GDB.ObjectHeader.GDBObjectType.WAYPOINT:
                      GDB.Waypoint wp = obj as GDB.Waypoint;
-                     InsertWaypoint(new Gpx.GpxWaypoint(wp.Lon, wp.Lat) {
+                     Gpx.GpxWaypoint waypoint = new Gpx.GpxWaypoint(wp.Lon, wp.Lat) {
                         Elevation = wp.Ele == double.MinValue ? double.MinValue : wp.Ele,
                         Name = wp.Name,
                         Description = wp.Description,
                         Time = wp.CreationTime,
-                     });
+                        Symbol = GDB.GetIconName4Symbolnumber(wp.IconIdx),
+                     };
+                     if (wp.IconIdx > 0) {
+                        string name = GDB.GetIconName4Symbolnumber(wp.IconIdx);
+                        if (!string.IsNullOrEmpty(name))
+                           waypoint.Symbol = name;
+                     }
+                     InsertWaypoint(waypoint);
                      break;
 
                   case GDB.ObjectHeader.GDBObjectType.TRACK:
@@ -663,9 +670,9 @@ namespace SmallMapControl {
                      InsertTrack(gpxtrack);
                      break;
 
-                  //case GDB.ObjectHeader.GDBObjectType.ROUTE:
+                     //case GDB.ObjectHeader.GDBObjectType.ROUTE:
 
-                  //   break;
+                     //   break;
                }
             }
             rebuildTrackList();

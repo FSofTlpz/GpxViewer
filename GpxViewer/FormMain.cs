@@ -532,6 +532,24 @@ namespace GpxViewer {
          mapControl1.MapZoom--;
       }
 
+      private void toolStripButton1_Click(object sender, EventArgs e) {
+         FormSearch form = null;
+         foreach (Form oform in OwnedForms) {
+            if (oform is FormSearch) {
+               form = oform as FormSearch;
+               break;
+            }
+         }
+
+         if (form == null) {
+            form = new FormSearch();
+            form.GoToPointEvent += Form_GoToEvent;
+            form.GoToAreaEvent += Form_GoToAreaEvent;
+            AddOwnedForm(form);
+            form.Show(this);
+         }
+      }
+
       private void toolStripButton_ViewerMode_Click(object sender, EventArgs e) {
          if (toolStripButton_ViewerMode.Checked) {
             toolStripButton_SetMarker.Checked =
@@ -706,10 +724,13 @@ im 'Track zeichnen'-Modus:
             form.Width = 700;
             form.Show(this);
          }
-
       }
 
       #endregion
+
+
+      //mapControl1.MapGetPointsForText("leipzig", mapControl1.MapGetActiveProviderIdx());
+
 
       #region Events vom MapControl (auch Maus-Events !)
 
@@ -2790,6 +2811,25 @@ im 'Track zeichnen'-Modus:
                                  len);
          }
          toolStripStatusLabel_EditInfo.Text = info;
+      }
+
+      private void Form_GoToEvent(object sender, FormSearch.GoToPointEventArgs e) {
+         SetMapLocationAndZoom(mapControl1.MapZoom, e.Longitude, e.Latitude);
+         if (!string.IsNullOrEmpty(e.Name)) 
+            mapControl1.MapShowMarker(editMarkerHelper.InsertCopy(new Marker(new Gpx.GpxWaypoint(e.Longitude, e.Latitude) { Name = e.Name }, 
+                                                                             Marker.MarkerType.EditableStandard,
+                                                                             "")), 
+                                                                  true);
+      }
+
+      private void Form_GoToAreaEvent(object sender, FormSearch.GoToAreaEventArgs e) {
+         mapControl1.MapZoomToRange(new PointD(e.Left, e.Top),
+                                    new PointD(e.Right, e.Bottom));
+         if (!string.IsNullOrEmpty(e.Name))
+            mapControl1.MapShowMarker(editMarkerHelper.InsertCopy(new Marker(new Gpx.GpxWaypoint(e.Longitude, e.Latitude) { Name = e.Name },
+                                                                             Marker.MarkerType.EditableStandard,
+                                                                             "")),
+                                                                  true);
       }
 
 

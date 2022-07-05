@@ -716,6 +716,11 @@ namespace GpxViewer {
          return MapChangeEditableMarkerDrawOrder(markerorder);
       }
 
+      public List<PointD> MapGetPointsForText(string txt, int mapprovideridx = -1) {
+         GMapProvider gMapProvider = mapprovideridx >= 0 ? smc.MapProviderDefinitions[mapprovideridx].Provider : null;
+         return smc.GetPositionByKeywords(txt, gMapProvider as GeocodingProvider);
+      }
+
       #endregion
 
       public void UpdateVisualTrack(Track t) {

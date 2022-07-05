@@ -4,7 +4,7 @@ The main purpose of GpxViewer is the readonly-view of a lot of gpx-tracks.
    
 But it is also possible to create new tracks or edit a copy of the readonly-tracks.
 
-Under the hood work the GMap.NET project for using different sources for the maps. It exist additional map-providers
+Under the hood work the GMap.NET (27.5.2022) project for using different sources for the maps. It exist additional map-providers
 for offline garmin-maps, geotiffs and garmin-kmz-maps. You can also use DEM-data.
 
 The program can read GPX-, Garmin-GDB-, Google-KMZ- and -KML-Files.

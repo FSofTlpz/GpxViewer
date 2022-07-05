@@ -110,6 +110,7 @@
          this.colorDialog1 = new System.Windows.Forms.ColorDialog();
          this.openFileDialogGpx = new System.Windows.Forms.OpenFileDialog();
          this.saveFileDialogGpx = new System.Windows.Forms.SaveFileDialog();
+         this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
          this.panelMap.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
          this.splitContainer1.Panel1.SuspendLayout();
@@ -218,7 +219,7 @@
             this.toolStripMenuItem_ReadOnlyTrackClone,
             this.toolStripMenuItem_ReadOnlyGpxRemove});
          this.contextMenuStripReadOnlyTracks.Name = "contextMenuStripTrack";
-         this.contextMenuStripReadOnlyTracks.Size = new System.Drawing.Size(265, 300);
+         this.contextMenuStripReadOnlyTracks.Size = new System.Drawing.Size(265, 275);
          this.contextMenuStripReadOnlyTracks.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenuStripReadOnlyTracks_Closed);
          this.contextMenuStripReadOnlyTracks.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripReadOnlyTracks_Opening);
          // 
@@ -317,7 +318,7 @@
             0,
             0});
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Name = "numericUpDownMenuItem_ReadOnlyLineThickness";
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Size = new System.Drawing.Size(139, 33);
+         this.numericUpDownMenuItem_ReadOnlyLineThickness.Size = new System.Drawing.Size(133, 30);
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Text = "Liniendicke";
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Value = new decimal(new int[] {
             5,
@@ -688,8 +689,9 @@
             this.toolStripButton_LocationForm,
             this.toolStripButton_ZoomIn,
             this.toolStripButton_ZoomOut,
-            this.toolStripSeparator8,
             this.toolStripButton_TrackZoom,
+            this.toolStripSeparator8,
+            this.toolStripButton1,
             this.toolStripButton_TrackSearch,
             this.toolStripSeparator6,
             this.toolStripButton_ViewerMode,
@@ -702,7 +704,7 @@
             this.toolStripButton_MiniHelp});
          this.toolStrip_Standard.Location = new System.Drawing.Point(3, 0);
          this.toolStrip_Standard.Name = "toolStrip_Standard";
-         this.toolStrip_Standard.Size = new System.Drawing.Size(760, 25);
+         this.toolStrip_Standard.Size = new System.Drawing.Size(814, 25);
          this.toolStrip_Standard.TabIndex = 0;
          // 
          // toolStripComboBoxMapSource
@@ -969,6 +971,16 @@
          this.saveFileDialogGpx.Filter = "Gpx-Dateien|*.gpx|KMZ-Dateien|*.kmz|KML-Dateien|*.kml";
          this.saveFileDialogGpx.Title = "speichern unter ...";
          // 
+         // toolStripButton1
+         // 
+         this.toolStripButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+         this.toolStripButton1.Image = global::GpxViewer.Properties.Resources.Search2;
+         this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
+         this.toolStripButton1.Name = "toolStripButton1";
+         this.toolStripButton1.Size = new System.Drawing.Size(23, 22);
+         this.toolStripButton1.Text = "toolStripButton_Search";
+         this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
+         // 
          // FormMain
          // 
          this.AllowDrop = true;
@@ -1095,6 +1107,7 @@
       private System.Windows.Forms.TabPage tabPageEditable;
       private EditableTracklistControl editableTracklistControl1;
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_TrackMiniInfo;
+      private System.Windows.Forms.ToolStripButton toolStripButton1;
    }
 }
 

@@ -109,6 +109,7 @@ namespace GMap.NET.WindowsForms
         }
 
         GraphicsPath _graphicsPath;
+#if ORGUPDATEGRAPHICSPATH
         internal void UpdateGraphicsPath()
         {
             if (_graphicsPath == null)
@@ -120,7 +121,6 @@ namespace GMap.NET.WindowsForms
                 _graphicsPath.Reset();
             }
 
-#if ORGUPDATEGRAPHICSPATH
             {
                 for (int i = 0; i < LocalPoints.Count; i++)
                 {
@@ -137,57 +137,59 @@ namespace GMap.NET.WindowsForms
                     }
                 }
             }
+        }
 #else
-            GPoint offset = Overlay.Control.Core.RenderOffset;
+      internal void UpdateGraphicsPath() {
+         if (_graphicsPath == null) 
+            _graphicsPath = new GraphicsPath();
+         else 
+            _graphicsPath.Reset();
+         GPoint offset = Overlay.Control.Core.RenderOffset;
 
-            var points = new List<List<PointF>>();
-            var actpoints = new List<PointF>();
+         var points = new List<List<PointF>>();
+         var actpoints = new List<PointF>();
 
-            if (LocalPoints.Count > 1) {
-               GPoint lefttop = new GPoint(-5, -5);
-               GPoint rightbottom = new GPoint(Overlay.Control.ClientSize.Width + 5, Overlay.Control.ClientSize.Height + 5);
+         if (LocalPoints.Count > 1) {
+            GPoint lefttop = new GPoint(-5, -5);
+            GPoint rightbottom = new GPoint(Overlay.Control.ClientSize.Width + 5, Overlay.Control.ClientSize.Height + 5);
 
-               var p1 = LocalPoints[0];
-               for (int i = 1; i < LocalPoints.Count; i++) {
-                  var p2 = LocalPoints[i];
+            var p1 = LocalPoints[0];
+            for (int i = 1; i < LocalPoints.Count; i++) {
+               var p2 = LocalPoints[i];
 
-                  if (localSegmentIsNecessary(p1.X + offset.X,
-                                              p1.Y + offset.Y,
-                                              p2.X + offset.X,
-                                              p2.Y + offset.Y,
-                                              lefttop,
-                                              rightbottom)) {
-                     if (actpoints.Count > 0)
-                        actpoints.Add(new PointF(p2.X, p2.Y));
-                     else {
-                        actpoints.Add(new PointF(p1.X, p1.Y));
-                        actpoints.Add(new PointF(p2.X, p2.Y));
-                     }
-                  } else {
-                     if (actpoints.Count > 0)
-                        points.Add(actpoints);
-                     actpoints = new List<PointF>();
+               if (localSegmentIsNecessary(p1.X + offset.X,
+                                           p1.Y + offset.Y,
+                                           p2.X + offset.X,
+                                           p2.Y + offset.Y,
+                                           lefttop,
+                                           rightbottom)) {
+                  if (actpoints.Count > 0)
+                     actpoints.Add(new PointF(p2.X, p2.Y));
+                  else {
+                     actpoints.Add(new PointF(p1.X, p1.Y));
+                     actpoints.Add(new PointF(p2.X, p2.Y));
                   }
-
-                  p1 = p2;
+               } else {
+                  if (actpoints.Count > 0)
+                     points.Add(actpoints);
+                  actpoints = new List<PointF>();
                }
-               if (actpoints.Count > 0)
-                  points.Add(actpoints);
-            }
 
-            for (int i = 0; i < points.Count; i++) {
-               actpoints = points[i];
-               if (actpoints.Count > 0) {
-                  var _partialGraphicsPath = new GraphicsPath();
-                  _partialGraphicsPath.AddLines(actpoints.ToArray());
-                  _graphicsPath.AddPath(_partialGraphicsPath, false);
-               }
+               p1 = p2;
             }
-
-#endif
+            if (actpoints.Count > 0)
+               points.Add(actpoints);
          }
 
-#if !ORGUPDATEGRAPHICSPATH
+         for (int i = 0; i < points.Count; i++) {
+            actpoints = points[i];
+            if (actpoints.Count > 0) {
+               var _partialGraphicsPath = new GraphicsPath();
+               _partialGraphicsPath.AddLines(actpoints.ToArray());
+               _graphicsPath.AddPath(_partialGraphicsPath, false);
+            }
+         }
+      }
 
       /* Areas:
        * 
@@ -211,9 +213,8 @@ namespace GMap.NET.WindowsForms
       /// <returns></returns>
       bool localSegmentIsNecessary(long p1x, long p1y, long p2x, long p2y, GPoint lefttop, GPoint rightbottom) {
          int area1 = area4localpoint(p1x, p1y, lefttop, rightbottom);
-         if (area1 != 4) // not in client area
-         {
-            int area2 = this.area4localpoint(p2x, p2y, lefttop, rightbottom);
+         if (area1 != 4) {  // not in client area
+            int area2 = area4localpoint(p2x, p2y, lefttop, rightbottom);
             if (area2 != 4) {
                switch (area1) {
                   case 0:
@@ -317,9 +318,10 @@ namespace GMap.NET.WindowsForms
                return 8;
          }
       }
+
 #endif
 
-        public virtual void OnRender(Graphics g)
+      public virtual void OnRender(Graphics g)
         {
             if (IsVisible)
             {
@@ -361,7 +363,7 @@ namespace GMap.NET.WindowsForms
         }
 
 
-        #region ISerializable Members
+#region ISerializable Members
 
         // Temp store for de-serialization.
         private GPoint[] deserializedLocalPoints;
@@ -398,9 +400,9 @@ namespace GMap.NET.WindowsForms
             deserializedLocalPoints = Extensions.GetValue<GPoint[]>(info, "LocalPoints");
         }
 
-        #endregion
+#endregion
 
-        #region IDeserializationCallback Members
+#region IDeserializationCallback Members
 
         /// <summary>
         ///     Runs when the entire object graph has been de-serialized.
@@ -418,9 +420,9 @@ namespace GMap.NET.WindowsForms
             LocalPoints.Capacity = Points.Count;
         }
 
-        #endregion
+#endregion
 
-        #region IDisposable Members
+#region IDisposable Members
 
         bool _disposed;
 
@@ -442,7 +444,7 @@ namespace GMap.NET.WindowsForms
             }
         }
 
-        #endregion
+#endregion
     }
 
     public delegate void RouteClick(GMapRoute item, MouseEventArgs e);

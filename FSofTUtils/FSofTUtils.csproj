@@ -48,6 +48,9 @@
     <Compile Include="BaseTreenode.cs" />
     <Compile Include="ColorHelper.cs" />
     <Compile Include="Geography\Garmin\GDB.cs" />
+    <Compile Include="Geography\GeoCoding\GeoCodingResultBase.cs" />
+    <Compile Include="Geography\GeoCoding\GeoCodingResultGeocodeFarm.cs" />
+    <Compile Include="Geography\GeoCoding\GeoCodingResultOsm.cs" />
     <Compile Include="Geometry\RectangleCommon.cs" />
     <Compile Include="Geometry\Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

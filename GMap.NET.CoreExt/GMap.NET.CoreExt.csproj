@@ -92,7 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BitMiracle.LibTiff.NET">
-      <Version>2.4.639</Version>
+      <Version>2.4.649</Version>
     </PackageReference>
     <PackageReference Include="GeoAPI.CoordinateSystems">
       <Version>1.7.5</Version>

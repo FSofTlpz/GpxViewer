@@ -21,29 +21,30 @@ namespace GMap.NET.WindowsForms
     /// </summary>
     public partial class GMapControl : UserControl, Interface
     {
-        float? _mapRenderZoom2RealDevice = null;
 
-        /// <summary>
-        /// zusätzlicher Vergrößerungsfaktor falls das Display eine zu hohe DPI hat (null oder 1.0 ...)
-        /// </summary>
-        public float MapRenderZoom2RealDevice {
-           get {
-              return _mapRenderZoom2RealDevice ?? 1;
-           }
-           set {
-              if (value == 1)
-                 _mapRenderZoom2RealDevice = null;
-              else
-                 _mapRenderZoom2RealDevice = value;
-           }
-        }
+      float? _mapRenderZoom2RealDevice = null;
 
-        public float MapRenderTransform => _mapRenderTransform ?? 1;
+      /// <summary>
+      /// zusätzlicher Vergrößerungsfaktor falls das Display eine zu hohe DPI hat (null oder 1.0 ...)
+      /// </summary>
+      public float MapRenderZoom2RealDevice {
+         get {
+            return _mapRenderZoom2RealDevice ?? 1;
+         }
+         set {
+            if (value == 1)
+               _mapRenderZoom2RealDevice = null;
+            else
+               _mapRenderZoom2RealDevice = value;
+         }
+      }
 
+      public float MapRenderTransform => _mapRenderTransform ?? 1;
 
-        float getScale() {
-           return (_mapRenderTransform ?? 1) * (_mapRenderZoom2RealDevice ?? 1);
-        }
+      float getScale() {
+         return (_mapRenderTransform ?? 1) * (_mapRenderZoom2RealDevice ?? 1);
+      }
+
         /// <summary>
         ///   occurs when clicked on map.
         /// </summary>
@@ -1301,10 +1302,9 @@ namespace GMap.NET.WindowsForms
             // render white background
             g.Clear(EmptyMapBackground);
 
-            // if (_mapRenderTransform.HasValue)
+            //if (_mapRenderTransform.HasValue)
             float scale = getScale();
-            if (scale != 1)
-            {
+            if (scale != 1) {
                 #region -- scale --
 
                 if (!MobileMode)
@@ -1315,7 +1315,7 @@ namespace GMap.NET.WindowsForms
                     var pos = center;
                     pos.OffsetNegative(delta);
 
-                    // g.ScaleTransform(_mapRenderTransform.Value, _mapRenderTransform.Value, MatrixOrder.Append);
+                    //g.ScaleTransform(_mapRenderTransform.Value, _mapRenderTransform.Value, MatrixOrder.Append);
                     g.ScaleTransform(scale, scale, MatrixOrder.Append);
                     g.TranslateTransform(pos.X, pos.Y, MatrixOrder.Append);
 
@@ -1422,7 +1422,7 @@ namespace GMap.NET.WindowsForms
 
                                             if (!img.IsParent)
                                             {
-                                                // if (!_mapRenderTransform.HasValue && !IsRotated)
+                                                //if (!_mapRenderTransform.HasValue && !IsRotated)
                                                 if (getScale() == 1 && !IsRotated)
                                                 {
                                                     g.DrawImage(img.Img,
@@ -2240,10 +2240,10 @@ namespace GMap.NET.WindowsForms
                 {
                     Core.MouseCurrent = ApplyRotationInversion(e.X, e.Y);
                     Core.Drag(Core.MouseCurrent);
-                    // if (MobileMode || IsRotated)
-                    // {
-                        // ForceUpdateOverlays();
-                    // }
+                    //if (MobileMode || IsRotated)
+                    //{
+                    //    ForceUpdateOverlays();
+                    //}
                     ForceUpdateOverlays();
 
                     base.Invalidate();
@@ -2600,33 +2600,33 @@ namespace GMap.NET.WindowsForms
         /// <returns></returns>
         public PointLatLng FromLocalToLatLng(int x, int y)
         {
-            // if (_mapRenderTransform.HasValue)
-            // {
-                // //var xx = (int)(Core.renderOffset.X + ((x - Core.renderOffset.X) / MapRenderTransform.Value));
-                // //var yy = (int)(Core.renderOffset.Y + ((y - Core.renderOffset.Y) / MapRenderTransform.Value));
-
-                // //PointF center = new PointF(Core.Width / 2, Core.Height / 2);
-
-                // //Matrix m = new Matrix();
-                // //m.Translate(-Core.renderOffset.X, -Core.renderOffset.Y);
-                // //m.Scale(MapRenderTransform.Value, MapRenderTransform.Value);
-
-                // //System.Drawing.Point[] tt = new System.Drawing.Point[] { new System.Drawing.Point(x, y) };
-                // //m.TransformPoints(tt);
-                // //var z = tt[0];
-
-                // //
-
-                // x = (int)(Core.RenderOffset.X + (x - Core.RenderOffset.X) / _mapRenderTransform.Value);
-                // y = (int)(Core.RenderOffset.Y + (y - Core.RenderOffset.Y) / _mapRenderTransform.Value);
-            // }
+            //if (_mapRenderTransform.HasValue)
+            //{
+            //    //var xx = (int)(Core.renderOffset.X + ((x - Core.renderOffset.X) / MapRenderTransform.Value));
+            //    //var yy = (int)(Core.renderOffset.Y + ((y - Core.renderOffset.Y) / MapRenderTransform.Value));
+            //
+            //    //PointF center = new PointF(Core.Width / 2, Core.Height / 2);
+            //
+            //    //Matrix m = new Matrix();
+            //    //m.Translate(-Core.renderOffset.X, -Core.renderOffset.Y);
+            //    //m.Scale(MapRenderTransform.Value, MapRenderTransform.Value);
+            //
+            //    //System.Drawing.Point[] tt = new System.Drawing.Point[] { new System.Drawing.Point(x, y) };
+            //    //m.TransformPoints(tt);
+            //    //var z = tt[0];
+            //
+            //    //
+            //
+            //    x = (int)(Core.RenderOffset.X + (x - Core.RenderOffset.X) / _mapRenderTransform.Value);
+            //    y = (int)(Core.RenderOffset.Y + (y - Core.RenderOffset.Y) / _mapRenderTransform.Value);
+            //}
             float scale = getScale();
             if (scale != 1) 
             {
-                x = (int)(Core.RenderOffset.X + (x - Core.RenderOffset.X) / scale);
-                y = (int)(Core.RenderOffset.Y + (y - Core.RenderOffset.Y) / scale);
-            }
-
+               x = (int)(Core.RenderOffset.X + (x - Core.RenderOffset.X) / scale);
+               y = (int)(Core.RenderOffset.Y + (y - Core.RenderOffset.Y) / scale);
+            }         
+         
             if (IsRotated)
             {
                 var tt = new[] { new Point(x, y) };
@@ -2655,16 +2655,17 @@ namespace GMap.NET.WindowsForms
         {
             var ret = Core.FromLatLngToLocal(point);
 
-            // if (_mapRenderTransform.HasValue)
-            // {
-                // ret.X = (int)(Core.RenderOffset.X + (Core.RenderOffset.X - ret.X) * -_mapRenderTransform.Value);
-                // ret.Y = (int)(Core.RenderOffset.Y + (Core.RenderOffset.Y - ret.Y) * -_mapRenderTransform.Value);
-            // }
+            //if (_mapRenderTransform.HasValue)
+            //{
+            //    ret.X = (int)(Core.RenderOffset.X + (Core.RenderOffset.X - ret.X) * -_mapRenderTransform.Value);
+            //    ret.Y = (int)(Core.RenderOffset.Y + (Core.RenderOffset.Y - ret.Y) * -_mapRenderTransform.Value);
+            //}
+
             float scale = getScale();
             if (scale != 1) 
             {
-                ret.X = (int)(Core.RenderOffset.X + (Core.RenderOffset.X - ret.X) * -scale);
-                ret.Y = (int)(Core.RenderOffset.Y + (Core.RenderOffset.Y - ret.Y) * -scale);
+               ret.X = (int)(Core.RenderOffset.X + (Core.RenderOffset.X - ret.X) * -scale);
+               ret.Y = (int)(Core.RenderOffset.Y + (Core.RenderOffset.Y - ret.Y) * -scale);
             }
 
             if (IsRotated)

@@ -30,6 +30,7 @@ namespace GMap.NET.Internals
         internal GPoint MouseDown;
         internal GPoint MouseCurrent;
         internal GPoint MouseLastZoom;
+        internal GPoint touchCurrent;
 
         public MouseWheelZoomType MouseWheelZoomType = MouseWheelZoomType.MousePositionAndCenter;
         public bool MouseWheelZoomEnabled = true;
@@ -815,42 +816,44 @@ namespace GMap.NET.Internals
                             Debug.WriteLine("creating ProcessLoadTask: " + _tileLoadQueue4Tasks.Count);
 
                             _tileLoadQueue4Tasks.Add(Task.Factory.StartNew(delegate()
+                            {
+                                string ctid = "ProcessLoadTask[" + Thread.CurrentThread.ManagedThreadId + "]";
+                                Thread.CurrentThread.Name = ctid;
+
+                                Debug.WriteLine(ctid + ": started");
+                                //do
+                                //{
+                                //    if (TileLoadQueue4.Count == 0)
+                                //    {
+                                //        Debug.WriteLine(ctid + ": ready");
+
+                                //        if (Interlocked.Increment(ref _loadWaitCount) >= GThreadPoolSize)
+                                //        {
+                                //            Interlocked.Exchange(ref _loadWaitCount, 0);
+                                //            OnLoadComplete(ctid);
+                                //        }
+                                //    }
+
+                                //    ProcessLoadTask(TileLoadQueue4.Take(), ctid);
+                                //} while (!TileLoadQueue4.IsAddingCompleted);
+                                do 
                                 {
-                                    string ctid = "ProcessLoadTask[" + Thread.CurrentThread.ManagedThreadId + "]";
-                                    Thread.CurrentThread.Name = ctid;
+                                   if (TileLoadQueue4.Count == 0 &&
+                                       Interlocked.Read(ref _tasksInWork) == 0) 
+                                   {
+                                      Debug.WriteLine(ctid + ": OnLoadComplete");
+                                      OnLoadComplete(ctid);
+                                   }
+                                
+                                   LoadTask task = TileLoadQueue4.Take();
+                                   Interlocked.Increment(ref _tasksInWork);
+                                   ProcessLoadTask(task, ctid);
+                                   Interlocked.Decrement(ref _tasksInWork);
+                                } while (!TileLoadQueue4.IsAddingCompleted);
 
-                                    Debug.WriteLine(ctid + ": started");
-                                    do
-                                    {
-                                        //if (TileLoadQueue4.Count == 0)
-                                        //{
-                                        //    Debug.WriteLine(ctid + ": ready");
-
-                                        //    if (Interlocked.Increment(ref _loadWaitCount) >= GThreadPoolSize)
-                                        //    {
-                                        //        Interlocked.Exchange(ref _loadWaitCount, 0);
-                                        //        OnLoadComplete(ctid);
-                                        //    }
-                                        //}
-
-                                        //ProcessLoadTask(TileLoadQueue4.Take(), ctid);
-                                        
-                                      if (TileLoadQueue4.Count == 0 &&
-                                            Interlocked.Read(ref _tasksInWork) == 0) 
-                                        {
-                                           Debug.WriteLine(ctid + ": OnLoadComplete");
-                                           OnLoadComplete(ctid);
-                                        }
-                                        
-                                        LoadTask task = TileLoadQueue4.Take();
-                                        Interlocked.Increment(ref _tasksInWork);
-                                        ProcessLoadTask(task, ctid);
-                                        Interlocked.Decrement(ref _tasksInWork);
-                                   } while (!TileLoadQueue4.IsAddingCompleted);
-
-                                    Debug.WriteLine(ctid + ": exit");
-                                },
-                                TaskCreationOptions.LongRunning));
+                                Debug.WriteLine(ctid + ": exit");
+                            },
+                            TaskCreationOptions.LongRunning));
                         }
                     }
                 }

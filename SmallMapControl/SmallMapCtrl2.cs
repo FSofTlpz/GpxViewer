@@ -990,7 +990,7 @@ namespace SmallMapControl {
          if (SMC_MapProvider != null &&
              MapProviderDefinitions != null)
             for (int i = 0; i < MapProviderDefinitions.Count; i++) {
-               if (Equals(MapProviderDefinitions[i].Provider))
+               if (SMC_MapProvider.Equals(MapProviderDefinitions[i].Provider))
                   return i;
             }
          return -1;
@@ -1177,6 +1177,74 @@ namespace SmallMapControl {
          }
          return info;
       }
+
+
+      public List<PointD> GetPositionByKeywords(string keywords, GeocodingProvider specgp = null) {
+         //GeoCoderStatusCode geoCoderStatusCode = GetPositionByKeywords(keywords, out PointLatLng point);
+
+         /*
+
+            point = new PointLatLng();
+
+            var status = GeoCoderStatusCode.UNKNOWN_ERROR;
+            var gp = MapProvider as GeocodingProvider;
+
+            if (gp == null)
+                gp = GMapProviders.OpenStreetMap as GeocodingProvider;
+
+            if (gp != null)
+            {
+                var pt = gp.GetPoint(keys.Replace("#", "%23"), out status);
+
+                if (status == GeoCoderStatusCode.OK && pt.HasValue)
+                    point = pt.Value;
+            }
+
+            return status;
+          
+          
+          */
+
+         List<PointD> result = new List<PointD>();
+
+         GeocodingProvider gp = MapProvider as GeocodingProvider;
+         if (specgp != null)
+            gp = specgp;
+
+         if (gp == null)
+            gp = GMapProviders.OpenStreetMap as GeocodingProvider;
+
+
+
+         //gp = GMapProviders.GoogleMap as GeocodingProvider;
+         //gp = GMapProviders.BingMap as GeocodingProvider;
+
+
+
+
+         if (gp != null) {
+            GeoCoderStatusCode status = GeoCoderStatusCode.UNKNOWN_ERROR;
+
+            //PointLatLng? pt = gp.GetPoint(keywords.Replace("#", "%23"), out status);
+
+            //if (status == GeoCoderStatusCode.OK && pt.HasValue)
+            //   result.Add(new PointD(pt.Value.Lat, pt.Value.Lng));
+
+
+            status = gp.GetPoints(keywords.Replace("#", "%23"), out List<PointLatLng> pts);
+            if (status == GeoCoderStatusCode.OK)
+               foreach (var pt in pts) {
+                  result.Add(new PointD(pt.Lat, pt.Lng));
+               }
+
+         }
+
+
+
+         return result;
+      }
+
+
 
       void collectionInsert<T>(GMap.NET.ObjectModel.ObservableCollectionThreadSafe<T> collection, T item, int idx) {
          collection.Add(item);

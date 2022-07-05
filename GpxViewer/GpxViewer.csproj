@@ -14,6 +14,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -24,10 +25,10 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationRevision>2</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -66,6 +67,18 @@
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>29A66FD81CC85710B9C9EE9D75552BAF2E1500B6</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>GpxViewer_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>true</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="BitmapHelper.cs" />
     <Compile Include="Config.cs" />
@@ -87,6 +100,12 @@
     </Compile>
     <Compile Include="FormClearCache.Designer.cs">
       <DependentUpon>FormClearCache.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormSearch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormSearch.Designer.cs">
+      <DependentUpon>FormSearch.cs</DependentUpon>
     </Compile>
     <Compile Include="FSofTUtils\Threading\ThreadsafeInvoker.cs" />
     <Compile Include="GpxListReader.cs" />
@@ -224,6 +243,9 @@
     <EmbeddedResource Include="FormClearCache.resx">
       <DependentUpon>FormClearCache.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormSearch.resx">
+      <DependentUpon>FormSearch.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormTrackInfoAndEdit.resx">
       <DependentUpon>FormTrackInfoAndEdit.cs</DependentUpon>
     </EmbeddedResource>
@@ -282,6 +304,7 @@
     <Content Include="gpx-tracks.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="GpxViewer_TemporaryKey.pfx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -393,7 +416,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Data.SqlClient">
-      <Version>4.8.2</Version>
+      <Version>4.8.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

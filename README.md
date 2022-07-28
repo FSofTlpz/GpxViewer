@@ -4,15 +4,22 @@ The main purpose of GpxViewer is the readonly-view of a lot of gpx-tracks.
    
 But it is also possible to create new tracks or edit a copy of the readonly-tracks.
 
-Under the hood work the GMap.NET (27.5.2022) project for using different sources for the maps. It exist additional map-providers
-for offline garmin-maps, geotiffs and garmin-kmz-maps. You can also use DEM-data.
+The search for locations use https://nominatim.openstreetmap.org.
+
+It is possible setting/changing the exif-data for pictures for geo-coordinates.
 
 The program can read GPX-, Garmin-GDB-, Google-KMZ- and -KML-Files.
 
-### necessary nuget-projects
+Under the hood work the GMap.NET (27.5.2022) project for using different sources for the maps. It exist additional map-providers
+for offline garmin-maps, geotiffs and garmin-kmz-maps. You can also use DEM-data.
+
+## necessary nuget-projects
 
 **BitMiracle.LibTiff.NET**
 .NET version of LibTiff library made by Bit Miracle
+
+**ExifLibNet**
+Exif metadata modification library.
 
 **GeoAPI.CoordinateSystems**
 GeoAPI.NET project provides a common framework based on OGC/ISO standards to improve interoperability among .NET GIS projects.
@@ -53,7 +60,7 @@ ColorWheel, ColorSelector, ColorFader from Yves Goergen (http://unclassified.sof
 	<minimaltrackpointdistance x="14" y="14"/>
 
 	<proxy>
-    <!-- falls Internet nur über Proxy erreichbar ist -->
+    <!-- falls Internet nur Ã¼ber Proxy erreichbar ist -->
     <proxyname></proxyname>
     <proxyport></proxyport>
     <proxyuser></proxyuser>
@@ -62,7 +69,7 @@ ColorWheel, ColorSelector, ColorFader from Yves Goergen (http://unclassified.sof
 
   <map>
     <cachelocation>.</cachelocation>
-    <!-- bei false zusätzlich Cache in "%LOCALAPPDATA%\GMap.NET\TileDBv5\en\Data.gmdb" bzw. in cachelocation -->
+    <!-- bei false zusÃ¤tzlich Cache in "%LOCALAPPDATA%\GMap.NET\TileDBv5\en\Data.gmdb" bzw. in cachelocation -->
     <serveronly>false</serveronly>
     <!-- Index des Providers beim Start -->
     <startprovider>0</startprovider>
@@ -123,7 +130,7 @@ ColorWheel, ColorSelector, ColorFader from Yves Goergen (http://unclassified.sof
     <provider mapname="online: MS Bing Hybrid">BingHybridMap</provider>
     <provider mapname="online: MS Bing Satellit">BingSatelliteMap</provider>
     <provider mapname="online: Google">GoogleMap</provider>
-    <provider mapname="online: Google Oberfläche">GoogleTerrainMap</provider>
+    <provider mapname="online: Google OberflÃ¤che">GoogleTerrainMap</provider>
     <provider mapname="online: Google Satellit">GoogleSatelliteMap</provider>
     <provider mapname="online: OpenStreetMap">OpenStreetMap</provider>
     <provider mapname="online: OpenStreetMap Fahrradkarte">OpenCycleLandscapeMap</provider>

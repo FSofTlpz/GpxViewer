@@ -25,7 +25,11 @@ namespace SmallMapControl {
          /// <summary>
          /// Marker für ein Foto
          /// </summary>
-         Foto
+         Foto,
+         /// <summary>
+         /// Marker für Geotagging
+         /// </summary>
+         GeoTagging,
       }
 
       /// <summary>
@@ -227,6 +231,9 @@ namespace SmallMapControl {
 
             case MarkerType.Foto:
                return VisualMarker.VisualStyle.FotoMarker;
+
+            case MarkerType.GeoTagging:
+               return VisualMarker.VisualStyle.GeoTagging;
          }
          return VisualMarker.VisualStyle.PointMarker;
       }

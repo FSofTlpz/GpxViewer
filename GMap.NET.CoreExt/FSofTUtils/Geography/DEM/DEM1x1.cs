@@ -1,5 +1,6 @@
 ﻿//#define WRITEBITMAPS
 using System;
+using System.Diagnostics;
 
 namespace FSofTUtils.Geography.DEM {
 
@@ -7,6 +8,7 @@ namespace FSofTUtils.Geography.DEM {
    /// This class hold the DEM data for 1°x1°. The number of columns can be different from the number of rows. 
    /// You need a derived class for filling in the data.
    /// </summary>
+   [Serializable]
    abstract public class DEM1x1 : IDisposable {
 
       /// <summary>
@@ -31,11 +33,11 @@ namespace FSofTUtils.Geography.DEM {
 
 
       /// <summary>
-      /// left border
+      /// left border (longitude)
       /// </summary>
       public double Left { get; protected set; }
       /// <summary>
-      /// lower border
+      /// lower border (latitude)
       /// </summary>
       public double Bottom { get; protected set; }
 
@@ -48,11 +50,11 @@ namespace FSofTUtils.Geography.DEM {
       /// </summary>
       public int Columns { get; protected set; }
       /// <summary>
-      /// horizontal distance between 2 points
+      /// horizontal distance between 2 points (in degree)
       /// </summary>
       public double DeltaX { get { return Width / (Columns - 1); } }
       /// <summary>
-      /// vertical distance between 2 points
+      /// vertical distance between 2 points (in degree)
       /// </summary>
       public double DeltaY { get { return Width / (Rows - 1); } }
 
@@ -71,19 +73,19 @@ namespace FSofTUtils.Geography.DEM {
 
 
       /// <summary>
-      /// upper border
+      /// upper border (latitude)
       /// </summary>
       public double Top { get { return Bottom + Height; } }
       /// <summary>
-      /// right border
+      /// right border (longitude)
       /// </summary>
       public double Right { get { return Left + Width; } }
       /// <summary>
-      /// width
+      /// width (in degree)
       /// </summary>
       public double Width { get { return 1; } }
       /// <summary>
-      /// height
+      /// height (in degree)
       /// </summary>
       public double Height { get { return 1; } }
 
@@ -97,6 +99,21 @@ namespace FSofTUtils.Geography.DEM {
       /// </summary>
       protected byte[] hillshade;
 
+      /// <summary>
+      /// last shading for this value
+      /// </summary>
+      public double HillShadeAzimut { get; protected set; } = double.MinValue;
+
+      /// <summary>
+      /// last shading for this value
+      /// </summary>
+      public double HillShadeAltitude { get; protected set; } = double.MinValue;
+
+      /// <summary>
+      /// last shading for this value
+      /// </summary>
+      public double HillShadeScale { get; protected set; } = double.MinValue;
+
 
       public DEM1x1() {
          Left = 0;
@@ -105,6 +122,11 @@ namespace FSofTUtils.Geography.DEM {
          hillshade = null;
       }
 
+      /// <summary>
+      /// 
+      /// </summary>
+      /// <param name="left">left longitude</param>
+      /// <param name="bottom">bottom latitude</param>
       public DEM1x1(double left, double bottom) {
          Left = left;
          Bottom = bottom;
@@ -117,6 +139,13 @@ namespace FSofTUtils.Geography.DEM {
       /// </summary>
       abstract public void SetDataArray();
 
+      /// <summary>
+      /// analog <see cref="Get(int, int)"/>, aber ohne Überprüfung der Parameter
+      /// </summary>
+      /// <param name="row"></param>
+      /// <param name="col"></param>
+      /// <returns></returns>
+      protected int fastget(int row, int col) => data[row * Columns + col];
 
       /// <summary>
       /// get a value (coordinate origin left-top)
@@ -130,6 +159,14 @@ namespace FSofTUtils.Geography.DEM {
             throw new Exception(string.Format("({0}, {1}) unvalid row and/or column ({2}x{3})", col, row, Columns, Rows));
          return data[row * Columns + col];
       }
+
+      /// <summary>
+      /// analog <see cref="Get4XY(int, int)"/>, aber ohne Überprüfung der Parameter
+      /// </summary>
+      /// <param name="x"></param>
+      /// <param name="y"></param>
+      /// <returns></returns>
+      protected int fastget4XY(int x, int y) => fastget(Rows - 1 - y, x);
 
       /// <summary>
       /// get a value (coordinate origin left-bottom)
@@ -149,9 +186,7 @@ namespace FSofTUtils.Geography.DEM {
       /// exist 1 or more valid values
       /// </summary>
       /// <returns></returns>
-      public bool HasValidValues() {
-         return (Minimum != DEMNOVALUE || Maximum != DEMNOVALUE);
-      }
+      public bool HasValidValues() => Minimum != DEMNOVALUE || Maximum != DEMNOVALUE;
 
       /// <summary>
       /// get the interpolated value (or <see cref="NOVALUED"/>)
@@ -184,29 +219,29 @@ namespace FSofTUtils.Geography.DEM {
 
                   if (delta_lon == 0) {            // linker Rand
                      if (delta_lat == 0)
-                        h = GetHeight4XY(x, y);          // Eckpunkt links unten
+                        h = fastgetHeight4XY(x, y);          // Eckpunkt links unten
                      else if (delta_lat >= DeltaY)
-                        h = GetHeight4XY(x, y + 1);      // Eckpunkt links oben (eigentlich nicht möglich)
+                        h = fastgetHeight4XY(x, y + 1);      // Eckpunkt links oben (eigentlich nicht möglich)
                      else
-                        h = linearInterpolatedValue(Get4XY(x, y),
-                                                     Get4XY(x, y + 1),
+                        h = linearInterpolatedValue(fastget4XY(x, y),
+                                                     fastget4XY(x, y + 1),
                                                      delta_lat / DeltaY);
                   } else if (delta_lon >= DeltaX) { // rechter Rand (eigentlich nicht möglich)
                      if (delta_lat == 0)
-                        h = GetHeight4XY(x + 1, y);      // Eckpunkt rechts unten
+                        h = fastgetHeight4XY(x + 1, y);      // Eckpunkt rechts unten
                      else if (delta_lat >= DeltaY)
-                        h = GetHeight4XY(x + 1, y + 1);  // Eckpunkt rechts oben (eigentlich nicht möglich)
+                        h = fastgetHeight4XY(x + 1, y + 1);  // Eckpunkt rechts oben (eigentlich nicht möglich)
                      else
-                        h = linearInterpolatedValue(Get4XY(x + 1, y),
-                                                     Get4XY(x + 1, y + 1),
+                        h = linearInterpolatedValue(fastget4XY(x + 1, y),
+                                                     fastget4XY(x + 1, y + 1),
                                                      delta_lat / DeltaY);
                   } else if (delta_lat == 0) {     // unterer Rand (außer Eckpunkt)
-                     h = linearInterpolatedValue(Get4XY(x, y),
-                                                  Get4XY(x + 1, y),
+                     h = linearInterpolatedValue(fastget4XY(x, y),
+                                                  fastget4XY(x + 1, y),
                                                   delta_lon / DeltaX);
                   } else if (delta_lat >= DeltaY) { // oberer Rand (außer Eckpunkt) (eigentlich nicht möglich)
-                     h = linearInterpolatedValue(Get4XY(x, y + 1),
-                                                  Get4XY(x + 1, y + 1),
+                     h = linearInterpolatedValue(fastget4XY(x, y + 1),
+                                                  fastget4XY(x + 1, y + 1),
                                                   delta_lon / DeltaX);
 
                   } else {                         // Punkt innerhalb des Rechtecks
@@ -253,10 +288,10 @@ namespace FSofTUtils.Geography.DEM {
 
                      double[][] p = new double[4][];
                      for (int i = 0; i < 4; i++)
-                        p[i] = new double[] { Get4XY(x, y + 3-i),
-                                              Get4XY(x + 1, y + 3-i),
-                                              Get4XY(x + 2, y + 3-i),
-                                              Get4XY(x + 3, y + 3-i) };
+                        p[i] = new double[] { fastget4XY(x, y + 3-i),
+                                              fastget4XY(x + 1, y + 3-i),
+                                              fastget4XY(x + 2, y + 3-i),
+                                              fastget4XY(x + 3, y + 3-i) };
 
                      bool allvalid = true;
                      for (int i = 0; i < 4; i++)
@@ -335,8 +370,8 @@ namespace FSofTUtils.Geography.DEM {
          return false;
       }
 
-      double GetHeight4XY(int x, int y) {
-         int h = Get4XY(x, y);
+      double fastgetHeight4XY(int x, int y) {
+         int h = fastget4XY(x, y);
          return h == DEMNOVALUE ? NOVALUED : h;
       }
 
@@ -506,7 +541,7 @@ namespace FSofTUtils.Geography.DEM {
       /// 
       /// üblich mit t=0.5 (auch mit 1 gesehen)
       /// 
-      /// q^3 * (-0.5*p0 + 1.5*p1 - 1.5*p2 + 0.5*p3) +
+      /// q^3 * (-0.5*p0 + 1.5*p1 - 1.5*p2.5*p3) +
       /// q^2 * (     p0 - 1.5*p1 + 2.5*p2 - 0.5*p3) +
       /// q^1 * (-0.5*p0          + 0.5*p2         ) +
       ///                      p1
@@ -576,14 +611,29 @@ namespace FSofTUtils.Geography.DEM {
          return name;
       }
 
-
       /// <summary>
       /// if not exists, you can compute with <see cref="ComputeHillShadeData"()/>
       /// </summary>
-      public bool ExistsHillShadeData {
-         get {
-            return hillshade != null;
-         }
+      public bool ExistsHillShadeData => hillshade != null;
+
+      const double rearth = 6378.137;        // radius of earth in km
+
+      /// <summary>
+      /// distance between 2 Points
+      /// <para>https://en.wikipedia.org/wiki/Haversine_formula</para>
+      /// </summary>
+      /// <param name="lat1">in degree</param>
+      /// <param name="lon1">in degree</param>
+      /// <param name="lat2">in degree</param>
+      /// <param name="lon2">in degree</param>
+      /// <returns>meters</returns>
+      static double dist4Points(double lat1, double lon1, double lat2, double lon2) {
+         lat1 *= Math.PI / 180;
+         lat2 *= Math.PI / 180;
+         double sin_dlat_half = Math.Sin((lat2 - lat1) / 2);
+         double sin_dlon_half = Math.Sin((lon2 - lon1) * Math.PI / 360);
+         double a = sin_dlat_half * sin_dlat_half + Math.Cos(lat1) * Math.Cos(lat2) * sin_dlon_half * sin_dlon_half;
+         return 2000 * rearth * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
       }
 
       const double degreesToRadians = Math.PI / 180.0;
@@ -594,233 +644,184 @@ namespace FSofTUtils.Geography.DEM {
       /// <param name="azimut"></param>
       /// <param name="altitude"></param>
       /// <param name="scale"></param>
-      /// <param name="z"></param>
-      public void ComputeHillShadeData(double azimut = 315, double altitude = 45, double scale = 1.0, double z = 1.0) {
+      public void ComputeHillShadeData(double azimut = 315, double altitude = 45, double scale = 20.0) {
          if (hillshade == null)
             hillshade = new byte[data.Length];
 
-         azimut *= degreesToRadians;
+         altitude = Math.Max(0, Math.Min(altitude, 90));
+         azimut = Math.Max(0, Math.Min(azimut, 360));
+
+         HillShadeAzimut = azimut;
+         HillShadeAltitude = altitude;
+         HillShadeScale = scale;
+
          altitude *= degreesToRadians;
+         azimut *= degreesToRadians;
+
+         // nützliche Konstanten
          double sinalt = Math.Sin(altitude);
          double cosalt = Math.Cos(altitude);
+         double sinaz = Math.Sin(azimut);
+         double cosaz = Math.Cos(azimut);
+         double cosalt_cosaz = cosalt * cosaz;
+         double cosalt_sinaz = cosalt * sinaz;
 
-         double ewres = DeltaX; /* w-e pixel resolution / pixel width */
-         double nsres = -DeltaY; /* n-s pixel resolution / pixel height (negative value) */
+         double latm = Bottom + (Top - Bottom) / 2;
+         double ew_resm = dist4Points(latm, Left, latm, Right) / Columns;     /* w-e pixel resolution / pixel width in m */
+         double ns_resm = -dist4Points(Top, 0, Bottom, 0) / Rows;             /* n-s pixel resolution / pixel height (negative value) in m */
 
-         int[] win = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+         ew_resm /= scale;
+         ns_resm /= scale;
 
          /* ------------------------------------------
-          * Move a 3x3 window over each cell 
-          * (where the cell in question is #4)
-          *                 0 1 2
-          *                 -----
-          *              0| 0 1 2
-          *              1| 3 4 5
-          *              2| 6 7 8
-          *
+          * Move a 3x3 window over each cell (#4)
+          *              a b c
+          *              d e f
+          *              g h i
           */
+         int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, i = 0;
+         bool inner = false;
          for (int row = 0; row < Rows; row++) {
             for (int col = 0; col < Columns; col++) {
-               if (row == 0) { // oberer Rand
-                  if (col == 0) {  // Ecke link oben
-                                   //poBand->RasterIO(GF_Read, col, row, 2, 2, win, 2, 2, GDT_Float32, 0, 0);
-                                   //                          int nXOff
-                                   //                             int nYOff, 
-                                   //                                int nXSize, 
-                                   //                                   int nYSize, void* pData, int nBufXSize, int nBufYSize,
-                     win[0] = Get(0, 0);
-                     win[1] = Get(0, 1);
-
-                     win[2] = Get(1, 0);
-                     win[3] = Get(1, 1);
-
-                     win[8] = win[3];
-                     win[5] = win[2];
-                     win[7] = win[1];
-                     win[4] = win[0];
-                     win[0] = 2 * win[4] - win[8];
-                     win[3] = 2 * win[4] - win[5];
-                     win[6] = 2 * win[7] - win[8];
-                     win[1] = 2 * win[4] - win[7];
-                     win[1] = 2 * win[5] - win[8];
-                  } else if (col == Columns - 1) {   // Ecke rechts oben
-                                                     //poBand->RasterIO(GF_Read, col - 1, row, 2, 2, win, 2, 2, GDT_Float32, 0, 0);
-                     win[0] = Get(0, col - 1);
-                     win[1] = Get(0, col);
-
-                     win[2] = Get(1, col - 1);
-                     win[3] = Get(1, col);
-
-                     win[7] = win[3];
-                     win[4] = win[2];
-                     win[6] = win[1];
-                     win[3] = win[0];
-                     win[0] = 2 * win[3] - win[6];
-                     win[1] = 2 * win[4] - win[7];
-                     win[1] = 2 * win[4] - win[8];
-                     win[5] = 2 * win[4] - win[3];
-                     win[8] = 2 * win[7] - win[6];
-                  } else { // Rand oben
-                           //poBand->RasterIO(GF_Read, col - 1, row, 3, 2, win, 3, 2, GDT_Float32, 0, 0);
-                     win[0] = Get(0, col - 1);
-                     win[1] = Get(0, col);
-                     win[2] = Get(0, col + 1);
-
-                     win[3] = Get(1, col - 1);
-                     win[4] = Get(1, col);
-                     win[5] = Get(1, col + 1);
-
-                     win[8] = win[5];
-                     win[5] = win[4];
-                     win[7] = win[3];
-                     win[4] = win[2];
-                     win[6] = win[1];
-                     win[3] = win[0];
-                     win[0] = 2 * win[3] - win[6];
-                     win[1] = 2 * win[4] - win[7];
-                     win[1] = 2 * win[5] - win[8];
-                  }
-               } else if (row == Rows - 1) { // unterer Rand
-                  if (col == 0) { // Ecke links unten
-                                  //poBand->RasterIO(GF_Read, col, row - 1, 2, 2, win, 2, 2, GDT_Float32, 0, 0);
-                     win[0] = Get(row - 1, col);
-                     win[1] = Get(row - 1, col + 1);
-
-                     win[2] = Get(row, col);
-                     win[3] = Get(row, col + 1);
-
-                     win[5] = win[3];
-                     win[1] = win[2];
-                     win[4] = win[1];
-                     win[1] = win[0];
-                     win[0] = 2 * win[1] - win[1];
-                     win[3] = 2 * win[4] - win[5];
-                     win[6] = 2 * win[4] - win[1];
-                     win[7] = 2 * win[4] - win[1];
-                     win[8] = 2 * win[5] - win[1];
-                  } else if (col == Columns - 1) { // Ecke rechts unten
-                                                   //poBand->RasterIO(GF_Read, col - 1, row - 1, 2, 2, win, 2, 2, GDT_Float32, 0, 0);
-                     win[0] = Get(row - 1, col - 1);
-                     win[1] = Get(row - 1, col);
-
-                     win[2] = Get(row, col - 1);
-                     win[3] = Get(row, col);
-
-                     win[4] = win[3];
-                     win[1] = win[2];
-                     win[3] = win[1];
-                     win[0] = win[0];
-                     win[6] = 2 * win[3] - win[0];
-                     win[7] = 2 * win[4] - win[1];
-                     win[1] = 2 * win[1] - win[0];
-                     win[5] = 2 * win[4] - win[3];
-                     win[8] = 2 * win[4] - win[0];
-                  } else { // Rand unten
-                           //poBand->RasterIO(GF_Read, col - 1, row - 1, 3, 2, win, 3, 2, GDT_Float32, 0, 0);
-                     win[0] = Get(row - 1, col - 1);
-                     win[1] = Get(row - 1, col);
-                     win[2] = Get(row - 1, col + 1);
-
-                     win[3] = Get(row, col - 1);
-                     win[4] = Get(row, col);
-                     win[5] = Get(row, col + 1);
-
-                     win[5] = win[5];
-                     win[1] = win[4];
-                     win[4] = win[3];
-                     win[1] = win[2];
-                     win[3] = win[1];
-                     win[0] = win[0];
-                     win[6] = 2 * win[3] - win[0];
-                     win[7] = 2 * win[4] - win[1];
-                     win[8] = 2 * win[5] - win[1];
-                  }
-               } else { // zwischen unten und oben
-                  if (col == 0) { // Rand links
-                                  //poBand->RasterIO(GF_Read, col, row - 1, 2, 3, win, 2, 3, GDT_Float32, 0, 0);
-                     win[0] = Get(row - 1, col);
-                     win[1] = Get(row - 1, col + 1);
-
-                     win[2] = Get(row, col);
-                     win[3] = Get(row, col + 1);
-
-                     win[4] = Get(row + 1, col);
-                     win[5] = Get(row + 1, col + 1);
-
-                     win[8] = win[5];
-                     win[5] = win[4];
-                     win[1] = win[3];
-                     win[7] = win[2];
-                     win[4] = win[1];
-                     win[1] = win[0];
-                     win[0] = 2 * win[1] - win[1];
-                     win[3] = 2 * win[4] - win[5];
-                     win[6] = 2 * win[7] - win[8];
-                  } else if (col == Columns - 1) { // Rand rechts
-                                                   //poBand->RasterIO(GF_Read, col - 1, row - 1, 2, 3, win, 2, 3, GDT_Float32, 0, 0);
-                     win[0] = Get(row - 1, col - 1);
-                     win[1] = Get(row - 1, col);
-
-                     win[2] = Get(row, col - 1);
-                     win[3] = Get(row, col);
-
-                     win[4] = Get(row + 1, col - 1);
-                     win[5] = Get(row + 1, col);
-
-                     win[7] = win[5];
-                     win[4] = win[4];
-                     win[1] = win[3];
-                     win[6] = win[2];
-                     win[3] = win[1];
-                     win[0] = win[0];
-                     win[1] = 2 * win[1] - win[0];
-                     win[5] = 2 * win[4] - win[3];
-                     win[8] = 2 * win[7] - win[6];
-                  } else { // innerhalb
-                           // Read in 3x3 window
-                           //poBand->RasterIO(GF_Read, col - 1, row - 1, 3, 3, win, 3, 3, GDT_Float32, 0, 0);
-
-                     win[0] = Get(row - 1, col - 1);
-                     win[1] = Get(row - 1, col);
-                     win[2] = Get(row - 1, col + 1);
-
-                     win[3] = Get(row, col - 1);
-                     win[4] = Get(row, col);
-                     win[5] = Get(row, col + 1);
-
-                     win[6] = Get(row + 1, col - 1);
-                     win[7] = Get(row + 1, col);
-                     win[8] = Get(row + 1, col + 1);
-                  }
-               }
-
                double cang = 0;
 
-               // Check if window has null value
-               bool containsNull = false;
-               for (int n = 0; n <= 8; n++) {
-                  if (win[n] == DEMNOVALUE) {
-                     containsNull = true;
-                     break;
+               // fill 3x3 window for e
+               e = fastget(row, col);
+               if (row == 0) {                           // top
+                  if (col == 0) {                        // top-left
+                     f = fastget(row, col + 1);
+                     h = fastget(row + 1, col);
+                     i = fastget(row + 1, col + 1);
+                     a = 2 * e - i;
+                     b = 2 * e - h;
+                     c = 2 * f - i;
+                     d = 2 * e - f;
+                     g = 2 * h - i;
+                  } else if (col == Columns - 1) {       // top-right
+                     d = fastget(row, col - 1);
+                     g = fastget(row + 1, col - 1);
+                     h = fastget(row + 1, col);
+                     a = 2 * d - g;
+                     b = 2 * e - h;
+                     c = 2 * e - g;
+                     f = 2 * e - d;
+                     i = 2 * h - g;
+                  } else {                               // top-edge
+                     d = fastget(row, col - 1);
+                     f = fastget(row, col + 1);
+                     g = fastget(row + 1, col - 1);
+                     h = fastget(row + 1, col);
+                     i = fastget(row + 1, col + 1);
+                     a = 2 * d - g;
+                     b = 2 * e - h;
+                     c = 2 * f - i;
+                  }
+                  inner = false;
+               } else if (row == Rows - 1) {             // bottom
+                  if (col == 0) {                        // bottom-left
+                     b = fastget(row - 1, col);
+                     c = fastget(row - 1, col + 1);
+                     f = fastget(row, col + 1);
+                     a = 2 * b - c;
+                     d = 2 * e - f;
+                     g = 2 * e - c;
+                     h = 2 * e - b;
+                     i = 2 * f - c;
+                  } else if (col == Columns - 1) {       // bottom-right
+                     a = fastget(row - 1, col - 1);
+                     b = fastget(row - 1, col);
+                     d = fastget(row, col - 1);
+                     g = 2 * d - a;
+                     h = 2 * e - b;
+                     c = 2 * b - a;
+                     f = 2 * e - d;
+                     i = 2 * e - a;
+                  } else {                               // bottom-edge
+                     a = fastget(row - 1, col - 1);
+                     b = fastget(row - 1, col);
+                     c = fastget(row - 1, col + 1);
+                     d = fastget(row, col - 1);
+                     f = fastget(row, col + 1);
+                     g = 2 * d - a;
+                     h = 2 * e - b;
+                     i = 2 * f - c;
+                  }
+                  inner = false;
+               } else {                                  // not top or bottom
+                  if (col == 0) {                        // not top or bottom, left
+                     b = fastget(row - 1, col);
+                     c = fastget(row - 1, col + 1);
+                     f = fastget(row, col + 1);
+                     h = fastget(row + 1, col);
+                     i = fastget(row + 1, col + 1);
+                     a = 2 * b - c;
+                     d = 2 * e - f;
+                     g = 2 * h - i;
+                     inner = false;
+                  } else if (col == Columns - 1) {       // not top or bottom, right
+                     a = fastget(row - 1, col - 1);
+                     b = fastget(row - 1, col);
+                     d = fastget(row, col - 1);
+                     g = fastget(row + 1, col - 1);
+                     h = fastget(row + 1, col);
+                     c = 2 * b - a;
+                     f = 2 * e - d;
+                     i = 2 * h - g;
+                     inner = false;
+                  } else {                               // inner
+
+                     if (inner) {      // 3x3 window is moved 1 step left and 6 values are valid
+                        c = fastget(row - 1, col + 1);
+                        f = fastget(row, col + 1);
+                        i = fastget(row + 1, col + 1);
+                     } else {
+                        a = fastget(row - 1, col - 1);
+                        b = fastget(row - 1, col);
+                        c = fastget(row - 1, col + 1);
+
+                        d = fastget(row, col - 1);
+                        f = fastget(row, col + 1);
+
+                        g = fastget(row + 1, col - 1);
+                        h = fastget(row + 1, col);
+                        i = fastget(row + 1, col + 1);
+                     }
+
+                     inner = true;
                   }
                }
 
-               if (!containsNull) {
-                  double X = ((z * win[0] + z * win[3] + z * win[3] + z * win[6]) -
-                              (z * win[2] + z * win[5] + z * win[5] + z * win[8])) / (8.0 * ewres * scale);
-                  double Y = ((z * win[6] + z * win[7] + z * win[7] + z * win[8]) -
-                              (z * win[0] + z * win[1] + z * win[1] + z * win[2])) / (8.0 * nsres * scale);
+               // Check if window has null value
+               if (!(a == DEMNOVALUE ||
+                     b == DEMNOVALUE ||
+                     c == DEMNOVALUE ||
+                     d == DEMNOVALUE ||
+                     e == DEMNOVALUE ||
+                     f == DEMNOVALUE ||
+                     g == DEMNOVALUE ||
+                     h == DEMNOVALUE ||
+                     i == DEMNOVALUE)) {
 
-                  //double slope = Math.PI / 2 - Math.Atan(Math.Sqrt(X * X + Y * Y));
-                  //double cang = sinalt * Math.Sin(slope) +
-                  //              cosalt * Math.Cos(slope) * Math.Cos(azimut2 - Math.Atan2(X, Y));
-                  // 5x trigonometr. Fkt., 1x Wurzel
-                  // analog:
-                  cang = (sinalt + cosalt * Math.Sqrt(X * X + Y * Y) * Math.Sin(azimut - Math.Atan2(X, Y))) / Math.Sqrt(1 + X * X + Y * Y);
-                  // -> 2x trigonometr. Fkt., 2x Wurzel
+                  // Zevenbergen - Thorne Alg.
+                  //double dx = (f - d) / (2 * ew_resm);
+                  //double dy = (b - h) / (2 * ns_resm);
+
+                  // Horn's Alg.
+                  double dx = (a + 2 * d + g - c - 2 * f - i) / (8 * ew_resm);
+                  double dy = (g + 2 * h + i - a - 2 * b - c) / (8 * ns_resm);
+
+                  cang = (sinalt - dy * cosalt_cosaz + dx * cosalt_sinaz) / Math.Sqrt(1 + dx * dx + dy * dy);
+
                }
 
-               setShadingValue(row, col, (byte)Math.Round(((cang + 2) / 4) * 255));
+               if (inner) {
+                  a = b; b = c;
+                  d = e; e = f;
+                  g = h; h = i;
+               }
+
+               hillshade[row * Columns + col] = (byte)Math.Round(((cang + 1) / 2) * 255);     // cang -1 .. +1 auf 0 .. 255 normieren
+
             }
          }
 #if WRITEBITMAPS
@@ -829,6 +830,173 @@ namespace FSofTUtils.Geography.DEM {
 #endif
       }
 
+      /*
+      Variante 1: (org)
+         +  :  - 
+         +2 :  -2
+         +  :  - 
+            dzdx = ((a + 2*d + g) - (c + 2*f + i))/8*kernelsize
+
+         -  -2 -
+         :  :  :
+         +  +2 +
+            dzdy = ((g + 2*h + i) - (a + 2*b + c))/8*kernelsize;
+
+         slope = Math.PI / 2 - Math.Atan(Math.Sqrt(dzdx * dzdx + dzdy * dzdy));
+         azimut =  Math.Atan2(dzdx, dzdy);
+
+         cang = sin(alt) * sin(slope) +
+                cos(alt) * cos(slope) * cos((az-Math.PI/2) - aspect);
+
+
+Unoptimized formulas are :
+slope = atan(sqrt(x*x + y*y));
+aspect = atan2(y,x);
+cang = sin(alt) * cos(slope) + cos(alt) * sin(slope) * cos(az - M_PI/2 - aspect);
+
+We can avoid a lot of trigonometric computations:
+
+since cos(atan(x)) = 1 / sqrt(1+x^2)           ==> cos(slope) = 1 / sqrt(1+ x*x+y*y)
+and sin(atan(x)) = x / sqrt(1+x^2)           ==> sin(slope) = sqrt(x*x + y*y) / sqrt(1+ x*x+y*y)
+
+and cos(az - M_PI/2 - aspect)
+= cos(-az + M_PI/2 + aspect)
+= cos(M_PI/2 - (az - aspect))
+= sin(az - aspect)
+= -sin(aspect-az)
+
+==> cang = (sin(alt) - cos(alt) * sqrt(x*x + y*y)  * sin(aspect-as)) / sqrt(1+ x*x+y*y)
+
+But:
+sin(aspect - az) = sin(aspect)*cos(az) - cos(aspect)*sin(az))
+
+and as sin(aspect)=sin(atan2(y,x)) = y / sqrt(xx_plus_yy)
+and cos(aspect)=cos(atan2(y,x)) = x / sqrt(xx_plus_yy)
+
+sin(aspect - az) = (y * cos(az) - x * sin(az)) / sqrt(xx_plus_yy)
+
+so we get a final formula with just one transcendental function (reciprocal of square root):
+
+cang = (psData->sin_altRadians -
+(y * psData->cos_az_mul_cos_alt_mul_z -
+x * psData->sin_az_mul_cos_alt_mul_z)) /
+sqrt(1 + psData->square_z * xx_plus_yy);
+
+
+
+
+
+      //double cang = sinalt * Math.Sin(slope) +
+      //              cosalt * Math.Cos(slope) * Math.Cos(azimut2 - Math.Atan2(X, Y));
+      // 5x trigonometr. Fkt., 1x Wurzel
+      // analog:
+      cang = (sinalt + cosalt * Math.Sqrt(dzdx * dzdx + dzdy * dzdy) * Math.Sin(azimut - Math.Atan2(dzdx, dzdy))) / Math.Sqrt(1 + dzdx * dzdx + dzdy * dzdy);
+
+
+
+      Variante 2
+         -  -2 -
+         :  :  :
+         +  +2 +
+            dzdx = ((g + 2*h + i) - (a + 2*b + c))/8*kernelsize
+
+         -  :  + 
+         -2 :  +2
+         -  :  + 
+            dzdy = ((c + 2*f + i) - (a + 2*d + g))/8*kernelsize
+
+            slope = Math.Atan(Math.Sqrt(dzdx * dzdx + dzdy * dzdy));
+            aspect = Math.Atan2(dzdy, dzdx);
+            L = cos(90° - alt) * cos(slope) + sin(90° - alt) * sin(slope) * cos(azimut - aspect)
+
+
+      Variante 3: Zevenbergen-Thorne (?)
+         :  :  : 
+         -  :  +
+         :  :  :
+            dzdx = (f - d)/2;
+
+         :  +  : 
+         :  :  :
+         :  -  :
+            dzdy = (b - h)/2;
+
+
+      Variante 4: Horn (?)
+         -  :  + 
+         -2 :  +2
+         -  :  + 
+            dzdx = ((g + 2*h + i) - (a + 2*b + c))/8;
+
+         +  +2 +
+         :  :  :
+         -  -2 -
+            dzdy = ((a + 2*b + c) - (g + 2*h + i))/8;
+
+            slope = Math.Atan(Math.Sqrt(dzdx * dzdx + dzdy * dzdy));
+            aspect = Math.Atan2(dzdy, dzdx);
+            L = cos(90° - alt) * cos(slope) + sin(90° - alt) * sin(slope) * cos(90° - azimut - aspect)
+
+
+      Variante 5: ArcGis
+         -  :  + 
+         -2 :  +2
+         -  :  + 
+            dzdx = ((c + 2*f + i) - (a + 2*d + g))/8*kernelsize
+
+         -  -2 -
+         :  :  :
+         +  +2 +
+            dzdy = ((g + 2*h + i) - (a + 2*b + c))/8*kernelsize
+
+            slope = Math.Atan(Math.Sqrt(dzdx * dzdx + dzdy * dzdy));
+            aspect:  if (dzdx != 0) {
+                        if (dzdy >= 0)
+                           aspect = Math.Atan2(dzdy, dzdx) 
+                        else
+                           aspect = 2 * Math.Pi + Math.Atan2(dzdy, dzdx);
+                     } else {
+                        if (dzdy > 0)
+                           aspect = Math.Pi / 2;         // 90°
+                        else if (dzdy < 0)
+                           aspect = 5 * Math.Pi / 2;     // 270°
+                        else
+                           ? 0 / 0
+                     }
+            L = cos(90° - alt) * cos(slope) + sin(90° - alt) * sin(slope) * cos(azimut - aspect)
+
+
+      Ritter's Alg.
+         :  :  : 
+         +  :  -
+         :  :  :
+            dzdx = (d - f);
+
+         :  -  : 
+         :  :  :
+         :  +  :
+            dzdy = (h - b);
+
+            S = Math.Sqrt(dzdx * dzdx + dzdy * dzdy))/2*d;
+            D = Math.Atan2(dzdy, dzdx);
+
+      Horn's Alg.
+         +  :  - 
+         +2 :  -2
+         +  :  - 
+            dzdx = (a + 2*b + c) - (g + 2*h + i);
+
+         -  -2 -
+         :  :  :
+         +  +2 +
+            dzdy = (g + 2*h + i) - (a + 2*b + c);
+
+            S = Math.Sqrt(dzdx * dzdx + dzdy * dzdy)/8*d;
+            D = Math.Atan2(dzdy, dzdx);
+
+
+
+       */
 
       /// <summary>
       /// get a value (coordinate origin left-top)
@@ -836,13 +1004,7 @@ namespace FSofTUtils.Geography.DEM {
       /// <param name="row"></param>
       /// <param name="col"></param>
       /// <returns></returns>
-      public byte GetShadingValue(int row, int col) {
-         if (hillshade == null ||
-             row < 0 || Rows <= row ||
-             col < 0 || Columns <= col)
-            throw new Exception(string.Format("no data or ({0}, {1}) unvalid row and/or column ({2}x{3})", col, row, Columns, Rows));
-         return hillshade[row * Columns + col];
-      }
+      byte fastgetShadingValue(int row, int col) => hillshade[row * Columns + col];
 
       /// <summary>
       /// get a value (coordinate origin left-bottom)
@@ -850,19 +1012,7 @@ namespace FSofTUtils.Geography.DEM {
       /// <param name="x"></param>
       /// <param name="y"></param>
       /// <returns></returns>
-      public byte GetShadingValue4XY(int x, int y) {
-         return GetShadingValue(Rows - 1 - y, x);
-      }
-
-      /// <summary>
-      /// get a value (coordinate origin left-top)
-      /// </summary>
-      /// <param name="row"></param>
-      /// <param name="col"></param>
-      /// <param name="value"></param>
-      void setShadingValue(int row, int col, byte value) {
-         hillshade[row * Columns + col] = value;
-      }
+      virtual protected byte fastgetShadingValue4XY(int x, int y) => hillshade[(Rows - 1 - y) * Columns + x];
 
       /// <summary>
       /// get the interpolated value
@@ -871,7 +1021,7 @@ namespace FSofTUtils.Geography.DEM {
       /// <param name="lat"></param>
       /// <param name="intpol"></param>
       /// <returns></returns>
-      public byte InterpolatedShadingValue(double lon, double lat, InterpolationType intpol) {
+      virtual public byte InterpolatedShadingValue(double lon, double lat, InterpolationType intpol) {
          double h = NOVALUED;
 
          lon -= Left;
@@ -895,29 +1045,29 @@ namespace FSofTUtils.Geography.DEM {
 
                   if (delta_lon == 0) {            // linker Rand
                      if (delta_lat == 0)
-                        h = GetShadingValue4XY(x, y);          // Eckpunkt links unten
+                        h = fastgetShadingValue4XY(x, y);          // Eckpunkt links unten
                      else if (delta_lat >= DeltaY)
-                        h = GetShadingValue4XY(x, y + 1);      // Eckpunkt links oben (eigentlich nicht möglich)
+                        h = fastgetShadingValue4XY(x, y + 1);      // Eckpunkt links oben (eigentlich nicht möglich)
                      else
-                        h = linearInterpolatedValue(GetShadingValue4XY(x, y),
-                                                    GetShadingValue4XY(x, y + 1),
+                        h = linearInterpolatedValue(fastgetShadingValue4XY(x, y),
+                                                    fastgetShadingValue4XY(x, y + 1),
                                                     delta_lat / DeltaY);
                   } else if (delta_lon >= DeltaX) { // rechter Rand (eigentlich nicht möglich)
                      if (delta_lat == 0)
-                        h = GetShadingValue4XY(x + 1, y);      // Eckpunkt rechts unten
+                        h = fastgetShadingValue4XY(x + 1, y);      // Eckpunkt rechts unten
                      else if (delta_lat >= DeltaY)
-                        h = GetShadingValue4XY(x + 1, y + 1);  // Eckpunkt rechts oben (eigentlich nicht möglich)
+                        h = fastgetShadingValue4XY(x + 1, y + 1);  // Eckpunkt rechts oben (eigentlich nicht möglich)
                      else
-                        h = linearInterpolatedValue(GetShadingValue4XY(x + 1, y),
-                                                    GetShadingValue4XY(x + 1, y + 1),
+                        h = linearInterpolatedValue(fastgetShadingValue4XY(x + 1, y),
+                                                    fastgetShadingValue4XY(x + 1, y + 1),
                                                     delta_lat / DeltaY);
                   } else if (delta_lat == 0) {     // unterer Rand (außer Eckpunkt)
-                     h = linearInterpolatedValue(GetShadingValue4XY(x, y),
-                                                 GetShadingValue4XY(x + 1, y),
+                     h = linearInterpolatedValue(fastgetShadingValue4XY(x, y),
+                                                 fastgetShadingValue4XY(x + 1, y),
                                                  delta_lon / DeltaX);
                   } else if (delta_lat >= DeltaY) { // oberer Rand (außer Eckpunkt) (eigentlich nicht möglich)
-                     h = linearInterpolatedValue(GetShadingValue4XY(x, y + 1),
-                                                 GetShadingValue4XY(x + 1, y + 1),
+                     h = linearInterpolatedValue(fastgetShadingValue4XY(x, y + 1),
+                                                 fastgetShadingValue4XY(x + 1, y + 1),
                                                  delta_lon / DeltaX);
 
                   } else {                         // Punkt innerhalb des Rechtecks
@@ -964,10 +1114,10 @@ namespace FSofTUtils.Geography.DEM {
 
                      double[][] p = new double[4][];
                      for (int i = 0; i < 4; i++)
-                        p[i] = new double[] { GetShadingValue4XY(x, y + 3-i),
-                                              GetShadingValue4XY(x + 1, y + 3-i),
-                                              GetShadingValue4XY(x + 2, y + 3-i),
-                                              GetShadingValue4XY(x + 3, y + 3-i) };
+                        p[i] = new double[] { fastgetShadingValue4XY(x, y + 3-i),
+                                              fastgetShadingValue4XY(x + 1, y + 3-i),
+                                              fastgetShadingValue4XY(x + 2, y + 3-i),
+                                              fastgetShadingValue4XY(x + 3, y + 3-i) };
 
                      h = Dim2CubicInterpolation(p, lon / DeltaX - x, lat / DeltaY - y);
                   } else
@@ -1065,11 +1215,16 @@ namespace FSofTUtils.Geography.DEM {
 
       public override string ToString() {
          return string.Format("DEM1x1: {0}{1}° {2}{3}°, {4}x{5}, {6}m..{7}m, unvalid values: {8} ({9}%)",
-            Bottom >= 0 ? "N" : "S", Bottom >= 0 ? Bottom : -Bottom,
-            Left >= 0 ? "E" : "W", Left >= 0 ? Left : -Left,
-            Rows, Columns,
-            Minimum, Maximum,
-            NotValid, (100.0 * NotValid) / (Rows * Columns));
+                              Bottom >= 0 ? "N" : "S",
+                              Bottom >= 0 ? Bottom : -Bottom,
+                              Left >= 0 ? "E" : "W",
+                              Left >= 0 ? Left : -Left,
+                              Rows,
+                              Columns,
+                              Minimum,
+                              Maximum,
+                              NotValid,
+                              (100.0 * NotValid) / (Rows * Columns));
       }
 
    }

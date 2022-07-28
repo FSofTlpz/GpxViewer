@@ -1,5 +1,8 @@
-﻿namespace FSofTUtils.Geography.DEM {
+﻿using System;
 
+namespace FSofTUtils.Geography.DEM {
+
+   [Serializable]
    public class DEMNoValues : DEM1x1 {
 
       public DEMNoValues(int left, int bottom) :
@@ -14,6 +17,10 @@
             data[i] = DEMNOVALUE;
          NotValid = data.Length;
       }
+
+      override protected byte fastgetShadingValue4XY(int x, int y) => 255;
+
+      override public byte InterpolatedShadingValue(double lon, double lat, InterpolationType intpol) => 255;
 
    }
 }

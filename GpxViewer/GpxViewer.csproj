@@ -89,6 +89,7 @@
     <Compile Include="EditableTracklistControl.Designer.cs">
       <DependentUpon>EditableTracklistControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="ExifGeo.cs" />
     <Compile Include="FormChooseMarkerTyp.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -101,11 +102,23 @@
     <Compile Include="FormClearCache.Designer.cs">
       <DependentUpon>FormClearCache.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormGeoTagger.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormGeoTagger.Designer.cs">
+      <DependentUpon>FormGeoTagger.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormSearch.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormSearch.Designer.cs">
       <DependentUpon>FormSearch.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormSplashScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormSplashScreen.Designer.cs">
+      <DependentUpon>FormSplashScreen.cs</DependentUpon>
     </Compile>
     <Compile Include="FSofTUtils\Threading\ThreadsafeInvoker.cs" />
     <Compile Include="GpxListReader.cs" />
@@ -192,6 +205,12 @@
     <Compile Include="NumericUpDownMenuItem.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="PictureManager.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PictureManager.designer.cs">
+      <DependentUpon>PictureManager.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -234,6 +253,7 @@
     <Compile Include="Unclassified.UI\SpecColorSelectorDialog.Designer.cs">
       <DependentUpon>SpecColorSelectorDialog.cs</DependentUpon>
     </Compile>
+    <None Include="Prog.png" />
     <EmbeddedResource Include="EditableTracklistControl.resx">
       <DependentUpon>EditableTracklistControl.cs</DependentUpon>
     </EmbeddedResource>
@@ -243,8 +263,14 @@
     <EmbeddedResource Include="FormClearCache.resx">
       <DependentUpon>FormClearCache.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormGeoTagger.resx">
+      <DependentUpon>FormGeoTagger.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormSearch.resx">
       <DependentUpon>FormSearch.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSplashScreen.resx">
+      <DependentUpon>FormSplashScreen.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormTrackInfoAndEdit.resx">
       <DependentUpon>FormTrackInfoAndEdit.cs</DependentUpon>
@@ -285,6 +311,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MoveControl.resx">
       <DependentUpon>MoveControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PictureManager.resx">
+      <DependentUpon>PictureManager.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -330,14 +359,17 @@
     <None Include="Images\CursorConcat.cur" />
     <None Include="Images\copy.png" />
     <None Include="Images\arrow_undo.png" />
+    <None Include="Images\CursorFoto.cur" />
     <Content Include="Images\CursorSplit.cur" />
     <None Include="gpxviewer.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Images\database_delete.png" />
+    <None Include="Images\Filter.png" />
     <Content Include="Images\FlagBlue.png" />
     <Content Include="Images\FlagGreen.png" />
     <Content Include="Images\FlagRed.png" />
+    <None Include="Images\folder.png" />
     <Content Include="Images\Foto.png" />
     <None Include="Images\speichern.png" />
     <None Include="Images\speichernu.png" />
@@ -361,6 +393,15 @@
     <Content Include="Images\garmin1.png" />
     <Content Include="Images\garmin2.png" />
     <None Include="Images\list_numbers.png" />
+    <EmbeddedResource Include="Images\Prog.png" />
+    <None Include="Images\MarkersDelete.png" />
+    <None Include="Images\TracksDelete.png" />
+    <None Include="Images\save.png" />
+    <None Include="Images\Sort.png" />
+    <None Include="Images\subfolder.png" />
+    <None Include="Images\table.png" />
+    <None Include="Images\GeoTagging.png" />
+    <None Include="Images\speicherngpx.png" />
     <Content Include="prog.ico" />
     <None Include="Images\Search2.png" />
     <None Include="Images\Search.png" />
@@ -415,6 +456,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ExifLibNet">
+      <Version>2.1.4</Version>
+    </PackageReference>
     <PackageReference Include="System.Data.SqlClient">
       <Version>4.8.3</Version>
     </PackageReference>

@@ -302,6 +302,14 @@ namespace SmallMapControl.EditHelper {
       }
 
       /// <summary>
+      /// entfernt alle Tracks aus der internen Liste, seine Gpx-Daten und aus der ListBox
+      /// </summary>
+      public void RemoveAll() {
+         while (editablegpx.TrackList.Count > 0) 
+            Remove(editablegpx.TrackList[0]);
+      }
+
+      /// <summary>
       /// verschiebt die Position des Tracks in der Auflistung
       /// </summary>
       /// <param name="lb"></param>

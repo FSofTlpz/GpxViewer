@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 
@@ -92,24 +91,9 @@ namespace GpxViewer {
          }
       }
 
-      private void toolStripButton_Go_Click(object sender, EventArgs e) {
+      private void toolStripButton_Edit_Click(object sender, EventArgs e) {
          int idx = listBox_Locations.SelectedIndex;
          if (idx >= 0) {
-            Position pos = poslst[idx];
-            // anzeigen ...
-            formmain.SetMapLocationAndZoom(pos.Zoom, pos.Lon, pos.Lat);
-            // ... und an die erste Stelle holen
-            poslst.RemoveAt(idx);
-            poslst.Insert(0, pos);
-            listBox_Locations.Items.RemoveAt(idx);
-            listBox_Locations.Items.Insert(0, pos.Name);
-            listBox_Locations.SelectedIndex = 0;
-         }
-      }
-
-      private void listBox_Locations_MouseDoubleClick(object sender, MouseEventArgs e) {
-         int idx = (sender as ListBox).IndexFromPoint(e.Location);
-         if (idx != ListBox.NoMatches) {
             FormMapLocationName form = new FormMapLocationName {
                PositionName = poslst[idx].Name,
             };
@@ -119,6 +103,31 @@ namespace GpxViewer {
             }
          }
       }
+
+      private void toolStripButton_Go_Click(object sender, EventArgs e) {
+         int idx = listBox_Locations.SelectedIndex;
+         if (idx >= 0)
+            gotoLocation(idx);
+      }
+
+      private void listBox_Locations_MouseDoubleClick(object sender, MouseEventArgs e) {
+         int idx = (sender as ListBox).IndexFromPoint(e.Location);
+         if (idx != ListBox.NoMatches)
+            gotoLocation(idx);
+      }
+
+      void gotoLocation(int idx) {
+         Position pos = poslst[idx];
+         // anzeigen ...
+         formmain.SetMapLocationAndZoom(pos.Zoom, pos.Lon, pos.Lat);
+         // ... und an die erste Stelle holen
+         poslst.RemoveAt(idx);
+         poslst.Insert(0, pos);
+         listBox_Locations.Items.RemoveAt(idx);
+         listBox_Locations.Items.Insert(0, pos.Name);
+         listBox_Locations.SelectedIndex = 0;
+      }
+
 
       void SaveAsFile() {
          try {

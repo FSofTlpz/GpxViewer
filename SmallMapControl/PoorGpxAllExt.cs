@@ -410,6 +410,9 @@ namespace SmallMapControl {
             case Marker.MarkerType.Foto:
                return MarkerListPictures.IndexOf(marker);
 
+            case Marker.MarkerType.GeoTagging:
+               return -1;
+
             default:
                throw new Exception("Unknown MarkerType");
          }

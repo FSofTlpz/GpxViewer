@@ -38,6 +38,11 @@ namespace GpxViewer {
       /// </summary>
       public Cursor Concat { get; }
 
+      /// <summary>
+      /// Cursor für eine Concat-Auswahl
+      /// </summary>
+      public Cursor Foto { get; }
+
 
       public Cursors4Map(Cursor standard) {
          Std = standard;
@@ -46,6 +51,7 @@ namespace GpxViewer {
          Hand = new Cursor(new MemoryStream(Properties.Resources.CursorHand));
          Split = new Cursor(new MemoryStream(Properties.Resources.CursorSplit));
          Concat = new Cursor(new MemoryStream(Properties.Resources.CursorConcat));
+         Foto = new Cursor(new MemoryStream(Properties.Resources.CursorFoto));
       }
 
    }

@@ -63,6 +63,7 @@ namespace FSofTUtils.Geography.DEM {
    /// http://www.viewfinderpanoramas.org/dem3.html
    /// http://srtm.csi.cgiar.org/
    /// </summary>
+   [Serializable]
    public class DEMHGTReader : DEM1x1 {
 
       /// <summary>
@@ -147,7 +148,7 @@ namespace FSofTUtils.Geography.DEM {
                }
                zipstream.Dispose();
 
-            } else 
+            } else
                throw new Exception(string.Format("file '{0}' nor '{0}.zip' nor {1}.zip exist", filename, filename.Substring(0, filename.Length - 4)));
 
          }
@@ -164,8 +165,15 @@ namespace FSofTUtils.Geography.DEM {
 
          data = new short[Rows * Columns];               // 2 byte per value
          NotValid = 0;
+
+         // ------------- reading with byte-buffer is much faster then direct stream-reading --------------------
+         byte[] inputbuffer = new byte[streamlen];
+         str.Read(inputbuffer, 0, (int)streamlen);
+         // ------------------------------------------------------------------------------------------------
+         
          for (int i = 0; i < data.Length; i++) {
-            data[i] = (short)((str.ReadByte() << 8) + str.ReadByte());
+            //data[i] = (short)((str.ReadByte() << 8) + str.ReadByte());
+            data[i] = (short)((inputbuffer[2 * i] << 8) + inputbuffer[2 * i + 1]);
 
             if (data[i] != HGT_NOVALUE) {
                if (Maximum < data[i])
@@ -182,6 +190,5 @@ namespace FSofTUtils.Geography.DEM {
             Minimum = DEMNOVALUE;
          }
       }
-
    }
 }

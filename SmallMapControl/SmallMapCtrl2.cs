@@ -938,7 +938,7 @@ namespace SmallMapControl {
             for (int i = 0; i < gdef.TDBfile.Count && i < gdef.TYPfile.Count; i++) {
                mapdata.Add(new GarminImageCreator.GarminMapData(gdef.TDBfile[i],
                                                                 gdef.TYPfile[i],
-                                                                "",
+                                                                "",                                   // <- path for sqlite cache
                                                                 gdef.Levels4LocalCache,
                                                                 gdef.MaxSubdivs,
                                                                 gdef.TextFactor,

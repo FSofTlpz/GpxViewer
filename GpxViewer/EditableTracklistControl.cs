@@ -568,8 +568,6 @@ namespace GpxViewer {
          return gpx.MarkerList.IndexOf(marker);
       }
 
-
-
       #region public-Funktionen
 
       /// <summary>

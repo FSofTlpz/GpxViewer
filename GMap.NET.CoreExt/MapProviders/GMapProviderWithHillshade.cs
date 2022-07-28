@@ -99,44 +99,28 @@ namespace GMap.NET.CoreExt.MapProviders {
       /// <param name="bm"></param>
       /// <param name="left"></param>
       /// <param name="bottom"></param>
-      /// <param name="rigth"></param>
+      /// <param name="right"></param>
       /// <param name="top"></param>
       /// <param name="alpha"></param>
       static protected void DrawHillshade(FSofTUtils.Geography.DEM.DemData dem,
                                           Bitmap bm,
                                           double left,
                                           double bottom,
-                                          double rigth,
+                                          double right,
                                           double top,
                                           int alpha = 100) {
-         double deltalon = (rigth - left) / bm.Width;
-         double deltalat = -(bottom - top) / bm.Height;
+         byte[] shadings = dem.GetShadingValueArray(left, bottom, right, top, bm.Width, bm.Height);
+         if (shadings != null) {
+            uint[] pixel = new uint[bm.Width * bm.Height];
+            for (int i = 0; i < shadings.Length; i++)
+               pixel[i] = BitmapHelper.GetUInt4Color(alpha, shadings[i], shadings[i], shadings[i]);
 
-         //Bitmap bmhs = new Bitmap(bm.Width, bm.Height);
-         //for (int y = 0; y < bm.Width; y++)
-         //   for (int x = 0; x < bm.Height; x++) {
-         //      byte s = dem.GetShadingValue(left + x * deltalon, top - y * deltalat);
-
-         //      bmhs.SetPixel(x, y, Color.FromArgb(alpha, s, s, s));
-         //      //bmhs.SetPixel(x, y, Color.FromArgb(255 - s, s, s, s));
-         //      //bmhs.SetPixel(x, y, Color.FromArgb(255 - s, 120, 120, 120));
-         //   }
-
-         // etwa 10..15% schneller:
-         uint[] pixel = new uint[bm.Width * bm.Height];
-         for (int y = 0; y < bm.Width; y++)
-            for (int x = 0; x < bm.Height; x++) {
-               byte s = dem.GetShadingValue(left + x * deltalon, top - y * deltalat);
-               pixel[x + y * bm.Width] = BitmapHelper.GetUInt4Color(alpha, s, s, s);
+            using (Bitmap bmhs = BitmapHelper.CreateBitmap32(bm.Width, bm.Height, pixel)) {
+               using (Graphics canvas = Graphics.FromImage(bm)) {
+                  canvas.DrawImage(bmhs, 0, 0);
+               }
             }
-         Bitmap bmhs = BitmapHelper.CreateBitmap32(bm.Width, bm.Height, pixel);
-
-         Graphics canvas = Graphics.FromImage(bm);
-         canvas.DrawImage(bmhs, 0, 0);
-
-         canvas.Flush();
-         canvas.Dispose();
-         bmhs.Dispose();
+         }
       }
 
       /// <summary>

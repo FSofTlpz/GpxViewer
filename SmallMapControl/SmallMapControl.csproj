@@ -97,6 +97,7 @@
     <Content Include="Images\FlagBlue.png" />
     <Content Include="Images\FlagGreen.png" />
     <Content Include="Images\Foto.png" />
+    <None Include="Images\GeoTagging.png" />
     <None Include="Images\Point1.png" />
   </ItemGroup>
   <ItemGroup>

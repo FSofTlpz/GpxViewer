@@ -28,6 +28,7 @@
          this.toolStrip1 = new System.Windows.Forms.ToolStrip();
          this.toolStripButton_Save = new System.Windows.Forms.ToolStripButton();
          this.toolStripButton_Delete = new System.Windows.Forms.ToolStripButton();
+         this.toolStripButton_Edit = new System.Windows.Forms.ToolStripButton();
          this.toolStripButton_Go = new System.Windows.Forms.ToolStripButton();
          this.toolStripContainer1.ContentPanel.SuspendLayout();
          this.toolStripContainer1.TopToolStripPanel.SuspendLayout();
@@ -70,10 +71,11 @@
          this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton_Save,
             this.toolStripButton_Delete,
+            this.toolStripButton_Edit,
             this.toolStripButton_Go});
          this.toolStrip1.Location = new System.Drawing.Point(3, 0);
          this.toolStrip1.Name = "toolStrip1";
-         this.toolStrip1.Size = new System.Drawing.Size(81, 25);
+         this.toolStrip1.Size = new System.Drawing.Size(135, 25);
          this.toolStrip1.TabIndex = 0;
          // 
          // toolStripButton_Save
@@ -95,6 +97,16 @@
          this.toolStripButton_Delete.Size = new System.Drawing.Size(23, 22);
          this.toolStripButton_Delete.Text = "Position löschen";
          this.toolStripButton_Delete.Click += new System.EventHandler(this.toolStripButton_Delete_Click);
+         // 
+         // toolStripButton_Edit
+         // 
+         this.toolStripButton_Edit.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+         this.toolStripButton_Edit.Image = global::GpxViewer.Properties.Resources.edit;
+         this.toolStripButton_Edit.ImageTransparentColor = System.Drawing.Color.Magenta;
+         this.toolStripButton_Edit.Name = "toolStripButton_Edit";
+         this.toolStripButton_Edit.Size = new System.Drawing.Size(23, 22);
+         this.toolStripButton_Edit.Text = "Name ändern";
+         this.toolStripButton_Edit.Click += new System.EventHandler(this.toolStripButton_Edit_Click);
          // 
          // toolStripButton_Go
          // 
@@ -137,6 +149,7 @@
         private System.Windows.Forms.ToolStripButton toolStripButton_Save;
         private System.Windows.Forms.ToolStripButton toolStripButton_Delete;
         private System.Windows.Forms.ListBox listBox_Locations;
-        private System.Windows.Forms.ToolStripButton toolStripButton_Go;
-    }
+        private System.Windows.Forms.ToolStripButton toolStripButton_Edit;
+      private System.Windows.Forms.ToolStripButton toolStripButton_Go;
+   }
 }

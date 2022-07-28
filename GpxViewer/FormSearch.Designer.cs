@@ -77,6 +77,7 @@
          this.listView_Result.TabIndex = 3;
          this.listView_Result.UseCompatibleStateImageBehavior = false;
          this.listView_Result.View = System.Windows.Forms.View.Details;
+         this.listView_Result.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView_Result_MouseDoubleClick);
          // 
          // columnGeoName
          // 

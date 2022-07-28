@@ -113,7 +113,7 @@ namespace GpxViewer {
 
       private void ToolStripMenuItem_ShowPosition_Click(object sender, EventArgs e) {
          if (actualGeoCodingResult != null)
-            GoToPointEvent?.Invoke(this, new GoToPointEventArgs(actualGeoCodingResult.Longitude, 
+            GoToPointEvent?.Invoke(this, new GoToPointEventArgs(actualGeoCodingResult.Longitude,
                                                                 actualGeoCodingResult.Latitude));
          actualGeoCodingResult = null;
       }
@@ -122,17 +122,17 @@ namespace GpxViewer {
          if (actualGeoCodingResult != null)
             GoToAreaEvent?.Invoke(this, new GoToAreaEventArgs(actualGeoCodingResult.Longitude,
                                                               actualGeoCodingResult.Latitude,
-                                                              actualGeoCodingResult.BoundingLeft, 
-                                                              actualGeoCodingResult.BoundingRight, 
-                                                              actualGeoCodingResult.BoundingBottom, 
+                                                              actualGeoCodingResult.BoundingLeft,
+                                                              actualGeoCodingResult.BoundingRight,
+                                                              actualGeoCodingResult.BoundingBottom,
                                                               actualGeoCodingResult.BoundingTop));
          actualGeoCodingResult = null;
       }
 
       private void ToolStripMenuItem_ShowPositionAndMarker_Click(object sender, EventArgs e) {
          if (actualGeoCodingResult != null)
-            GoToPointEvent?.Invoke(this, new GoToPointEventArgs(actualGeoCodingResult.Longitude, 
-                                                                actualGeoCodingResult.Latitude, 
+            GoToPointEvent?.Invoke(this, new GoToPointEventArgs(actualGeoCodingResult.Longitude,
+                                                                actualGeoCodingResult.Latitude,
                                                                 actualGeoCodingResult.Name));
          actualGeoCodingResult = null;
       }
@@ -140,13 +140,24 @@ namespace GpxViewer {
       private void ToolStripMenuItem_ShowAreaAndMarker_Click(object sender, EventArgs e) {
          if (actualGeoCodingResult != null)
             GoToAreaEvent?.Invoke(this, new GoToAreaEventArgs(actualGeoCodingResult.Longitude,
-                                                              actualGeoCodingResult.Latitude, 
-                                                              actualGeoCodingResult.BoundingLeft, 
-                                                              actualGeoCodingResult.BoundingRight, 
-                                                              actualGeoCodingResult.BoundingBottom, 
-                                                              actualGeoCodingResult.BoundingTop, 
+                                                              actualGeoCodingResult.Latitude,
+                                                              actualGeoCodingResult.BoundingLeft,
+                                                              actualGeoCodingResult.BoundingRight,
+                                                              actualGeoCodingResult.BoundingBottom,
+                                                              actualGeoCodingResult.BoundingTop,
                                                               actualGeoCodingResult.Name));
          actualGeoCodingResult = null;
+      }
+
+      private void listView_Result_MouseDoubleClick(object sender, MouseEventArgs e) {
+         ListViewHitTestInfo hit = (sender as ListView).HitTest(e.Location);
+         if (hit != null && hit.Item != null)
+            if (hit.Item.Index >= 0) {
+               actualGeoCodingResult = hit.Item.Tag as GeoCodingResultOsm;
+               GoToPointEvent?.Invoke(this, new GoToPointEventArgs(actualGeoCodingResult.Longitude,
+                                                                   actualGeoCodingResult.Latitude));
+               actualGeoCodingResult = null;
+            }
       }
    }
 }

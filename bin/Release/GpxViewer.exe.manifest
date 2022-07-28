@@ -79,6 +79,18 @@
     </dependentAssembly>
   </dependency>
   <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="ExifLibrary.dll" size="113152">
+      <assemblyIdentity name="ExifLibrary" version="2.1.4.0" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>EJIMSU6m0jyKbP7ofbxPxJeHF3+g1cef6p5KF3AUslo=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
     <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="FSofTUtils.dll" size="104448">
       <assemblyIdentity name="FSofTUtils" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
@@ -92,13 +104,13 @@
   </dependency>
   <dependency>
     <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GarminCore.dll" size="372224">
-      <assemblyIdentity name="GarminCore" version="1.0.8221.23951" language="neutral" processorArchitecture="msil" />
+      <assemblyIdentity name="GarminCore" version="1.0.8242.34578" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>Tvl+CheS4xLZcXrHSSCT2GyzB6FHoD5AaP9G/C0mBII=</dsig:DigestValue>
+        <dsig:DigestValue>krEw0G69ULk6kjemDJx+9n0L43/1GZtyEbTXg8NdomM=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -110,7 +122,7 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>JvwACfpu5AJZUn+NwHdbaZ4vYC7FBYSUdKPuKBHnUxc=</dsig:DigestValue>
+        <dsig:DigestValue>QTx1wp2Sx0kZtolwdAlgfDBSg6o7wrkDXNh8xND6vdY=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -151,14 +163,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GMap.NET.CoreExt.dll" size="1603584">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GMap.NET.CoreExt.dll" size="1607168">
       <assemblyIdentity name="GMap.NET.CoreExt" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>0t/jNuNtYrATfe0fzzy2nUelgFSY18mYUtPeFnUswYk=</dsig:DigestValue>
+        <dsig:DigestValue>o61g1qPJM9Da33YISjnn7tv7uiwmmMIFrwcgrJ6LWDU=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -175,26 +187,26 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GpxViewer.exe" size="1985496">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="GpxViewer.exe" size="2452952">
       <assemblyIdentity name="GpxViewer" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>7gk+gPlrihYwAP0lNd/lGAEgJkJskf4vRmTxiqM+/6U=</dsig:DigestValue>
+        <dsig:DigestValue>R/9fjX3Ud61Q4baR2cftNxfaQngnCeu6rVL6Q6XS9LM=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Microsoft.Data.Sqlite.dll" size="171424">
-      <assemblyIdentity name="Microsoft.Data.Sqlite" version="6.0.5.0" publicKeyToken="ADB9793829DDAE60" language="neutral" processorArchitecture="msil" />
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="Microsoft.Data.Sqlite.dll" size="171408">
+      <assemblyIdentity name="Microsoft.Data.Sqlite" version="6.0.7.0" publicKeyToken="ADB9793829DDAE60" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>/Ggdwf0XCk8nSHvW2REDCToW9SbUfwfv82PrhTYqGLc=</dsig:DigestValue>
+        <dsig:DigestValue>C81kzT2rozStrsZaPyFnUq4QllShGK3ytCXBtP2y9cs=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -223,14 +235,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="SmallMapControl.dll" size="87040">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="SmallMapControl.dll" size="88064">
       <assemblyIdentity name="SmallMapControl" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>FNJTt6DmSPC2C9UYl02Hpxxcxw9ujDmmkRdvVjvsd80=</dsig:DigestValue>
+        <dsig:DigestValue>8q5wDRTHjoNTLUyh3Zo4BdwOmlsvM/JyoRjxevLFzXc=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -242,7 +254,7 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>nHT/RDvqy/G9QlGl6Zyep+3+N6Jvt0S+xFlI2k9niRs=</dsig:DigestValue>
+        <dsig:DigestValue>Z8NdhysUGicoq6Wlm+2KdY/quF42BbvV2xw5AGbvEY8=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -339,6 +351,18 @@
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
         <dsig:DigestValue>nVXBxqGUxh0OeBD35iYHNMLhM3ltPk+2Uy7uWL1QRfw=</dsig:DigestValue>
+      </hash>
+    </dependentAssembly>
+  </dependency>
+  <dependency>
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="System.Diagnostics.DiagnosticSource.dll" size="35760">
+      <assemblyIdentity name="System.Diagnostics.DiagnosticSource" version="4.0.1.0" publicKeyToken="CC7B13FFCD2DDD51" language="neutral" processorArchitecture="msil" />
+      <hash>
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+        <dsig:DigestValue>0iEzgYowMT4L7PAQ14pValazTqNh29M1iMmBdjH+1UA=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

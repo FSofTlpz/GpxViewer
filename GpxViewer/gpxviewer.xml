@@ -29,10 +29,11 @@
 		<startzoom>14</startzoom>
 
 		<dem chachesize="16"
+			 cachepath="./demcachepath"
+			 minzoom="13"
 			 hillshadingazimut="315.0"
 			 hillshadingaltitude="45.0"
-			 hillshadingscale="2500.0"
-			 hillshadingz="1.0">%USERPROFILE%\daten\Gps\Data\srtm_zip</dem>
+			 hillshadingscale="20.0">%USERPROFILE%\daten\Gps\Data\srtm_zip</dem>
 
 		<provider mapname="Garmin: Deutschland, erw. Basis, 12.2.2022"
 				 dbiddelta="0"

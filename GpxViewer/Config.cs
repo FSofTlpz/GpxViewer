@@ -29,10 +29,11 @@ namespace GpxViewer {
 
       const string XML_DEMPATH = "dem";
       const string XML_DEMCACHESIZE = "@cachesize";
+      const string XML_DEMCACHEPATH = "@cachepath";
+      const string XML_DEMMINZOOM = "@minzom";
       const string XML_DEMHILLSHADINGAZIMUT = "@hillshadingazimut";
       const string XML_DEMHILLSHADINGALTITUDE = "@hillshadingaltitude";
       const string XML_DEMHILLSHADINGSCALE = "@hillshadingscale";
-      const string XML_DEMHILLSHADINGZ = "@hillshadingz";
 
       const string XML_PROVIDER = "provider";
       const string XML_MAPNAME = "@mapname";
@@ -161,6 +162,18 @@ namespace GpxViewer {
          }
       }
 
+      public string DemCachePath {
+         get {
+            return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMCACHEPATH, "");
+         }
+      }
+
+      public int DemMinZoom {
+         get {
+            return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMMINZOOM, 11);
+         }
+      }
+
       public double DemHillshadingAzimut {
          get {
             return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGAZIMUT, 315.0);
@@ -176,12 +189,6 @@ namespace GpxViewer {
       public double DemHillshadingScale {
          get {
             return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGSCALE, 1.0);
-         }
-      }
-
-      public double DemHillshadingZ {
-         get {
-            return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGZ, 1.0);
          }
       }
 

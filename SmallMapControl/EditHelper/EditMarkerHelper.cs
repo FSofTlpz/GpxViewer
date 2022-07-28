@@ -131,6 +131,15 @@ namespace SmallMapControl.EditHelper {
       }
 
       /// <summary>
+      /// entfernt alle Marker aus der internen Liste, seine Gpx-Daten und aus der ListBox
+      /// </summary>
+      public void RemoveAll() {
+         while (editablegpx.MarkerList.Count > 0)
+            Remove(editablegpx.MarkerList[0]);
+      }
+
+
+      /// <summary>
       /// verschiebt die Position des <see cref="Marker"/> in der Auflistung
       /// </summary>
       /// <param name="fromidx"></param>

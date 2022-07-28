@@ -55,6 +55,7 @@ namespace SmallMapControl {
       //readonly static MarkerPicture PinRedMarker = new MarkerPicture(0, -24, Properties.Resources.PinRed);
       //readonly static MarkerPicture PinGreenMarker = new MarkerPicture(0, -24, Properties.Resources.PinGreen);
       public readonly static MarkerPicture PointMarker = new MarkerPicture(-2, -2, Properties.Resources.Point1);
+      public readonly static MarkerPicture GeoTaggingMarker = new MarkerPicture(-12, -12, Properties.Resources.GeoTagging);
 #endif
 
 
@@ -80,6 +81,10 @@ namespace SmallMapControl {
          /// Punkt
          /// </summary>
          PointMarker,
+         /// <summary>
+         /// für GeoTagging
+         /// </summary>
+         GeoTagging,
       }
 
 
@@ -115,6 +120,7 @@ namespace SmallMapControl {
 
             case VisualStyle.PointMarker: return PointMarker;
             case VisualStyle.FotoMarker: return FotoMarker;
+            case VisualStyle.GeoTagging: return GeoTaggingMarker;
          }
          return null; ;
       }

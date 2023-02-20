@@ -28,6 +28,7 @@ Sqlite4Garmin/bin
 *.xml
 
 GarminSymbols/
+GoogleSymbols/
 Test_GDB/
 Sonstiges/
 GMap.NET-master/Build/

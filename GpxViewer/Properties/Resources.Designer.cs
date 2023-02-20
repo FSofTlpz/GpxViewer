@@ -73,6 +73,16 @@ namespace GpxViewer.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap arrow_refresh {
+            get {
+                object obj = ResourceManager.GetObject("arrow_refresh", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap arrow_undo {
             get {
                 object obj = ResourceManager.GetObject("arrow_undo", resourceCulture);
@@ -276,6 +286,16 @@ namespace GpxViewer.Properties {
         internal static System.Drawing.Bitmap GeoTagging {
             get {
                 object obj = ResourceManager.GetObject("GeoTagging", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap goto2 {
+            get {
+                object obj = ResourceManager.GetObject("goto2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -503,6 +523,16 @@ namespace GpxViewer.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap speichernmulti {
+            get {
+                object obj = ResourceManager.GetObject("speichernmulti", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap speichernu {
             get {
                 object obj = ResourceManager.GetObject("speichernu", resourceCulture);
@@ -575,6 +605,16 @@ namespace GpxViewer.Properties {
         internal static System.Drawing.Bitmap TracksDelete {
             get {
                 object obj = ResourceManager.GetObject("TracksDelete", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap TrackSimpl {
+            get {
+                object obj = ResourceManager.GetObject("TrackSimpl", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

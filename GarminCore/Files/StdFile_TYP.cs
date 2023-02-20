@@ -585,7 +585,7 @@ namespace GarminCore.Files {
                   long startpos = br.Position;
                   POI p = new POI(PointTableItems[i].Type, PointTableItems[i].Subtype);
                   p.Read(br);
-                  Debug.WriteLineIf(startpos + datalen != br.BaseStream.Position,
+                  Debug.WriteLineIf(startpos + datalen != br.Position,
                      string.Format("Diff. {0} der Datenlänge beim Lesen des Objektes 0x{1:x} 0x{2:x} (größer 0 bedeutet: zuviel gelesen)",
                                     br.Position - (startpos + datalen), PointTableItems[i].Type, PointTableItems[i].Subtype));
                   poi.Add(p, 0);

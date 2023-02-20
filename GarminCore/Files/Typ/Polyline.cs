@@ -247,7 +247,7 @@ namespace GarminCore.Files.Typ {
       }
 
       public void Read(BinaryReaderWriter br) {
-         long startpos = br.BaseStream.Position;
+         long startpos = br.Position;
          try {
             Options = br.ReadByte();
             Options2 = br.ReadByte();

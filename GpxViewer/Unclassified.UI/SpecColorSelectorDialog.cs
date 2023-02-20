@@ -45,8 +45,8 @@ namespace Unclassified.UI {
             delta = bottom_shortview - bottom_fullview;
          }
 
-         button_OK.Location = new Point(button_OK.Location.X, button_OK.Location.Y + delta);
-         button_Cancel.Location = new Point(button_Cancel.Location.X, button_Cancel.Location.Y + delta);
+         //button_OK.Location = new Point(button_OK.Location.X, button_OK.Location.Y + delta);
+         //button_Cancel.Location = new Point(button_Cancel.Location.X, button_Cancel.Location.Y + delta);
 
          Bounds = new Rectangle(Bounds.Location, new Size(Bounds.Width, Bounds.Height + delta));
       }
@@ -72,5 +72,8 @@ namespace Unclassified.UI {
          specColorSelector1.EnableArrayColor(idx, enable);
       }
 
+      private void specColorSelector1_Load(object sender, EventArgs e) {
+
+      }
    }
 }

@@ -4,18 +4,18 @@ namespace GMap.NET
 {
     public interface Interface
     {
-        PointLatLng Position
+        PointLatLng MapPosition
         {
             get;
             set;
         }
 
-        GPoint PositionPixel
+        GPoint MapPositionPixel
         {
             get;
         }
 
-        string CacheLocation
+        string MapCacheLocation
         {
             get;
             set;
@@ -26,7 +26,7 @@ namespace GMap.NET
             get;
         }
 
-        RectLatLng ViewArea
+        RectLatLng MapViewArea
         {
             get;
         }
@@ -37,7 +37,7 @@ namespace GMap.NET
             set;
         }
 
-        bool CanDragMap
+        bool MapCanDragMap
         {
             get;
             set;
@@ -56,10 +56,10 @@ namespace GMap.NET
         event MapZoomChanged OnMapZoomChanged;
         event MapTypeChanged OnMapTypeChanged;
 
-        void ReloadMap();
+        void MapReload();
 
-        PointLatLng FromLocalToLatLng(int x, int y);
-        GPoint FromLatLngToLocal(PointLatLng point);
+        PointLatLng MapFromLocalToLatLng(int x, int y);
+        GPoint MapFromLatLngToLocal(PointLatLng point);
 
 #if SQLite
         bool ShowExportDialog();

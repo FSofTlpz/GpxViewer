@@ -23,13 +23,17 @@
 
   <ItemGroup>
     <None Remove="!notes.txt" />
+    <None Remove="StdFont.ttf" />
     <None Remove="Step0.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="StdFont.ttf" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FSofTUtils\FSofTUtils.Skia.csproj" />
     <ProjectReference Include="..\GarminCore\GarminCore.Skia.csproj" />
-    <ProjectReference Include="..\Sqlite4Garmin\Sqlite4Garmin.csproj" />
   </ItemGroup>
 
   <ItemGroup>

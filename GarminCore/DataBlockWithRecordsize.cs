@@ -29,6 +29,7 @@ Sie sollten ein Exemplar der GNU General Public License zusammen mit
 diesem Programm erhalten haben. Falls nicht, siehe 
 <http://www.gnu.org/licenses/>. 
 */
+using GarminCore.OptimizedReader;
 using System;
 
 namespace GarminCore {
@@ -46,9 +47,7 @@ namespace GarminCore {
       /// berechnete Datensatzanzahl
       /// </summary>
       public int Count {
-         get {
-            return Recordsize > 0 ? (int)Length / Recordsize : 0;
-         }
+         get => Recordsize > 0 ? (int)Length / Recordsize : 0;
       }
 
 
@@ -80,6 +79,7 @@ namespace GarminCore {
          base.Read(br);
          Recordsize = br.Read2AsUShort();
       }
+
       /// <summary>
       /// schreibt die Blockdaten
       /// </summary>

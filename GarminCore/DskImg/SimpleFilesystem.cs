@@ -317,9 +317,9 @@ namespace GarminCore.DskImg {
                for (int i = 0; i < blocks.Length; i++) {
                   int offset = ImgHeader.FileBlockLength * i;
                   br.Seek(ImgHeader.FileBlockLength * (long)(preblocks4read + blocks[i]));
-                  br.BaseStream.Read(data,
-                                     offset,
-                                     file.Filesize - offset >= ImgHeader.FileBlockLength ? ImgHeader.FileBlockLength : (int)file.Filesize - offset);
+                  br.Read(data,
+                          offset,
+                          file.Filesize - offset >= ImgHeader.FileBlockLength ? ImgHeader.FileBlockLength : (int)file.Filesize - offset);
                }
 
                return data;

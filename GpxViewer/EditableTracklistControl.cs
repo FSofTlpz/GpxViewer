@@ -1,17 +1,20 @@
-﻿using SmallMapControl;
+﻿using FSofTUtils;
+using SpecialMapCtrl;
+using SpecialMapCtrl.EditHelper;
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace GpxViewer {
    public partial class EditableTracklistControl : UserControl {
 
-      PoorGpxAllExt gpx = null;
+      GpxAllExt gpx = null;
 
       /// <summary>
       /// zugehörige Gpx-Sammlung
       /// </summary>
-      public PoorGpxAllExt Gpx {
+      public GpxAllExt Gpx {
          get => gpx;
          set {
             if (gpx != null) {
@@ -169,36 +172,51 @@ namespace GpxViewer {
       public EditableTracklistControl() {
          InitializeComponent();
 
-         gpx = new PoorGpxAllExt();
+         gpx = new GpxAllExt();
       }
+
+      #region Dra&Drop (Windows)
+
+      private void EditableTracklistControl_DragDrop(object sender, DragEventArgs e) {
+         insertFiles(e.Data.GetData(DataFormats.FileDrop, false) as string[]);
+      }
+
+      private void EditableTracklistControl_DragEnter(object sender, DragEventArgs e) {
+         if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            e.Effect = DragDropEffects.Copy;
+         else
+            e.Effect = DragDropEffects.None;
+      }
+
+      #endregion
 
       #region Events von Gpx (PoorGpxAllExt)
 
-      private void Gpx_TracklistChanged(object sender, PoorGpxAllExt.TracklistChangedEventArgs e) {
-         PoorGpxAllExt gpx = sender as PoorGpxAllExt;
+      private void Gpx_TracklistChanged(object sender, GpxAllExt.TracklistChangedEventArgs e) {
+         GpxAllExt gpx = sender as GpxAllExt;
          TreeView tv = treeView_Tracks;
 
          // Listbox anpassen
          if (e != null)
             switch (e.KindOfChanging) {
-               case PoorGpxAllExt.TracklistChangedEventArgs.Kind.Add:
-                  if (e.From < tv.Nodes.Count)
-                     tv.Nodes.Insert(e.To, gpx.TrackList[e.To].VisualName);
-                  else
-                     tv.Nodes.Add(gpx.TrackList[e.To].VisualName);
-                  tv_SetSelectedIndex(tv, e.To);
-                  tv.SelectedNode.Checked = true;
+               case GpxAllExt.TracklistChangedEventArgs.Kind.Add:
+                  if (0 <= e.To) {
+                     listChanged_Add(tv, e.To, gpx.TrackList[e.To].VisualName);
+                  } else { // gesamte Liste übernehmen
+                     tv.Nodes.Clear();
+                     for (int i = 0; i < gpx.TrackList.Count; i++) {
+                        tv.Nodes.Add(gpx.TrackList[i].VisualName);
+                        tv_SetSelectedIndex(tv, i);
+                        tv.SelectedNode.Checked = true;
+                     }
+                  }
                   break;
 
-               case PoorGpxAllExt.TracklistChangedEventArgs.Kind.Remove:
-                  tv.Nodes.RemoveAt(e.From);
-                  if (e.From > 0)
-                     tv_SetSelectedIndex(tv, e.From - 1);
-                  else if (tv.Nodes.Count > 0)
-                     tv_SetSelectedIndex(tv, 0);
+               case GpxAllExt.TracklistChangedEventArgs.Kind.Remove:
+                  listChanged_Remove(tv, e.From);
                   break;
 
-               case PoorGpxAllExt.TracklistChangedEventArgs.Kind.Move:
+               case GpxAllExt.TracklistChangedEventArgs.Kind.Move:
                   TreeNode tn = tv.Nodes[e.From];
                   tv.Nodes.RemoveAt(e.From);
                   tv.Nodes.Insert(e.To, tn);
@@ -217,42 +235,64 @@ namespace GpxViewer {
             }
       }
 
-      private void Gpx_MarkerlistlistChanged(object sender, PoorGpxAllExt.MarkerlistChangedEventArgs e) {
-         PoorGpxAllExt gpx = sender as PoorGpxAllExt;
+      private void Gpx_MarkerlistlistChanged(object sender, GpxAllExt.MarkerlistChangedEventArgs e) {
+         GpxAllExt gpx = sender as GpxAllExt;
          TreeView tv = treeView_Marker;
 
          if (e != null)
             switch (e.KindOfChanging) {
-               case PoorGpxAllExt.MarkerlistChangedEventArgs.Kind.Add:
-                  if (e.From < tv.Nodes.Count)
-                     tv.Nodes.Insert(e.To, gpx.MarkerList[e.To].Text);
-                  else
-                     tv.Nodes.Add(gpx.MarkerList[e.To].Text);
-                  tv_SetSelectedIndex(tv, e.To);
-                  tv.SelectedNode.Checked = true;
+               case GpxAllExt.MarkerlistChangedEventArgs.Kind.Add:
+                  if (0 <= e.To) {
+                     listChanged_Add(tv, e.To, gpx.MarkerList[e.To].Text);
+                  } else { // gesamte Liste übernehmen
+                     tv.Nodes.Clear();
+                     for (int i = 0; i < gpx.MarkerList.Count; i++) {
+                        tv.Nodes.Add(gpx.MarkerList[i].Text);
+                        tv_SetSelectedIndex(tv, i);
+                        tv.SelectedNode.Checked = true;
+                     }
+                  }
                   break;
 
-               case PoorGpxAllExt.MarkerlistChangedEventArgs.Kind.Remove:
-                  tv.Nodes.RemoveAt(e.From);
-                  if (e.From > 0)
-                     tv_SetSelectedIndex(tv, e.From - 1);
-                  else if (tv.Nodes.Count > 0)
-                     tv_SetSelectedIndex(tv, 0);
+               case GpxAllExt.MarkerlistChangedEventArgs.Kind.Remove:
+                  listChanged_Remove(tv, e.From);
                   break;
 
-               case PoorGpxAllExt.MarkerlistChangedEventArgs.Kind.Move:
+               case GpxAllExt.MarkerlistChangedEventArgs.Kind.Move:
                   TreeNode tn = tv.Nodes[e.From];
                   tv.Nodes.RemoveAt(e.From);
                   tv.Nodes.Insert(e.To, tn);
-                  Marker marker = gpx.MarkerList[e.To];
 
+                  Marker marker = gpx.MarkerList[e.To];
                   ShowMarkerEvent?.Invoke(this, new MarkerEventArgs(marker, marker.IsVisible));
-                  //mapControl1.MapShowMarker(marker, marker.IsVisible, marker.IsVisible ? nextVisibleMarker(marker) : null);
 
                   tv_SetSelectedIndex(tv, e.To);
                   break;
             }
       }
+
+      void listChanged_Add(TreeView tv, int to, string txt) {
+         if (0 <= to) {
+            if (to < tv.Nodes.Count)
+               tv.Nodes.Insert(to, txt);
+            else
+               tv.Nodes.Add(txt);
+            tv_SetSelectedIndex(tv, to);
+            tv.SelectedNode.Checked = true;
+         }
+      }
+
+      void listChanged_Remove(TreeView tv, int from) {
+         if (from >= 0)
+            tv.Nodes.RemoveAt(from);
+         else
+            tv.Nodes.Clear();
+         if (from > 0)
+            tv_SetSelectedIndex(tv, from - 1);   // i.A. Vorgänger markieren
+         else if (tv.Nodes.Count > 0)
+            tv_SetSelectedIndex(tv, 0);
+      }
+
 
       #endregion
 
@@ -263,18 +303,24 @@ namespace GpxViewer {
       private void treeView_Tracks_DragDrop(object sender, DragEventArgs e) {
          TreeView tv = sender as TreeView;
 
-         Track drag_track = (Track)e.Data.GetData(typeof(Track));
-         int old_idx = gpx.TrackList.IndexOf(drag_track);
-         TreeNode tn = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
-         int new_idx = tn == null ?
-                     tv.Nodes.Count - 1 :
-                     tv.Nodes.IndexOf(tn);
+         if (e.Effect == DragDropEffects.Move &&
+             e.Data.GetDataPresent(typeof(Track))) {
+            Track drag_track = (Track)e.Data.GetData(typeof(Track));
+            int old_idx = gpx.TrackList.IndexOf(drag_track);
+            TreeNode tn = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
+            int new_idx = tn == null ?
+                        tv.Nodes.Count - 1 :
+                        tv.Nodes.IndexOf(tn);
 
-         if (old_idx != new_idx) {
-            TrackOrderChangedEvent?.Invoke(this, new OrderChangedEventArgs(old_idx, new_idx));
-            tv_SetSelectedIndex(tv, new_idx);
-         } else
-            selectOnlyThisEditableTrack(drag_track);
+            if (old_idx != new_idx) {
+               TrackOrderChangedEvent?.Invoke(this, new OrderChangedEventArgs(old_idx, new_idx));
+               tv_SetSelectedIndex(tv, new_idx);
+            } else
+               selectOnlyThisEditableTrack(drag_track);
+         } else if (e.Effect == DragDropEffects.Copy &&
+                    e.Data.GetDataPresent(DataFormats.FileDrop)) {
+            insertFiles(e.Data.GetData(DataFormats.FileDrop) as string[]);
+         }
       }
 
       private void treeView_Tracks_DragEnter(object sender, DragEventArgs e) {
@@ -284,15 +330,20 @@ namespace GpxViewer {
             Track drag_item = (Track)e.Data.GetData(typeof(Track));
             if (gpx.TrackList.Contains(drag_item))
                e.Effect = DragDropEffects.Move;
-         }
+         } else if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
+                   (e.AllowedEffect & DragDropEffects.Copy) != 0) {
+            e.Effect = DragDropEffects.Copy;
+         } else
+            e.Effect = DragDropEffects.None;
       }
 
       private void treeView_Tracks_DragOver(object sender, DragEventArgs e) {
-         if (e.Effect != DragDropEffects.Move)
-            return;
+         if (e.Effect == DragDropEffects.Move) {
+            TreeView tv = (sender as TreeView);
+            tv.SelectedNode = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
+         } else if (e.Effect == DragDropEffects.Copy) {
 
-         TreeView tv = (sender as TreeView);
-         tv.SelectedNode = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
+         }
       }
 
       #endregion
@@ -327,16 +378,22 @@ namespace GpxViewer {
       private void treeView_Marker_DragDrop(object sender, DragEventArgs e) {
          TreeView tv = sender as TreeView;
 
-         Marker drag_marker = e.Data.GetData(typeof(Marker)) as Marker;
-         int old_idx = gpx.MarkerList.IndexOf(drag_marker);
-         TreeNode tn = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
-         int new_idx = tn == null ?
-                     tv.Nodes.Count - 1 :
-                     tv.Nodes.IndexOf(tn);
+         if (e.Effect == DragDropEffects.Move &&
+             e.Data.GetDataPresent(typeof(Marker))) {
+            Marker drag_marker = e.Data.GetData(typeof(Marker)) as Marker;
+            int old_idx = gpx.MarkerList.IndexOf(drag_marker);
+            TreeNode tn = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
+            int new_idx = tn == null ?
+                        tv.Nodes.Count - 1 :
+                        tv.Nodes.IndexOf(tn);
 
-         if (old_idx != new_idx) {
-            MarkerOrderChangedEvent?.Invoke(this, new OrderChangedEventArgs(old_idx, new_idx));
-            tv_SetSelectedIndex(tv, new_idx);
+            if (old_idx != new_idx) {
+               MarkerOrderChangedEvent?.Invoke(this, new OrderChangedEventArgs(old_idx, new_idx));
+               tv_SetSelectedIndex(tv, new_idx);
+            }
+         } else if (e.Effect == DragDropEffects.Copy &&
+                    e.Data.GetDataPresent(DataFormats.FileDrop)) {
+            insertFiles(e.Data.GetData(DataFormats.FileDrop) as string[]);
          }
       }
 
@@ -347,15 +404,18 @@ namespace GpxViewer {
             Marker drag_item = e.Data.GetData(typeof(Marker)) as Marker;
             if (gpx.MarkerList.Contains(drag_item))
                e.Effect = DragDropEffects.Move;
-         }
+         } else if (e.Data.GetDataPresent(DataFormats.FileDrop) &&
+                   (e.AllowedEffect & DragDropEffects.Copy) != 0) {
+            e.Effect = DragDropEffects.Copy;
+         } else
+            e.Effect = DragDropEffects.None;
       }
 
       private void treeView_Marker_DragOver(object sender, DragEventArgs e) {
-         if (e.Effect != DragDropEffects.Move)
-            return;
-
-         TreeView tv = (sender as TreeView);
-         tv.SelectedNode = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
+         if (e.Effect == DragDropEffects.Move) {
+            TreeView tv = sender as TreeView;
+            tv.SelectedNode = tv.GetNodeAt(tv.PointToClient(new Point(e.X, e.Y)));
+         }
       }
 
       #endregion
@@ -419,7 +479,8 @@ namespace GpxViewer {
 
                   Track track = gpx.TrackList[idx];
                   track.Trackname = label;
-                  track.SetVisualname(label);
+                  gpx.GpxDataChanged = true;
+                  track.VisualName = label;
                   UpdateVisualTrackEvent?.Invoke(this, new TrackEventArgs(track));
 
                } else if (tv.Equals(treeView_Marker)) {
@@ -523,6 +584,32 @@ namespace GpxViewer {
       }
 
       #endregion
+
+      void insertFiles(string[] files) {
+         foreach (var item in files) {
+            try {
+               string filename = PathHelper.GetFullPathAppliedCurrentDirectory(PathHelper.ReplaceEnvironmentVars(item));
+               string ext = Path.GetExtension(filename).ToLower();
+               if (ext == ".gpx" ||
+                   ext == ".kml" ||
+                   ext == ".kmz" ||
+                   ext == ".gdb") { // einzelne GPX-Datei
+                  GpxAllExt gpxnew = new GpxAllExt();
+                  gpxnew.TrackColor = gpx.TrackColor;
+                  gpxnew.TrackWidth = gpx.TrackWidth;
+                  gpxnew.Load(filename, true);
+
+                  for (int i = 0; i < gpxnew.TrackList.Count; i++)
+                     gpx.TrackInsertCopy(gpxnew.TrackList[i], -1, true);
+
+                  for (int i = 0; i < gpxnew.MarkerList.Count; i++)
+                     gpx.MarkerInsertCopy(gpxnew.MarkerList[i]);
+               }
+            } catch (Exception ex) {
+               MessageBox.Show(ex.Message, "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+         }
+      }
 
       /// <summary>
       /// sorgt dafür, das nur dieser eine Track hervorgehoben wird, alle anderen nicht
@@ -660,6 +747,5 @@ namespace GpxViewer {
       }
 
       #endregion
-
    }
 }

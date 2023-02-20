@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="!clear.cmd" />
     <None Remove="!notes.txt" />
     <None Remove=".gitignore" />
     <None Remove="App.config" />

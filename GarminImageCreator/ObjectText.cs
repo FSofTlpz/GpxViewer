@@ -43,6 +43,11 @@ namespace GarminImageCreator {
 
       bool textAreaIsCalculated = false;
 
+      /// <summary>
+      /// kurz für <see cref="Font.GetHeight()"/> (zur Opt.)
+      /// </summary>
+      float fontGetHeight = 0;
+
 
       /// <summary>
       /// i.A. für POI's und Flächen (Text waagerecht)
@@ -53,7 +58,8 @@ namespace GarminImageCreator {
       /// <param name="font"></param>
       /// <param name="col"></param>
       /// <param name="pt"></param>
-      public ObjectText(string text, ObjectType type, int garmintype, Font font, Color col, PointF pt) {
+      /// <param name="fontheight">kurz für <see cref="Font.GetHeight()"/> (zur Opt.)</param>
+      public ObjectText(string text, ObjectType type, int garmintype, Font font, Color col, PointF pt, float fontheight) {
          ObjType = type;
          GarminType = garmintype;
          Text = text[0] >= 0x20 ?
@@ -63,6 +69,7 @@ namespace GarminImageCreator {
              !hasLowerChars())
             simpleGarminTextConvert();
          Font = font;
+         fontGetHeight = fontheight <= 0 ? Font.GetHeight() : fontheight;
          Color = col;
          ReferencePoint = pt;
          Angle = 0;
@@ -78,8 +85,9 @@ namespace GarminImageCreator {
       /// <param name="col"></param>
       /// <param name="pt"></param>
       /// <param name="pt2"></param>
-      public ObjectText(string text, ObjectType type, int garmintype, Font font, Color col, PointF pt, PointF pt2) :
-         this(text, type, garmintype, font, col, pt) {
+      /// <param name="fontheight">kurz für <see cref="Font.GetHeight()"/> (zur Opt.)</param>
+      public ObjectText(string text, ObjectType type, int garmintype, Font font, Color col, PointF pt, PointF pt2, float fontheight) :
+         this(text, type, garmintype, font, col, pt, fontheight) {
          ReferencePoint2 = pt2;
       }
 
@@ -241,8 +249,6 @@ namespace GarminImageCreator {
          //return getFitting2Area(rect.GetBounds(), areawidth, areaheight, out translation);
       }
 
-
-
       /// <summary>
       /// Durch die 2 Punkte (der Linie) ist eine Referenzstrecke vorgegeben, die die Neigung und den Mittelpunkt des Textes angiebt.
       /// </summary>
@@ -279,8 +285,8 @@ namespace GarminImageCreator {
          Deshalb wird der Faktor aus der Länge der Strecke P1P2 und der Texthöhe gebildet. Mit diesem Faktor können aus dx und dy die
          Korrektwerte einfach bestimmt werden.
           */
-         float lineheight = Font.GetHeight();
-         float f = lineheight / (float)Math.Sqrt(dx * dx + dy * dy);
+         //float lineheight = Font.GetHeight();
+         float f = fontGetHeight / (float)Math.Sqrt(dx * dx + dy * dy);
          f = f * 3 / 4;
 
          if (Angle < 0) {  // nach oben geneigt (SW <-> NO), 

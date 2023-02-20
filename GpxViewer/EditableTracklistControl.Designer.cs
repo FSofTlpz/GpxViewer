@@ -108,11 +108,14 @@ namespace GpxViewer {
          // 
          // EditableTracklistControl
          // 
+         this.AllowDrop = true;
          this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.Controls.Add(this.splitContainer1);
          this.Name = "EditableTracklistControl";
          this.Size = new System.Drawing.Size(351, 398);
+         this.DragDrop += new System.Windows.Forms.DragEventHandler(this.EditableTracklistControl_DragDrop);
+         this.DragEnter += new System.Windows.Forms.DragEventHandler(this.EditableTracklistControl_DragEnter);
          this.splitContainer1.Panel1.ResumeLayout(false);
          this.splitContainer1.Panel2.ResumeLayout(false);
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();

@@ -4,17 +4,17 @@
   <description asmv2:publisher="GpxViewer" asmv2:product="GpxViewer" xmlns="urn:schemas-microsoft-com:asm.v1" />
   <deployment install="true" mapFileExtensions="true" />
   <compatibleFrameworks xmlns="urn:schemas-microsoft-com:clickonce.v2">
-    <framework targetVersion="4.7.2" profile="Full" supportedRuntime="4.0.30319" />
+    <framework targetVersion="4.8" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="GpxViewer.exe.manifest" size="30979">
+    <dependentAssembly dependencyType="install" codebase="GpxViewer.exe.manifest" size="23444">
       <assemblyIdentity name="GpxViewer.exe" version="1.0.0.2" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>i3gbJC8GrPDig142wQwRbFiQUuGdX1hwfbPmtcBk2cc=</dsig:DigestValue>
+        <dsig:DigestValue>Cec1XfdQ0w7zQ7Ul4cXtYA0zbJYsv6Thecu19ki7CGg=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

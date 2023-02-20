@@ -54,20 +54,20 @@ namespace GpxViewer {
             this.toolStripMenuItem_LargeIcon,
             this.toolStripMenuItem_Tile});
          this.contextMenuStrip_LVType.Name = "contextMenuStrip1";
-         this.contextMenuStrip_LVType.Size = new System.Drawing.Size(181, 70);
+         this.contextMenuStrip_LVType.Size = new System.Drawing.Size(124, 48);
          this.contextMenuStrip_LVType.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip_LVType_Opening);
          // 
          // toolStripMenuItem_LargeIcon
          // 
          this.toolStripMenuItem_LargeIcon.Name = "toolStripMenuItem_LargeIcon";
-         this.toolStripMenuItem_LargeIcon.Size = new System.Drawing.Size(180, 22);
+         this.toolStripMenuItem_LargeIcon.Size = new System.Drawing.Size(123, 22);
          this.toolStripMenuItem_LargeIcon.Text = "Ansicht 1";
          this.toolStripMenuItem_LargeIcon.Click += new System.EventHandler(this.toolStripMenuItem_LargeIcon_Click);
          // 
          // toolStripMenuItem_Tile
          // 
          this.toolStripMenuItem_Tile.Name = "toolStripMenuItem_Tile";
-         this.toolStripMenuItem_Tile.Size = new System.Drawing.Size(180, 22);
+         this.toolStripMenuItem_Tile.Size = new System.Drawing.Size(123, 22);
          this.toolStripMenuItem_Tile.Text = "Ansicht 2";
          this.toolStripMenuItem_Tile.Click += new System.EventHandler(this.toolStripMenuItem_Tile_Click);
          // 
@@ -112,6 +112,7 @@ namespace GpxViewer {
          this.MaximizeBox = false;
          this.MinimizeBox = false;
          this.Name = "FormChooseMarkerTyp";
+         this.ShowIcon = false;
          this.ShowInTaskbar = false;
          this.Text = "Markerauswahl";
          this.Load += new System.EventHandler(this.FormChooseMarkerTyp_Load);

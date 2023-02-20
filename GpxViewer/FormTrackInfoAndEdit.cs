@@ -1,4 +1,5 @@
-﻿using SmallMapControl;
+﻿using FSofTUtils.Geography;
+using SpecialMapCtrl;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -48,9 +49,9 @@ namespace GpxViewer {
       public Track Track { get; protected set; } = null;
 
       /// <summary>
-      /// <see cref="PoorGpxAllExt"/> für die die Info ist
+      /// <see cref="GpxAllExt"/> für die die Info ist
       /// </summary>
-      public PoorGpxAllExt GpxObject { get; protected set; } = null;
+      public GpxAllExt GpxObject { get; protected set; } = null;
 
       /// <summary>
       /// Wurden Daten geändert?
@@ -108,7 +109,7 @@ namespace GpxViewer {
          Text = caption;
       }
 
-      public FormTrackInfoAndEdit(PoorGpxAllExt gpx, string caption) :
+      public FormTrackInfoAndEdit(GpxAllExt gpx, string caption) :
          this() {
          GpxObject = gpx;
 
@@ -404,10 +405,10 @@ namespace GpxViewer {
       /// </summary>
       void saveTrack() {
          if (Track.GpxDataContainer != null)
-            Track.GpxDataContainer.GpxFileChanged = true;
+            Track.GpxDataContainer.GpxDataChanged = true;
 
          Track.GpxTrack.Name = textBoxName.Text.Trim();
-         Track.SetVisualname(Track.GpxTrack.Name);
+         Track.VisualName = Track.GpxTrack.Name;
          Track.GpxTrack.Description = textBoxDescription.Text.Trim();
          Track.GpxTrack.Comment = textBoxComment.Text.Trim();
          Track.GpxTrack.Source = textBoxSource.Text.Trim();
@@ -477,7 +478,7 @@ namespace GpxViewer {
             if (pt.Time != Gpx.BaseElement.NOTVALID_TIME)
                row[dataColumnTime] = pt.Time;
             if (i > 0) {
-               double dist = FSofTUtils.Geography.GeoHelper.Wgs84Distance(pt.Lon, Track.GpxSegment.Points[i - 1].Lon, pt.Lat, Track.GpxSegment.Points[i - 1].Lat);
+               double dist = GeoHelper.Wgs84Distance(pt.Lon, Track.GpxSegment.Points[i - 1].Lon, pt.Lat, Track.GpxSegment.Points[i - 1].Lat);
                row[dataColumnDistance] = string.Format("{0:F0}", dist);
                length += dist;
                row[dataColumnLength] = string.Format("{0:F0}", length);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using GarminImageCreator.Garmin;
+using GarminImageCreator.Garmin.Cache;
 
 namespace GarminImageCreator {
 
@@ -35,29 +36,20 @@ namespace GarminImageCreator {
       /// </summary>
       /// <param name="tdbfile">TDB-Datei</param>
       /// <param name="typfile">TYP-Datei</param>
-      /// <param name="cachepath">Pfad für die Cachedaten</param>
-      /// <param name="validchachelevels">gültige Level für den Cache im Dateisystem</param>
-      /// <param name="maxsubdiv">max. Anzahl Subdivs je Bild (unbegrenzt wenn kleiner 1)</param>
+      /// <param name="fontname">Name des Fonts</param>
       /// <param name="textfactor">Vergrößerungsfaktor für Texte</param>
       /// <param name="linefactor">Verbreiterungsfaktor für Linien</param>
       /// <param name="symbolfactor">Vergrößerungsfaktor für Symbole</param>
       public GarminMapData(string tdbfile,
                            string typfile,
-                           string cachepath,
-                           IList<int> validchachelevels,
-                           int maxsubdiv,
+                           string fontname,
                            double textfactor = 1.0,
                            double linefactor = 1.0,
                            double symbolfactor = 1.0) {
          TdbFilename = tdbfile;
          TypFilename = typfile;
-         GraphicData = new GarminGraphicData(typfile, textfactor, linefactor, symbolfactor);
-         DetailMapManager = new DetailMapManager(TdbFilename,
-                                                 cachepath,
-                                                 validchachelevels,
-                                                 1000,
-                                                 50,
-                                                 maxsubdiv);
+         GraphicData = new GarminGraphicData(typfile, fontname, textfactor, linefactor, symbolfactor);
+         DetailMapManager = new DetailMapManager(TdbFilename);
       }
 
       public GarminMapData(GarminMapData gmd) {

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GarminImageCreator</RootNamespace>
     <AssemblyName>GarminImageCreator</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
@@ -54,11 +54,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Garmin\DetailMap.cs" />
-    <Compile Include="Garmin\DetailMapExt.cs" />
-    <Compile Include="Garmin\DetailMapIdentifier.cs" />
     <Compile Include="Garmin\DetailMapManager.cs" />
     <Compile Include="Garmin\GarminGraphicData.cs" />
+    <Compile Include="Garmin\Cache\SubdivMapDataCache.cs" />
+    <Compile Include="Garmin\OptimizedGeoDataReader.cs" />
+    <Compile Include="Garmin\Cache\ThreadsafeCache.cs" />
     <Compile Include="ImageCreator.cs" />
     <Compile Include="GarminMapData.cs" />
     <Compile Include="Garmin\GeoConverter.cs" />
@@ -74,10 +74,6 @@
     <ProjectReference Include="..\GarminCore\GarminCore.csproj">
       <Project>{38020956-623a-49c4-a9ca-12240d191add}</Project>
       <Name>GarminCore</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Sqlite4Garmin\Sqlite4Garmin.csproj">
-      <Project>{d48f62b1-7557-4994-b54f-f439fd8d17e6}</Project>
-      <Name>Sqlite4Garmin</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

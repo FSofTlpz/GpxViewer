@@ -1,4 +1,6 @@
-﻿namespace GpxViewer {
+﻿using FSofTUtils;
+
+namespace GpxViewer {
 
    /// <summary>
    /// zum lesen einer Liste von GPX-Dateien
@@ -19,7 +21,7 @@
       const string XML_GPXPICTUREGPXFILENAME = "@picturegpxfile";
 
 
-      FSofTUtils.SimpleXmlDocument2 list;
+      SimpleXmlDocument2 list;
 
       /// <summary>
       /// Anzahl der Listengruppen
@@ -40,7 +42,7 @@
       }
 
       public GpxListReader(string filename) {
-         list = new FSofTUtils.SimpleXmlDocument2(filename, XML_ROOT);
+         list = new SimpleXmlDocument2(filename, XML_ROOT);
          list.Validating = false;
          list.LoadData();
       }

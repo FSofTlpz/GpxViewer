@@ -41,7 +41,7 @@ namespace FSofTUtils.Geography.GeoCoding {
 
       public static GeoCodingResultBase[] Get(string name) { return null; }
 
-      public static GeoCodingResultBase[] Get2(string name) { return null; }
+      public static GeoCodingResultBase[] Get(double lon, double lat) { return null; }
 
       /// <summary>
       /// wählt den/die Knoten aus oder löst eine Exception aus

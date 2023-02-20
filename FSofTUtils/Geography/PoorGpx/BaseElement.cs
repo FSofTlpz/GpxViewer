@@ -288,11 +288,15 @@ namespace FSofTUtils.Geography.PoorGpx {
          string[] tmp = XReadOuterXml(nav, xpath);
          if (tmp != null)
             for (int i = 0; i < tmp.Length; i++) {
+               bool isexception = false;
                if (exceptions != null)
                   foreach (string item in exceptions)
-                     if (tmp[i].StartsWith(item))
-                        return;
-               UnhandledChildXml.Add(i, tmp[i]);
+                     if (tmp[i].StartsWith(item)) {
+                        isexception = true;
+                        break;
+                     }
+               if (!isexception)
+                  UnhandledChildXml.Add(i, tmp[i]);
             }
       }
 

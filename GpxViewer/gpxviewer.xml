@@ -27,6 +27,7 @@
 		<startlongitude>12.33</startlongitude>
 		<!--Zoom beim Start-->
 		<startzoom>14</startzoom>
+		<deltapercent4search>1</deltapercent4search>
 
 		<dem chachesize="16"
 			 cachepath="./demcachepath"
@@ -39,19 +40,17 @@
 				 dbiddelta="0"
 				 zoom4display="1.0"
 				 tdb="%USERPROFILE%\daten\Gps\Garmin\ms7001_Deutschland, Basis, 12.2.2022\osmmap.tdb"
-				 typ="%USERPROFILE%\daten\Gps\Garmin\ms7001_Deutschland, Basis, 12.2.2022\fsoft3.typ"
-				 maxsubdiv="1000"
+				 typ="%USERPROFILE%\daten\Gps\Garmin\ms7001_Deutschland, Basis, 12.2.2022\fsoft3b.typ"
 				 textfactor="0.8"
 				 symbolfactor="1.0"
 				 linefactor="1.0"
 				 hillshading="true"
 				 hillshadingalpha="100">Garmin</provider>
-		<provider mapname="Garmin: Deutschland, aio, 12.2.2022"
+		<provider mapname="Garmin: Deutschland, aio, 12.2.2022 (ohne Shading)"
 				  dbiddelta="1"
 				  zoom4display="1.0"
 				  tdb="%USERPROFILE%\daten\Gps\Garmin\ms7006_Deutschland, aio, 12.2.2022\osmmap.tdb"
-				  typ="%USERPROFILE%\daten\Gps\Garmin\ms7006_Deutschland, aio, 12.2.2022\fsoft3b.typ"
-				  maxsubdiv="1000000"
+				  typ="%USERPROFILE%\daten\Gps\Garmin\ms7006_Deutschland, aio, 12.2.2022\fsoft3.typ"
 				  textfactor="0.8"
 				  symbolfactor="1.0"
 				  linefactor="1.0">Garmin</provider>
@@ -84,6 +83,33 @@
 		<provider mapname="online: Google Satellit">GoogleSatelliteMap</provider>
 		<provider mapname="online: OpenStreetMap">OpenStreetMap</provider>
 		<provider mapname="online: OpenStreetMap Fahrradkarte">OpenCycleLandscapeMap</provider>
+
+		<providermenu lastuseditems="4">
+			<item txt="Garmin-Karten">
+				<subitem>0</subitem>
+				<subitem>1</subitem>
+			</item>
+			<item txt="Microsoft-Bing-Karten">
+				<subitem>5</subitem>
+				<subitem>6</subitem>
+				<subitem>7</subitem>
+			</item>
+			<item txt="Google-Karten">
+				<subitem>8</subitem>
+				<subitem>9</subitem>
+				<subitem>10</subitem>
+			</item>
+			<item txt="OpenStreetMap">
+				<subitem>11</subitem>
+				<subitem>12</subitem>
+			</item>
+			<item txt="gescannte Karten">
+				<subitem>3</subitem>
+				<subitem>4</subitem>
+			</item>
+			<item no="2"/>
+		</providermenu>
+		
 	</map>
 
 	<tracks>
@@ -97,13 +123,29 @@
 		<editable a="220" r="169" g="169" b="169" width="3.0"/>
 		<inedit a="220" r="0" g="180" b="180" width="4.0"/>
 		<selectedpart a="120" r="255" g="210" b="0" width="6.0"/>
+		<helperline a="200" r="200" g="0" b="0" width="2.0"/>
+		<slope>
+			<slope percent="-1000" r="140" g="0" b="0"/>
+			<slope percent="-20" r="255" g="0" b="0"/>
+			<slope percent="-15" r="255" g="120" b="0"/>
+			<slope percent="-10" r="255" g="216" b="0"/>
+			<slope percent="-6" r="170" g="255" b="0"/>
+			
+			<slope percent="-2" r="0" g="120" b="0"/>
+
+			<slope percent="20" r="140" g="0" b="0"/>
+			<slope percent="15" r="255" g="0" b="0"/>
+			<slope percent="10" r="255" g="120" b="0"/>
+			<slope percent="6" r="255" g="216" b="0"/>
+			<slope percent="2" r="170" g="255" b="0"/>
+		</slope>
 	</tracks>
 
 	<garminsymbols>
 		<group name="Marker">
 			<symbol text="Waypoint"         name="Waypoint"        >../../GarminSymbols/Waypoint.png</symbol>
-			<symbol text="Flag, Red"        name="Flag, Red"       >../../GarminSymbols/Flag, Red.png</symbol>
-			<symbol text="Pin, Red"         name="Pin, Red"        >../../GarminSymbols/Pin, Red.png</symbol>
+			<symbol text="Flag, Red"        name="Flag, Red"       offset="-7,-22">../../GarminSymbols/Flag, Red.png</symbol>
+			<symbol text="Pin, Red"         name="Pin, Red"        offset="-1,-23">../../GarminSymbols/Pin, Red.png</symbol>
 			<symbol text="Diamond, Red"     name="Diamond, Red"    >../../GarminSymbols/Diamond, Red.png</symbol>
 			<symbol text="Triangle, Red"    name="Triangle, Red"   >../../GarminSymbols/Triangle, Red.png</symbol>
 			<symbol text="Square, Red"      name="Square, Red"     >../../GarminSymbols/Square, Red.png</symbol>
@@ -111,22 +153,22 @@
 			<symbol text="Block, Red"       name="Block, Red"      >../../GarminSymbols/Block, Red.png</symbol>
 			<symbol text="Circle, Red"      name="Circle, Red"     >../../GarminSymbols/Circle, Red.png</symbol>
 			<symbol text="Oval, Red"        name="Oval, Red"       >../../GarminSymbols/Oval, Red.png</symbol>
-			<symbol text="Flag, Green"      name="Flag, Green"     >../../GarminSymbols/Flag, Green.png</symbol>
-			<symbol text="Pin, Green"       name="Pin, Green"      >../../GarminSymbols/Pin, Green.png</symbol>
+			<symbol text="Flag, Green"      name="Flag, Green"     offset="-7,-22">../../GarminSymbols/Flag, Green.png</symbol>
+			<symbol text="Pin, Green"       name="Pin, Green"      offset="-1,-23">../../GarminSymbols/Pin, Green.png</symbol>
 			<symbol text="Diamond, Green"   name="Diamond, Green"  >../../GarminSymbols/Diamond, Green.png</symbol>
 			<symbol text="Triangle, Green"  name="Triangle, Green" >../../GarminSymbols/Triangle, Green.png</symbol>
 			<symbol text="Square, Green"    name="Square, Green"   >../../GarminSymbols/Square, Green.png</symbol>
 			<symbol text="Rectangle, Green" name="Rectangle, Green">../../GarminSymbols/Rectangle, Green.png</symbol>
-			<symbol text="Block, Blue"      name="Block, Blue"     >../../GarminSymbols/Block, Blue.png</symbol>
+			<symbol text="Block, Green"     name="Block, Green"    >../../GarminSymbols/Block, Green.png</symbol>
 			<symbol text="Circle, Green"    name="Circle, Green"   >../../GarminSymbols/Circle, Green.png</symbol>
 			<symbol text="Oval, Green"      name="Oval, Green"     >../../GarminSymbols/Oval, Green.png</symbol>
-			<symbol text="Flag, Blue"       name="Flag, Blue"      >../../GarminSymbols/Flag, Blue.png</symbol>
-			<symbol text="Pin, Blue"        name="Pin, Blue"       >../../GarminSymbols/Pin, Blue.png</symbol>
+			<symbol text="Flag, Blue"       name="Flag, Blue"      offset="-7,-22">../../GarminSymbols/Flag, Blue.png</symbol>
+			<symbol text="Pin, Blue"        name="Pin, Blue"       offset="-1,-23">../../GarminSymbols/Pin, Blue.png</symbol>
 			<symbol text="Diamond, Blue"    name="Diamond, Blue"   >../../GarminSymbols/Diamond, Blue.png</symbol>
 			<symbol text="Triangle, Blue"   name="Triangle, Blue"  >../../GarminSymbols/Triangle, Blue.png</symbol>
 			<symbol text="Square, Blue"     name="Square, Blue"    >../../GarminSymbols/Square, Blue.png</symbol>
 			<symbol text="Rectangle, Blue"  name="Rectangle, Blue" >../../GarminSymbols/Rectangle, Blue.png</symbol>
-			<symbol text="Block, Green"     name="Block, Green"    >../../GarminSymbols/Block, Green.png</symbol>
+			<symbol text="Block, Blue"      name="Block, Blue"     >../../GarminSymbols/Block, Blue.png</symbol>
 			<symbol text="Circle, Blue"     name="Circle, Blue"    >../../GarminSymbols/Circle, Blue.png</symbol>
 			<symbol text="Oval, Blue"       name="Oval, Blue"      >../../GarminSymbols/Oval, Blue.png</symbol>
 			<symbol text="Dot, White"       name="Dot, White"      >../../GarminSymbols/Dot, White.png</symbol>
@@ -372,6 +414,54 @@
 			<symbol text="Clown"       name="Contact, Clown"     >../../GarminSymbols/Contact, Clown.png</symbol>
 			<symbol text="Brille"      name="Contact, Glasses"   >../../GarminSymbols/Contact, Glasses.png</symbol>
 			<symbol text="Panda"       name="Contact, Panda"     >../../GarminSymbols/Contact, Panda.png</symbol>
+		</group>
+		<group name="Google">
+         <symbol text="Pfeil"              name="Google, Pfeil"              >../../GoogleSymbols/arrow.png</symbol>
+
+         <symbol text="schwarz klein"      name="Google, schwarz klein"      >../../GoogleSymbols/black_small.png</symbol>
+         <symbol text="blau klein"         name="Google, blau klein"         >../../GoogleSymbols/blue_small.png</symbol>
+         <symbol text="braun klein"        name="Google, braun klein"        >../../GoogleSymbols/brown_small.png</symbol>
+         <symbol text="grau klein"         name="Google, grau klein"         >../../GoogleSymbols/gray_small.png</symbol>
+         <symbol text="grün klein"         name="Google, grün klein"         >../../GoogleSymbols/green_small.png</symbol>
+         <symbol text="orange klein"       name="Google, orange klein"       >../../GoogleSymbols/orange_small.png</symbol>
+         <symbol text="purpur klein"       name="Google, purpur klein"       >../../GoogleSymbols/purple_small.png</symbol>
+         <symbol text="rot klein"          name="Google, rot klein"          >../../GoogleSymbols/red_small.png</symbol>
+         <symbol text="weiss klein"        name="Google, weiss klein"        >../../GoogleSymbols/white_small.png</symbol>
+         <symbol text="gelb klein"         name="Google, gelb klein"         >../../GoogleSymbols/yellow_small.png</symbol>
+
+         <symbol text="blau"               name="Google, blau"               >../../GoogleSymbols/blue.png</symbol>
+         <symbol text="grün"               name="Google, grün"               >../../GoogleSymbols/green.png</symbol>
+         <symbol text="hellblau"           name="Google, hellblau"           >../../GoogleSymbols/lightblue.png</symbol>
+         <symbol text="orange"             name="Google, orange"             >../../GoogleSymbols/orange.png</symbol>
+         <symbol text="pink"               name="Google, pink"               >../../GoogleSymbols/pink.png</symbol>
+         <symbol text="purpur"             name="Google, purpur"             >../../GoogleSymbols/purple.png</symbol>
+         <symbol text="rot"                name="Google, rot"                >../../GoogleSymbols/red.png</symbol>
+         <symbol text="gelb"               name="Google, gelb"               >../../GoogleSymbols/yellow.png</symbol>
+
+         <symbol text="Go grün"            name="Google, Go grün"            >../../GoogleSymbols/go-big-green.png</symbol>
+         <symbol text="Pause rot"          name="Google, Pause rot"          >../../GoogleSymbols/pause-big-red.png</symbol>
+         <symbol text="Pause gelb"         name="Google, Pause gelb"         >../../GoogleSymbols/pause-big-yellow.png</symbol>
+         <symbol text="Stop rot"           name="Google, Stop rot"           >../../GoogleSymbols/stop-big-red.png</symbol>
+
+         <symbol text="blau mit Punkt"     name="Google, blau mit Punkt"     >../../GoogleSymbols/blue-dot.png</symbol>
+         <symbol text="grün mit Punkt"     name="Google, grün mit Punkt"     >../../GoogleSymbols/green-dot.png</symbol>
+         <symbol text="hellblau mit Punkt" name="Google, hellblau mit Punkt" >../../GoogleSymbols/ltblue-dot.png</symbol>
+         <symbol text="orange mit Punkt"   name="Google, orange mit Punkt"   >../../GoogleSymbols/orange-dot.png</symbol>
+         <symbol text="pink mit Punkt"     name="Google, pink mit Punkt"     >../../GoogleSymbols/pink-dot.png</symbol>
+         <symbol text="purpur mit Punkt"   name="Google, purpur mit Punkt"   >../../GoogleSymbols/purple-dot.png</symbol>
+         <symbol text="rot mit Punkt"      name="Google, rot mit Punkt"      >../../GoogleSymbols/red-dot.png</symbol>
+         <symbol text="gelb mit Punkt"     name="Google, gelb mit Punkt"     >../../GoogleSymbols/yellow-dot.png</symbol>
+
+         <symbol text="Kreuz"              name="Google, Kreuz"              >../../GoogleSymbols/drag_cross_67_16.png</symbol>
+
+         <symbol text="Pin blau"           name="Google, Pin blau"           >../../GoogleSymbols/blue-pushpin.png</symbol>
+         <symbol text="Pin grün"           name="Google, Pin grün"           >../../GoogleSymbols/grn-pushpin.png</symbol>
+         <symbol text="Pin hellblau"       name="Google, Pin hellblau"       >../../GoogleSymbols/ltblu-pushpin.png</symbol>
+         <symbol text="Pin pink"           name="Google, Pin pink"           >../../GoogleSymbols/pink-pushpin.png</symbol>
+         <symbol text="Pin purpur"         name="Google, Pin purpur"         >../../GoogleSymbols/purple-pushpin.png</symbol>
+         <symbol text="Pin rot"            name="Google, Pin rot"            >../../GoogleSymbols/red-pushpin.png</symbol>
+         <symbol text="Pin gelb"           name="Google, Pin gelb"           >../../GoogleSymbols/ylw-pushpin.png</symbol>
+
 		</group>
 
 	</garminsymbols>

@@ -19,7 +19,7 @@ namespace GpxViewer {
          const int SUBIDX_GEOCOORD = 4;
          const int SUBIDX_GEODIRECT = 5;
 
-         public readonly string FileName;
+         public string FileName { get; protected set; }
          public Image Thumbnail { get; protected set; }
          public DateTime DateTimeFile { get; protected set; }
 
@@ -39,16 +39,21 @@ namespace GpxViewer {
 
          public ListViewItem ListViewItem;
 
+         /// <summary>
+         /// unter diesem Namen (noch) gespeichert
+         /// </summary>
+         string orgFilename = "";
+
 
          public PictureData(string filename) {
             IsInit = false;
             Changed = false;
-            FileName = filename;
+            orgFilename = FileName = filename;
 
-            DateTimeFile = File.GetLastWriteTime(FileName);
+            DateTimeFile = File.GetLastWriteTime(orgFilename);
             getActualGeoData();
 
-            string text = Path.GetFileName(FileName);
+            string text = Path.GetFileName(orgFilename);
             ListViewItem = new ListViewItem() {
                Tag = this,
                ToolTipText = text,
@@ -65,7 +70,7 @@ namespace GpxViewer {
          public void InitData(Size thumbnailsize) {
             //DateTimeFile = File.GetLastWriteTime(FileName);
             //getActualGeoData();
-            using (Image img = ReadImage(FileName)) {
+            using (Image img = ReadImage(orgFilename)) {
                if (img != null) {
                   Thumbnail = createPicture(img, thumbnailsize.Width, thumbnailsize.Height);
                   IsInit = true;
@@ -80,10 +85,17 @@ namespace GpxViewer {
             setSubItemsText();
          }
 
+         public void ChangeFilename(string poorfilename) {
+            Changed = true;
+            FileName = Path.Combine(Path.GetDirectoryName(orgFilename), poorfilename);
+            setSubItemsText();
+         }
+
          public bool Save(bool preserveDateTimeFile = false) {
             if (Changed) {
-               DateTime orgDateTime = File.GetLastWriteTime(FileName);
-               ExifGeo exifGeo = new ExifGeo(FileName);
+               DateTime orgDateTime = File.GetLastWriteTime(orgFilename);
+               ExifGeo exifGeo = new ExifGeo(orgFilename);
+
                if (exifGeo.SetLatLon(Latitude, Longitude, true)) {
                   exifGeo.SaveImage(FileName);
                   getActualGeoData();
@@ -92,6 +104,7 @@ namespace GpxViewer {
                   else
                      DateTimeFile = File.GetLastWriteTime(FileName);
                   Changed = false;
+                  orgFilename = FileName;
                   return true;
                }
             }
@@ -99,11 +112,11 @@ namespace GpxViewer {
          }
 
          public Image ReadImage() {
-            return ReadImage(FileName);
+            return ReadImage(orgFilename);
          }
 
          void getActualGeoData() {
-            ExifGeo exifGeo = new ExifGeo(FileName);
+            ExifGeo exifGeo = new ExifGeo(orgFilename);
             DateTime = exifGeo.GetDateTime();
             DateTimeOriginal = exifGeo.GetDateTimeOriginal();
             Direction = exifGeo.GetDirection();
@@ -525,6 +538,8 @@ namespace GpxViewer {
          toolStripButton_SaveGpx.Enabled = false;
          toolStripButton_SaveAll.Enabled = false;
 
+         actualPicturePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
          //newLoad(@"..\..\..\..\Gpx\2020_02 Stralsund", false);
       }
 
@@ -569,11 +584,16 @@ namespace GpxViewer {
       /// </summary>
       /// <param name="files"></param>
       void fillDataCache(IList<string> files) {
+         Cursor orgCursor = Cursor;
+         Cursor = Cursors.WaitCursor;
+
          dataCacheAll.Clear();
          foreach (string file in files) {
             PictureData pd = new PictureData(file);
             dataCacheAll.Add(pd);
          }
+
+         Cursor = orgCursor;
       }
 
       /// <summary>
@@ -701,10 +721,10 @@ namespace GpxViewer {
             y += 2;
 
             using (Font font1 = new Font(font, FontStyle.Bold)) {
-               g.DrawString(Path.GetFileName(pd.FileName), 
-                            font1, 
-                            Brushes.Black, 
-                            new RectangleF(bounds.Left, y, bounds.Width, bounds.Height), 
+               g.DrawString(Path.GetFileName(pd.FileName),
+                            font1,
+                            Brushes.Black,
+                            new RectangleF(bounds.Left, y, bounds.Width, bounds.Height),
                             sfCenter);
             }
             y += font.Height;
@@ -979,6 +999,26 @@ namespace GpxViewer {
             OnNeedNewData?.Invoke(this, new PictureDataEventArgs(pd.FileName, pd.Longitude, pd.Latitude));
       }
 
+      private void ToolStripMenuItemEditFilename_Click(object sender, EventArgs e) {
+         PictureData pd = getPictureData4Idx(itemidx4contextmenu);
+         if (pd != null) {
+
+            Point pt = listView1.PointToScreen(pd.ListViewItem.Position);
+            pt.Offset(5, 5);
+
+            FormEditPictureFilename form = new FormEditPictureFilename() {
+               Location = pt,
+               EditText = Path.GetFileName(pd.FileName),
+            };
+            if (form.ShowDialog() == DialogResult.OK) {
+               if (filenameIsValid(form.EditText))
+                  pd.ChangeFilename(form.EditText);
+               else
+                  MessageBox.Show("Der Dateiname '" + form.EditText + "' ist nicht gültig.", "Achtung", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+         }
+      }
+
       #endregion
 
       #region Toolbar
@@ -1024,6 +1064,8 @@ namespace GpxViewer {
       }
 
       private void toolStripButton_OpenPath_Click(object sender, EventArgs e) {
+         // SendKeys.Send("{TAB}{TAB}{RIGHT}");
+
          folderBrowserDialog1.SelectedPath = actualPicturePath;
          if (!CancelNewLoad() &&
              folderBrowserDialog1.ShowDialog() == DialogResult.OK)
@@ -1062,12 +1104,14 @@ namespace GpxViewer {
             if (pd.Changed)
                try {
                   pd.Save(false);
+                  //pd.ListViewItem.
                } catch (Exception ex) {
                   MessageBox.Show(ex.Message, "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                }
 
          showPictureCount();
          toolStripButton_SaveAll.Enabled = UnsavedPictures > 0;
+         listView1.Refresh();
       }
 
       private void toolStripButton_SaveGpx_Click(object sender, EventArgs e) {
@@ -1126,7 +1170,24 @@ namespace GpxViewer {
          }
       }
 
+      private void toolStripButton_Reload_Click(object sender, EventArgs e) {
+         if (!CancelNewLoad() &&
+             !string.IsNullOrEmpty(actualPicturePath))
+            newLoad(actualPicturePath, toolStripButton_WithSubDirs.Checked);
+      }
+
       #endregion
+
+      bool filenameIsValid(string fileName) {
+         FileInfo fi = null;
+         try {
+            fi = new FileInfo(fileName);
+         } catch (ArgumentException) { } catch (PathTooLongException) { } catch (NotSupportedException) { }
+         if (!ReferenceEquals(fi, null) &&
+             !File.Exists(fileName))
+            return true;
+         return false;
+      }
 
       //private void button4_Click(object sender, EventArgs e) {
 

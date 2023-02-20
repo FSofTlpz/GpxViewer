@@ -56,11 +56,11 @@ namespace GarminImageCreator.Garmin {
          return new PointF(xpixel(lon), ypixel(lat));
       }
 
-      public PointF Convert(DetailMap.GeoPoint pt) {
+      public PointF Convert(GeoPoint pt) {
          return new PointF(xpixel(pt.Point.X), ypixel(pt.Point.Y));
       }
 
-      public PointF[] Convert(DetailMap.GeoPoly poly) {
+      public PointF[] Convert(GeoPoly poly) {
          PointF[] pt = new PointF[poly.Points.Length];
          if (poly.DirectionIndicator) // Richtung umkehren
             for (int i = 0; i < pt.Length; i++) {

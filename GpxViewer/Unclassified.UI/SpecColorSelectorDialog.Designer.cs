@@ -32,7 +32,7 @@ namespace Unclassified.UI {
          // button_Cancel
          // 
          this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.button_Cancel.Location = new System.Drawing.Point(56, 489);
+         this.button_Cancel.Location = new System.Drawing.Point(289, 63);
          this.button_Cancel.Name = "button_Cancel";
          this.button_Cancel.Size = new System.Drawing.Size(75, 23);
          this.button_Cancel.TabIndex = 1;
@@ -42,7 +42,7 @@ namespace Unclassified.UI {
          // button_OK
          // 
          this.button_OK.DialogResult = System.Windows.Forms.DialogResult.OK;
-         this.button_OK.Location = new System.Drawing.Point(149, 489);
+         this.button_OK.Location = new System.Drawing.Point(289, 11);
          this.button_OK.Name = "button_OK";
          this.button_OK.Size = new System.Drawing.Size(75, 23);
          this.button_OK.TabIndex = 2;
@@ -72,7 +72,7 @@ namespace Unclassified.UI {
          this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.button_Cancel;
-         this.ClientSize = new System.Drawing.Size(278, 527);
+         this.ClientSize = new System.Drawing.Size(383, 500);
          this.ControlBox = false;
          this.Controls.Add(this.button_OK);
          this.Controls.Add(this.button_Cancel);

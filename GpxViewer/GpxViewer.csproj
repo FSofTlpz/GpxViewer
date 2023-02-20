@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>GpxViewer</RootNamespace>
     <AssemblyName>GpxViewer</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
@@ -80,6 +80,7 @@
     <SignManifests>true</SignManifests>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppData.cs" />
     <Compile Include="BitmapHelper.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Cursors4Map.cs" />
@@ -102,11 +103,29 @@
     <Compile Include="FormClearCache.Designer.cs">
       <DependentUpon>FormClearCache.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormEditPictureFilename.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormEditPictureFilename.Designer.cs">
+      <DependentUpon>FormEditPictureFilename.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormGeoTagger.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormGeoTagger.Designer.cs">
       <DependentUpon>FormGeoTagger.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormGoToPos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormGoToPos.Designer.cs">
+      <DependentUpon>FormGoToPos.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormObjectInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormObjectInfo.Designer.cs">
+      <DependentUpon>FormObjectInfo.cs</DependentUpon>
     </Compile>
     <Compile Include="FormSearch.cs">
       <SubType>Form</SubType>
@@ -120,6 +139,13 @@
     <Compile Include="FormSplashScreen.Designer.cs">
       <DependentUpon>FormSplashScreen.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormTrackSimplificationcs.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormTrackSimplificationcs.Designer.cs">
+      <DependentUpon>FormTrackSimplificationcs.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FSofTUtils\PersistentDataXml.cs" />
     <Compile Include="FSofTUtils\Threading\ThreadsafeInvoker.cs" />
     <Compile Include="GpxListReader.cs" />
     <Compile Include="MoveControl.cs">
@@ -263,8 +289,17 @@
     <EmbeddedResource Include="FormClearCache.resx">
       <DependentUpon>FormClearCache.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FormEditPictureFilename.resx">
+      <DependentUpon>FormEditPictureFilename.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormGeoTagger.resx">
       <DependentUpon>FormGeoTagger.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormGoToPos.resx">
+      <DependentUpon>FormGoToPos.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormObjectInfo.resx">
+      <DependentUpon>FormObjectInfo.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormSearch.resx">
       <DependentUpon>FormSearch.cs</DependentUpon>
@@ -301,6 +336,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FormPrintPreview.resx">
       <DependentUpon>FormPrintPreview.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormTrackSimplificationcs.resx">
+      <DependentUpon>FormTrackSimplificationcs.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FSofTUtils\MyMessageBox.resx">
       <DependentUpon>MyMessageBox.cs</DependentUpon>
@@ -360,6 +398,7 @@
     <None Include="Images\copy.png" />
     <None Include="Images\arrow_undo.png" />
     <None Include="Images\CursorFoto.cur" />
+    <None Include="Images\arrow_refresh.png" />
     <Content Include="Images\CursorSplit.cur" />
     <None Include="gpxviewer.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -402,6 +441,9 @@
     <None Include="Images\table.png" />
     <None Include="Images\GeoTagging.png" />
     <None Include="Images\speicherngpx.png" />
+    <None Include="Images\goto2.png" />
+    <None Include="Images\speichernmulti.png" />
+    <None Include="Images\TrackSimpl.png" />
     <Content Include="prog.ico" />
     <None Include="Images\Search2.png" />
     <None Include="Images\Search.png" />
@@ -423,7 +465,7 @@
       <Project>{1e53793f-a6ec-435f-bbe2-097e4009a6d8}</Project>
       <Name>GMap.NET.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GMap.NET-master\GMap.NET\GMap.NET.WindowsForms\GMap.NET.WindowsForms.csproj">
+    <ProjectReference Include="..\GMap.NET.WindowsForms\GMap.NET.WindowsForms.csproj">
       <Project>{a092251c-ef53-4f2a-aaed-b631bf84fcb4}</Project>
       <Name>GMap.NET.WindowsForms</Name>
     </ProjectReference>
@@ -431,9 +473,9 @@
       <Project>{016DD415-1E3C-4A32-A418-EA1CD07E2C29}</Project>
       <Name>GMap.NET.CoreExt</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SmallMapControl\SmallMapControl.csproj">
+    <ProjectReference Include="..\SpecialMapCtrl\SpecialMapCtrl.csproj">
       <Project>{93bd1d5d-9c44-437d-9133-9a7d9574a887}</Project>
-      <Name>SmallMapControl</Name>
+      <Name>SpecialMapCtrl</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -443,6 +485,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -459,9 +502,6 @@
     <PackageReference Include="ExifLibNet">
       <Version>2.1.4</Version>
     </PackageReference>
-    <PackageReference Include="System.Data.SqlClient">
-      <Version>4.8.3</Version>
-    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -474,6 +514,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

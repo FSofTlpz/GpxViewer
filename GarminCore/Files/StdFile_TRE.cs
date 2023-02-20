@@ -1104,16 +1104,16 @@ namespace GarminCore.Files {
       /// <summary>
       /// Datenbereich für die Tabelle der Maplevel (0x21)
       /// </summary>
-      public DataBlock MaplevelBlock { get; private set; }
+      DataBlock MaplevelBlock;
       /// <summary>
       /// Datenbereich für die Tabelle der Subdivisions (0x29)
       /// </summary>
-      public DataBlock SubdivisionBlock { get; private set; }
+      DataBlock SubdivisionBlock;
       /// <summary>
       /// Datenbereich für die Tabelle der Copyright-Texte (0x31)
       /// </summary>
-      public DataBlockWithRecordsize CopyrightBlock { get; private set; }
-      public byte[] Unknown_x3B = { 0, 0, 0, 0 };
+      DataBlockWithRecordsize CopyrightBlock;
+      byte[] Unknown_x3B = { 0, 0, 0, 0 };
       /// <summary>
       /// Optionen für die POI-Anzeige (0x3F)
       /// </summary>
@@ -1166,23 +1166,23 @@ namespace GarminCore.Files {
       /// Kartenlayer ? (0x40)
       /// </summary>
       public int DisplayPriority;
-      public byte[] Unknown_x43 = { 0x01, 0x03, 0x11, 0x00, 0x01, 0x00, 0x00 };
+      byte[] Unknown_x43 = { 0x01, 0x03, 0x11, 0x00, 0x01, 0x00, 0x00 };
       // public byte[] Unknown_x43 = { 0x01, 0x04, 0x17, 0x00, 0x01, 0x00, 0x00 };      // Topo D V3
       /// <summary>
       /// Datenbereich für die Tabelle der Polylines (0x4A)
       /// </summary>
-      public DataBlockWithRecordsize LineOverviewBlock { get; private set; }
-      public byte[] Unknown_x54 = { 0, 0, 0, 0 };
+      DataBlockWithRecordsize LineOverviewBlock;
+      byte[] Unknown_x54 = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die Tabelle der Polygone (0x58)
       /// </summary>
-      public DataBlockWithRecordsize AreaOverviewBlock { get; private set; }
-      public byte[] Unknown_x62 = { 0, 0, 0, 0 };
+      DataBlockWithRecordsize AreaOverviewBlock;
+      byte[] Unknown_x62 = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die Tabelle der Punkte (0x66)
       /// </summary>
-      public DataBlockWithRecordsize PointOverviewBlock { get; private set; }
-      public byte[] Unknown_x70 = { 0, 0, 0, 0 };
+      DataBlockWithRecordsize PointOverviewBlock;
+      byte[] Unknown_x70 = { 0, 0, 0, 0 };
 
       // --------- Headerlänge > 116 Byte (zusätzlich Map-ID)
 
@@ -1193,16 +1193,16 @@ namespace GarminCore.Files {
 
       // --------- Headerlänge > 120 Byte (zusätzlich erweiterte Typen)
 
-      public byte[] Unknown_x78 = { 0, 0, 0, 0 };
+      byte[] Unknown_x78 = { 0, 0, 0, 0 };
       /// <summary>
       /// Offsets auf die Datenbereiche der erweiterten Typen in der RGN Datei
       /// </summary>
-      public DataBlockWithRecordsize ExtTypeOffsetsBlock { get; private set; }
-      public byte[] Unknown_x86 = { 0x07, 0x06, 0x00, 0x00 };
+      DataBlockWithRecordsize ExtTypeOffsetsBlock;
+      byte[] Unknown_x86 = { 0x07, 0x06, 0x00, 0x00 };
       /// <summary>
       /// Verweis auf die Tabelle der erweiterten Typen (0x8A)
       /// </summary>
-      public DataBlockWithRecordsize ExtTypeOverviewsBlock { get; private set; }
+      DataBlockWithRecordsize ExtTypeOverviewsBlock;
       /// <summary>
       /// Anzahl der erweiterten Polylinientypen (0x94)
       /// </summary>
@@ -1225,16 +1225,16 @@ namespace GarminCore.Files {
       /// <summary>
       /// Verschlüsselungs-Key für die Mapleveltabelle
       /// </summary>
-      public UInt32 MaplevelScrambleKey;
-      public DataBlock UnknownBlock_xAE { get; private set; }
-      public byte[] Unknown_xB6 = new byte[0x6];
+      UInt32 MaplevelScrambleKey;
+      DataBlock UnknownBlock_xAE;
+      byte[] Unknown_xB6 = new byte[0x6];
 
       // --------- Headerlänge > 188 Byte
 
-      public DataBlock UnknownBlock_xBC { get; private set; }
-      public byte[] Unknown_xC4 = new byte[0x1F];
-      public DataBlock UnknownBlock_xE3 { get; private set; }
-      public byte[] Unknown_xEB = null;
+      DataBlock UnknownBlock_xBC;
+      byte[] Unknown_xC4 = new byte[0x1F];
+      DataBlock UnknownBlock_xE3;
+      byte[] Unknown_xEB = null;
 
       #endregion
 

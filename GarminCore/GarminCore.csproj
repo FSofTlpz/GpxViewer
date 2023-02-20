@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <NoStandardLibraries>false</NoStandardLibraries>
     <AssemblyName>GarminCore</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <NoWarn>IDE1006</NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
+    <IntermediateOutputPath>C:\Users\PETRAU~1\AppData\Local\Temp\vs3300.tmp\Debug\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,6 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <IntermediateOutputPath>C:\Users\PETRAU~1\AppData\Local\Temp\vs3300.tmp\Release\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>GarminCore</RootNamespace>
@@ -51,6 +53,15 @@
     <Compile Include="DskImg\MyStream.cs" />
     <Compile Include="DskImg\SimpleFilesystem.cs" />
     <Compile Include="DskImg\SimpleFilesystemReadOnly.cs" />
+    <Compile Include="OptimizedReader\SubdivMapData.cs" />
+    <Compile Include="OptimizedReader\File_TDB.cs" />
+    <Compile Include="OptimizedReader\ImgReader.cs" />
+    <Compile Include="OptimizedReader\StdFile.cs" />
+    <Compile Include="OptimizedReader\StdFile_LBL.cs" />
+    <Compile Include="OptimizedReader\StdFile_NET.cs" />
+    <Compile Include="OptimizedReader\StdFile_NOD.cs" />
+    <Compile Include="OptimizedReader\StdFile_RGN.cs" />
+    <Compile Include="OptimizedReader\StdFile_TRE.cs" />
     <Compile Include="Files\DEM\SubtileTableitem.cs" />
     <Compile Include="Files\DEM\ZoomlevelTableitem.cs" />
     <Compile Include="Files\FileSections.cs" />
@@ -83,6 +94,9 @@
     <Compile Include="Files\Typ\TableItem.cs" />
     <Compile Include="Files\Typ\Text.cs" />
     <Compile Include="Garmin.cs" />
+    <Compile Include="GeoObject.cs" />
+    <Compile Include="GeoPoint.cs" />
+    <Compile Include="GeoPoly.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Latitude.cs" />
     <Compile Include="Longitude.cs" />

@@ -68,6 +68,7 @@ namespace FSofTUtils.Geography.PoorGpx {
                                 "/" + NODENAME + "/*",
                                 new string[] {
                                    "<time>",
+                                   "<bounds ",     // mit Attributen
                                 });
       }
 

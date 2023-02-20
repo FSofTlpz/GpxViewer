@@ -1,6 +1,13 @@
-﻿using System;
+﻿#if GMAP4SKIA
+using SkiaSharp;
+using System;
+using System.Drawing;
+#else
+using System;
 using System.Drawing;
 using System.IO;
+#endif
+
 
 namespace FSofTUtils.Drawing {
    class BitmapHelper {
@@ -95,32 +102,32 @@ typedef struct {                                             typedef struct {
       /// <param name="heigth"></param>
       /// <param name="pixel"></param>
       /// <returns></returns>
-      public static Bitmap CreateBitmap32(int width, int heigth, Color[] pixel) {
-         if (width * heigth != pixel.Length)
-            throw new Exception("CreateBitmap()");
+      //public static Bitmap CreateBitmap32(int width, int heigth, Color[] pixel) {
+      //   if (width * heigth != pixel.Length)
+      //      throw new Exception("CreateBitmap()");
 
-         Bitmap bm;
-         MemoryStream ms = new MemoryStream();
-         using (BinaryWriter bw = new BinaryWriter(ms)) {
-            writeHeaderV4(bw, width, heigth);
+      //   Bitmap bm;
+      //   MemoryStream ms = new MemoryStream();
+      //   using (BinaryWriter bw = new BinaryWriter(ms)) {
+      //      writeHeaderV4(bw, width, heigth);
 
-            for (int y = heigth - 1; y >= 0; y--)
-               for (int x = 0; x < width; x++) {
-                  Color col = pixel[y * width + x];
-                  bw.Write(col.B);
-                  bw.Write(col.G);
-                  bw.Write(col.R);
-                  bw.Write(col.A);
-               }
+      //      for (int y = heigth - 1; y >= 0; y--)
+      //         for (int x = 0; x < width; x++) {
+      //            Color col = pixel[y * width + x];
+      //            bw.Write(col.B);
+      //            bw.Write(col.G);
+      //            bw.Write(col.R);
+      //            bw.Write(col.A);
+      //         }
 
-            ms.Position = 0;
-            Bitmap tmp = new Bitmap(ms);
-            bm = new Bitmap(tmp);
-            tmp.Dispose();
-            tmp.Dispose();
-         }
-         return bm;
-      }
+      //      ms.Position = 0;
+      //      Bitmap tmp = new Bitmap(ms);
+      //      bm = new Bitmap(tmp);
+      //      tmp.Dispose();
+      //      tmp.Dispose();
+      //   }
+      //   return bm;
+      //}
 
       /// <summary>
       /// Bitmap aus einem UInt32-Array mit ARGB-Werten (siehe <see cref="GetUInt4Color"/>()) erzeugen
@@ -134,12 +141,22 @@ typedef struct {                                             typedef struct {
             throw new Exception("CreateBitmap()");
 
          Bitmap bm;
+
+#if GMAP4SKIA
+         // Der Umweg über den Stream fkt. mit SKBitmap unter Android NICHT für BMP (aber z.B. für PNG und JPEG).
+
+         bm = new Bitmap(width, heigth);
+         SKColor[] p = new SKColor[pixel.Length];
+         for (int i = 0; i < pixel.Length; i++)
+            p[i] = pixel[i];
+         bm.SKBitmap.Pixels = p;
+#else
          MemoryStream ms = new MemoryStream();
          using (BinaryWriter bw = new BinaryWriter(ms)) {
             writeHeaderV4(bw, width, heigth);
 
             for (int y = heigth - 1; y >= 0; y--)
-               for (int x = 0; x < width; x++) 
+               for (int x = 0; x < width; x++)
                   bw.Write(pixel[y * width + x]);
 
             ms.Position = 0;
@@ -148,6 +165,7 @@ typedef struct {                                             typedef struct {
             tmp.Dispose();
             tmp.Dispose();
          }
+#endif
          return bm;
       }
 
@@ -163,6 +181,7 @@ typedef struct {                                             typedef struct {
          return (uint)((alpha << 24) | (r << 16) | (g << 8) | b);
       }
 
+#if !GMAP4SKIA
       static void writeHeaderV4(BinaryWriter bw, int width, int heigth) {
          // BMP Header 
          // 0h    2  42 4D    "BM"  ID field(42h, 4Dh)
@@ -256,6 +275,7 @@ typedef struct {                                             typedef struct {
          bw.Write(0);   // DWORD bV4GammaGreen;
          bw.Write(0);   // DWORD bV4GammaBlue; 
       }
+#endif
 
       //public static Bitmap Testbild(int width, int heigth, int alpha) {
       //   Color[] pixel = new Color[width * heigth];

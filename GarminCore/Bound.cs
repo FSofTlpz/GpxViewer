@@ -660,7 +660,11 @@ namespace GarminCore {
       /// <param name="bound"></param>
       /// <returns></returns>
       public bool IsOverlapped(Bound bound) {
-         return intersection(bound, false, out Bound result);
+         return intersection(bound, false, out _);
+      }
+
+      public bool IsOverlapped1(Bound bound) {
+         return intersection1(bound, false, out _);
       }
 
       /// <summary>
@@ -670,7 +674,7 @@ namespace GarminCore {
       /// <param name="getresult">wenn true wird, falls möglich, eine Schnittmenge gebildet</param>
       /// <param name="result">Schnittmenge oder</param>
       /// <returns></returns>
-      bool intersection(Bound bound, bool getresult, out Bound result) {
+      bool intersection1(Bound bound, bool getresult, out Bound result) {
          int l1 = Left;
          int r1 = Right;
          if (r1 < l1)
@@ -707,6 +711,57 @@ namespace GarminCore {
          result = null;
          return false;
       }
+
+      /// <summary>
+      /// Ex. eine Schnittmenge?
+      /// </summary>
+      /// <param name="bound"></param>
+      /// <param name="getresult">wenn true wird, falls möglich, eine Schnittmenge gebildet</param>
+      /// <param name="result">Schnittmenge oder</param>
+      /// <returns></returns>
+      bool intersection(Bound bound, bool getresult, out Bound result) {
+         int l1 = Left;
+         int r1 = Right;
+         if (r1 < l1)
+            r1 += Coord.MAPUNITS360DEGREE;
+         int l2 = bound.Left;
+         int r2 = bound.Right;
+         if (r2 < l2)
+            r2 += Coord.MAPUNITS360DEGREE;
+
+         if (overlapped(l1, r1, l2, r2, out int left, out int right)) {
+            if (overlapped(Bottom, Top, bound.Bottom, bound.Top, out int bottom, out int top)) {
+               result = getresult ? new Bound(left, right, bottom, top) : null;
+               return true;
+            }
+         }
+
+         result = null;
+         return false;
+      }
+
+      bool overlapped(int start1, int end1,
+                      int start2, int end2,
+                      out int startoverlapped, out int endoverlapped) {
+         if (start2 < start1) {  // Bereiche austauschen (1 immer VOR 2)
+            int tmp = start1;
+            //start1 = start2;
+            start2 = tmp;
+            tmp = end1;
+            end1 = end2;
+            end2 = tmp;
+         }
+
+         if (start2 <= end1) {
+            startoverlapped = start2;
+            endoverlapped = end2 <= end1 ? end2 : end1;
+            return true;
+         } else {
+            startoverlapped = endoverlapped = 0;
+            return false;
+         }
+      }
+
 
       /// <summary>
       /// bildet die kleinste umschließende Umgrenzung aus der bestehenden Umgrenzung und dem Punkt

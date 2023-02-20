@@ -525,7 +525,7 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      XPathNodeIterator NavigatorSelect(string xpath) {
+      protected XPathNodeIterator NavigatorSelect(string xpath) {
          return NsMng != null ?
                      navigator.Select(xpath, NsMng) :
                      navigator.Select(xpath);

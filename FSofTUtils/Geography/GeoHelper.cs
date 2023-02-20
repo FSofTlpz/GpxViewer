@@ -132,9 +132,14 @@ namespace FSofTUtils.Geography {
                   // Sonderfälle für vorzeitigen Abbruch
                   if (y1 == y2 ||                  // P liegt auf der Kante
                       (y1 == 0 && x1 == 0) ||      // P liegt auf Eckpunkt P1
-                      (y2 == 0 && x2 == 0) ||      // P liegt auf Eckpunkt P2
-                      (x1 == x2 && x1 >= 0))       // Kante verläuft senkrecht rechts von P
-                     return true;
+                      (y2 == 0 && x2 == 0))        // P liegt auf Eckpunkt P2
+                     return true;                  // Ecke bzw. Kante wird als "innerhalb" angesehen
+
+                  if (x1 == x2 && x1 >= 0) {       // Kante verläuft senkrecht rechts von P -> Schnittpunkt ex.
+                     bIsIn = !bIsIn;
+                     continue;
+                  }        
+
                   /* Ex. Schnittpunkt der Kante mit x-Achse mit x >= 0:
                    * y = dy/dx*x+n
                    * y1 = (y2-y1)/(x2-x1) * x1 + n

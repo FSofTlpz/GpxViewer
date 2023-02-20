@@ -3,41 +3,38 @@ using FSofTUtils.Geometry;
 using GMap.NET;
 using GMap.NET.CoreExt.MapProviders;
 using GMap.NET.MapProviders;
-using SmallMapControl;
-using SmallMapControl.EditHelper;
+using SpecialMapCtrl;
+using SpecialMapCtrl.EditHelper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using Gpx = FSofTUtils.Geography.PoorGpx;
+using MapCtrl = SpecialMapCtrl.SpecialMapCtrl;
 
 namespace GpxViewer {
    /// <summary>
-   /// Das Control besteht i.W. aus einem <see cref="SmallMapCtrl"/>. Dazu kommt ein Control für den Zoom und ein weiteres zum Verschieben der Karte.
-   /// I.A. sollten hier nur die Map-Elemente des <see cref="SmallMapCtrl"/> verwendet werden.
+   /// Das Control besteht i.W. aus einem <see cref="SpecialMapCtrl"/>. Dazu kommt ein Control für den Zoom und ein weiteres zum Verschieben der Karte.
+   /// I.A. sollten hier nur die Map-Elemente des <see cref="SpecialMapCtrl"/> verwendet werden.
    /// </summary>
    public partial class MapControl : UserControl {
 
       #region Karten-Events
 
-      event SmallMapCtrl.TileLoadCompleteEventHandler mapTileLoadCompleteEvent;
+      public event EventHandler<MapCtrl.TileLoadEventArgs> MapTileLoadCompleteEvent;
 
-      //public delegate void TileLoadCompleteEventDelegate(object sender, TileLoadCompleteEventArgs e);
-      //TileLoadCompleteEventDelegate myMapWrapper_TileLoadCompleteEventDelegate;
-      public event SmallMapCtrl.TileLoadCompleteEventHandler MapTileLoadCompleteEvent;
+      public event EventHandler MapZoomChangedEvent;
 
-      public event SmallMapCtrl.MapZoomChangedEventHandler MapZoomChangedEvent;
+      public event EventHandler<MapCtrl.MapMouseEventArgs> MapMouseEvent;
 
-      public event SmallMapCtrl.MapPaintEventHandler MapPaintEvent;
+      public event EventHandler<MapCtrl.DrawExtendedEventArgs> MapDrawOnTopEvent;
 
-      public event SmallMapCtrl.MapMouseEventHandler MapMouseEvent;
+      public event EventHandler<MouseEventArgs> MapTrackSearch4PolygonEvent;
 
-      public event SmallMapCtrl.MapTrackSearch4PolygonEventHandler MapTrackSearch4PolygonEvent;
+      public event EventHandler<MapCtrl.TrackEventArgs> MapTrackEvent;
 
-      public event SmallMapCtrl.MapTrackEventHandler MapTrackEvent;
-
-      public event SmallMapCtrl.MapMarkerEventHandler MapMarkerEvent;
+      public event EventHandler<MapCtrl.MarkerEventArgs> MapMarkerEvent;
 
       #endregion
 
@@ -49,10 +46,10 @@ namespace GpxViewer {
       /// </summary>
       [Browsable(true), Category("Map"), DefaultValue(0)]
       public int MapMinZoom {
-         get => smc.MapMinZoom;
+         get => smc.SpecMapMinZoom;
          set {
-            if (value <= smc.MapMaxZoom) {
-               smc.MapMinZoom = value;
+            if (value <= smc.SpecMapMaxZoom) {
+               smc.SpecMapMinZoom = value;
                _trackBarZoomInternSet = true;
                trackBarZoom.Minimum = value * 10;
                _trackBarZoomInternSet = false;
@@ -65,10 +62,10 @@ namespace GpxViewer {
       /// </summary>
       [Browsable(true), Category("Map"), DefaultValue(24)]
       public int MapMaxZoom {
-         get => smc.MapMaxZoom;
+         get => smc.SpecMapMaxZoom;
          set {
-            if (value >= smc.MapMinZoom) {
-               smc.MapMaxZoom = value;
+            if (value >= smc.SpecMapMinZoom) {
+               smc.SpecMapMaxZoom = value;
                _trackBarZoomInternSet = true;
                trackBarZoom.Maximum = value * 10;
                _trackBarZoomInternSet = false;
@@ -81,12 +78,10 @@ namespace GpxViewer {
       /// </summary>
       [Browsable(true), Category("Map"), DefaultValue(20.0)]
       public double MapZoom {
-         get {
-            return smc.MapZoom;
-         }
+         get => smc.SpecMapZoom;
          set {
             value = Math.Min(MapMaxZoom, Math.Max(MapMinZoom, value));
-            smc.MapZoom = value;
+            smc.SpecMapZoom = value;
 
             _trackBarZoomInternSet = true;
             trackBarZoom.Value = (int)Math.Round(value * 10);
@@ -98,17 +93,15 @@ namespace GpxViewer {
       /// letzte registrierte Mausposition im Karten-Control
       /// </summary>
       [Browsable(false)]
-      public Point MapLastMouseLocation {
-         get => smc.MapLastMouseLocation;
-      }
+      public Point MapLastMouseLocation => smc.SpecMapLastMouseLocation;
 
       /// <summary>
       /// Der Maus-Button zum "Ziehen" der Karte
       /// </summary>
       [Browsable(true), Category("Map"), DefaultValue(MouseButtons.Left)]
       public MouseButtons MapDragButton {
-         get => smc.MapDragButton;
-         set => smc.MapDragButton = value;
+         get => smc.Map_DragButton;
+         set => smc.Map_DragButton = value;
       }
 
       bool _mapZoomHandleVisible = true;
@@ -127,25 +120,20 @@ namespace GpxViewer {
          }
       }
 
-      /// <summary>
-      /// Maßstab für das <see cref="SmallMapCtrl"/>
-      /// </summary>
-      Scale4Map scale;
-
 
       public MapControl() {
          InitializeComponent();
       }
 
       private void MapControl_Load(object sender, EventArgs e) {
-         smc.MapPaintEvent += Smc_MapPaintEvent;
-         smc.MapMouseEvent += Smc_MapMouseEvent;
-         smc.MapZoomChangedEvent += Smc_MapZoomChangedEvent;
-         smc.MapZoomRangeChangedEvent += Smc_MapZoomRangeChanged;
-         smc.MapTileLoadCompleteEvent += Smc_MapTileLoadCompleteEvent;
-         smc.MapMarkerEvent += Smc_MapMarkerEvent;
-         smc.MapTrackEvent += Smc_MapTrackEvent;
-         smc.MapTrackSearch4PolygonEvent += Smc_MapTrackSearch4PolygonEvent;
+         smc.SpecMapDrawOnTop += Smc_MapPaintEvent;
+         smc.SpecMapMouseEvent += Smc_MapMouseEvent;
+         smc.SpecMapZoomChangedEvent += Smc_MapZoomChangedEvent;
+         smc.SpecMapZoomRangeChangedEvent += Smc_MapZoomRangeChanged;
+         smc.SpecMapTileLoadCompleteEvent += Smc_MapTileLoadCompleteEvent;
+         smc.SpecMapMarkerEvent += Smc_MapMarkerEvent;
+         smc.SpecMapTrackEvent += Smc_MapTrackEvent;
+         smc.SpecMapTrackSearch4PolygonEvent += Smc_MapTrackSearch4PolygonEvent;
 
          moveControl1.DirectionEvent += moveControl1_DirectionEvent;
 
@@ -157,16 +145,16 @@ namespace GpxViewer {
       protected override void OnHandleDestroyed(EventArgs e) {
          base.OnHandleDestroyed(e);
 
-         smc.MapPaintEvent -= Smc_MapPaintEvent;
-         smc.MapMouseEvent -= Smc_MapMouseEvent;
-         smc.MapZoomChangedEvent -= Smc_MapZoomChangedEvent;
-         smc.MapZoomRangeChangedEvent -= Smc_MapZoomRangeChanged;
-         smc.MapTileLoadCompleteEvent -= Smc_MapTileLoadCompleteEvent;
-         smc.MapMarkerEvent -= Smc_MapMarkerEvent;
-         smc.MapTrackEvent -= Smc_MapTrackEvent;
-         smc.MapTrackSearch4PolygonEvent -= Smc_MapTrackSearch4PolygonEvent;
+         smc.SpecMapDrawOnTop -= Smc_MapPaintEvent;
+         smc.SpecMapMouseEvent -= Smc_MapMouseEvent;
+         smc.SpecMapZoomChangedEvent -= Smc_MapZoomChangedEvent;
+         smc.SpecMapZoomRangeChangedEvent -= Smc_MapZoomRangeChanged;
+         smc.SpecMapTileLoadCompleteEvent -= Smc_MapTileLoadCompleteEvent;
+         smc.SpecMapMarkerEvent -= Smc_MapMarkerEvent;
+         smc.SpecMapTrackEvent -= Smc_MapTrackEvent;
+         smc.SpecMapTrackSearch4PolygonEvent -= Smc_MapTrackSearch4PolygonEvent;
 
-         smc.MapPaintEvent -= Smc_MapPaintEvent;
+         smc.SpecMapDrawOnTop -= Smc_MapPaintEvent;
 
       }
 
@@ -179,9 +167,7 @@ namespace GpxViewer {
 
       #region Behandlung der SmallMapControl-Events (i.W. Weiterleitung nach "außen")
 
-      private void Smc_Load(object sender, EventArgs e) {
-         scale = new Scale4Map(sender as SmallMapControl.SmallMapCtrl);
-      }
+      private void Smc_Load(object sender, EventArgs e) { }
 
       private void Smc_MapZoomChangedEvent(object sender, EventArgs e) {
          _trackBarZoomInternSet = true;
@@ -199,35 +185,19 @@ namespace GpxViewer {
          _trackBarZoomInternSet = false;
       }
 
-      private void Smc_MapTileLoadCompleteEvent(object sender, SmallMapCtrl.TileLoadCompleteEventArgs e) {
+      private void Smc_MapTileLoadCompleteEvent(object sender, MapCtrl.TileLoadEventArgs e) =>
          // => ev. nach "außen" weiterleiten
          MapTileLoadCompleteEvent?.Invoke(sender, e);
-      }
 
-      private void Smc_MapTrackEvent(object sender, SmallMapCtrl.TrackEventArgs e) {
-         // => ev. nach "außen" weiterleiten
-         MapTrackEvent?.Invoke(sender, e);
-      }
+      private void Smc_MapTrackEvent(object sender, MapCtrl.TrackEventArgs e) => MapTrackEvent?.Invoke(sender, e);
 
-      private void Smc_MapTrackSearch4PolygonEvent(object sender, MouseEventArgs e) {
-         // => ev. nach "außen" weiterleiten
-         MapTrackSearch4PolygonEvent?.Invoke(sender, e);
-      }
+      private void Smc_MapTrackSearch4PolygonEvent(object sender, MouseEventArgs e) => MapTrackSearch4PolygonEvent?.Invoke(sender, e);
 
-      private void Smc_MapMarkerEvent(object sender, SmallMapCtrl.MarkerEventArgs e) {
-         // => ev. nach "außen" weiterleiten
-         MapMarkerEvent?.Invoke(sender, e);
-      }
+      private void Smc_MapMarkerEvent(object sender, MapCtrl.MarkerEventArgs e) => MapMarkerEvent?.Invoke(sender, e);
 
-      private void Smc_MapMouseEvent(object sender, SmallMapCtrl.MapMouseEventArgs e) {
-         // => ev. nach "außen" weiterleiten
-         MapMouseEvent?.Invoke(sender, e);
-      }
+      private void Smc_MapMouseEvent(object sender, MapCtrl.MapMouseEventArgs e) => MapMouseEvent?.Invoke(sender, e);
 
-      private void Smc_MapPaintEvent(object sender, PaintEventArgs e) {
-         // => ev. nach "außen" weiterleiten
-         MapPaintEvent?.Invoke(sender, e);
-      }
+      private void Smc_MapPaintEvent(object sender, MapCtrl.DrawExtendedEventArgs e) => MapDrawOnTopEvent?.Invoke(sender, e);
 
       #endregion
 
@@ -259,17 +229,15 @@ namespace GpxViewer {
       }
 
 
-      public EditTrackHelper MapCreateEditTrackHelper(PoorGpxAllExt editablegpx) {
-         return editablegpx != null ?
-                     new EditTrackHelper(smc, editablegpx) :
+      public EditTrackHelper MapCreateEditTrackHelper(GpxAllExt editablegpx, Color helperLineColor, float helperLineWidth) =>
+         editablegpx != null ?
+                     new EditTrackHelper(smc, editablegpx, helperLineColor, helperLineWidth) :
                      null;
-      }
 
-      public EditMarkerHelper MapCreateEditMarkerHelper(PoorGpxAllExt editablegpx) {
-         return editablegpx != null ?
-                     new EditMarkerHelper(smc, editablegpx) :
+      public EditMarkerHelper MapCreateEditMarkerHelper(GpxAllExt editablegpx, Color helperLineColor, float helperLineWidth) =>
+         editablegpx != null ?
+                     new EditMarkerHelper(smc, editablegpx, helperLineColor, helperLineWidth) :
                      null;
-      }
 
       /// <summary>
       /// Ist die Sichtbarkeit aller <see cref="Track"/> im gemeinsamen <see cref="GpxDataContainer"/> dieses <see cref="Track"/> gleich?
@@ -301,20 +269,17 @@ namespace GpxViewer {
       /// <param name="text"></param>
       /// <param name="clientx"></param>
       /// <param name="clienty"></param>
-      public void MapShowToolTip(ToolTip tt, string text, int clientx, int clienty) {
+      public void MapShowToolTip(ToolTip tt, string text, int clientx, int clienty) =>
          tt.Show(text,
                  smc,
                  clientx,
                  clienty);
-      }
 
       /// <summary>
       /// entfernt den ToolTip
       /// </summary>
       /// <param name="tt"></param>
-      public void MapHideToolTip(ToolTip tt) {
-         tt.Hide(smc);
-      }
+      public void MapHideToolTip(ToolTip tt) => tt.Hide(smc);
 
       /// <summary>
       /// zeigt das Kontextmenü an der Position an
@@ -322,23 +287,14 @@ namespace GpxViewer {
       /// <param name="cms"></param>
       /// <param name="clientx"></param>
       /// <param name="clienty"></param>
-      public void MapShowContextMenu(ContextMenuStrip cms, int clientx, int clienty) {
-         cms.Show(smc, clientx, clienty);
-      }
+      public void MapShowContextMenu(ContextMenuStrip cms, int clientx, int clienty) => cms.Show(smc, clientx, clienty);
 
       /// <summary>
       /// akt. Ansicht als Bild liefern
       /// </summary>
       /// <param name="withscale"></param>
       /// <returns></returns>
-      public Image MapGetViewAsImage(bool withscale = true) {
-         Image img = smc.MapGetViewAsImage();
-         if (withscale && scale != null) {
-            Graphics g = Graphics.FromImage(img);
-            scale.Draw(g);
-         }
-         return img;
-      }
+      public Image MapGetViewAsImage(bool withscale = true) => smc.SpecMapGetViewAsImage(withscale);
 
       #region Weiterleitungen an gleichnamige SmallMapControl-Properties
 
@@ -349,8 +305,8 @@ namespace GpxViewer {
        ReadOnly(true),
        Category("Map")]
       public string MapCacheLocation {
-         get => smc.MapCacheLocation;
-         set => smc.MapCacheLocation = value;
+         get => smc.SpecMapCacheLocation;
+         set => smc.SpecMapCacheLocation = value;
       }
 
       /// <summary>
@@ -358,41 +314,35 @@ namespace GpxViewer {
       /// </summary>
       [Browsable(true), Category("Map"), DefaultValue(true)]
       public static bool MapCacheIsActiv {
-         get => SmallMapCtrl.MapCacheIsActiv;
-         set => SmallMapCtrl.MapCacheIsActiv = value;
+         get => MapCtrl.SpecMapCacheIsActiv;
+         set => MapCtrl.SpecMapCacheIsActiv = value;
       }
 
       /// <summary>
       /// Liste der registrierten Karten-Provider
       /// </summary>
       [Browsable(false)]
-      public List<MapProviderDefinition> MapProviderDefinitions {
-         get => smc.MapProviderDefinitions;
-      }
+      public List<MapProviderDefinition> MapProviderDefinitions => smc.SpecMapProviderDefinitions;
 
       /// <summary>
       /// geogr. Länge des Mittelpunktes der Karte
       /// </summary>
       [Browsable(false)]
-      public double MapCenterLon {
-         get => smc.MapCenterLon;
-      }
+      public double MapCenterLon => smc.SpecMapCenterLon;
 
       /// <summary>
       /// geogr. Breite des Mittelpunktes der Karte
       /// </summary>
       [Browsable(false)]
-      public double MapCenterLat {
-         get => smc.MapCenterLat;
-      }
+      public double MapCenterLat => smc.SpecMapCenterLat;
 
       /// <summary>
       /// Cursor der Karte
       /// </summary>
       [Browsable(true), Category("Map")]
       public Cursor MapCursor {
-         get => smc.MapCursor;
-         set => smc.MapCursor = value;
+         get => smc.SpecMapCursor;
+         set => smc.SpecMapCursor = value;
       }
 
       #endregion
@@ -405,18 +355,14 @@ namespace GpxViewer {
       /// <param name="clientx"></param>
       /// <param name="clienty"></param>
       /// <returns></returns>
-      public PointD MapClient2LonLat(int clientx, int clienty) {
-         return smc.MapClient2LonLat(clientx, clienty);
-      }
+      public PointD MapClient2LonLat(int clientx, int clienty) => smc.SpecMapClient2LonLat(clientx, clienty);
 
       /// <summary>
       /// rechnet die Clientkoordinaten der Karte in geogr. Koordinaten um
       /// </summary>
       /// <param name="ptclient"></param>
       /// <returns></returns>
-      public PointD MapClient2LonLat(Point ptclient) {
-         return MapClient2LonLat((int)ptclient.X, (int)ptclient.Y);
-      }
+      public PointD MapClient2LonLat(Point ptclient) => smc.SpecMapClient2LonLat(ptclient.X, ptclient.Y);
 
       /// <summary>
       /// rechnet die geogr. Koordinaten in Clientkoordinaten der Karte um
@@ -425,9 +371,7 @@ namespace GpxViewer {
       /// <param name="lat"></param>
       /// <param name="clientx"></param>
       /// <param name="clienty"></param>
-      public void MapLonLat2Client(double lon, double lat, out int clientx, out int clienty) {
-         smc.MapLonLat2Client(lon, lat, out clientx, out clienty);
-      }
+      public void MapLonLat2Client(double lon, double lat, out int clientx, out int clienty) => smc.SpecMapLonLat2Client(lon, lat, out clientx, out clienty);
 
       /// <summary>
       /// rechnet die geogr. Koordinaten in Clientkoordinaten der Karte um
@@ -435,54 +379,40 @@ namespace GpxViewer {
       /// <param name="lon"></param>
       /// <param name="lat"></param>
       /// <returns></returns>
-      public Point MapLonLat2Client(double lon, double lat) {
-         return smc.MapLonLat2Client(new PointLatLng(lat, lon));
-      }
+      public Point MapLonLat2Client(double lon, double lat) => smc.SpecMapLonLat2Client(new PointLatLng(lat, lon));
 
       /// <summary>
       /// rechnet die geogr. Koordinaten in Clientkoordinaten der Karte um
       /// </summary>
       /// <param name="ptgeo"></param>
       /// <returns></returns>
-      public Point MapLonLat2Client(PointLatLng ptgeo) {
-         return smc.MapLonLat2Client(ptgeo);
-      }
+      public Point MapLonLat2Client(PointLatLng ptgeo) => smc.SpecMapLonLat2Client(ptgeo);
 
-      public Point MapLonLat2Client(Gpx.GpxWaypoint ptgeo) {
-         return smc.MapLonLat2Client(new PointLatLng(ptgeo.Lat, ptgeo.Lon));
-      }
+      public Point MapLonLat2Client(Gpx.GpxWaypoint ptgeo) => smc.SpecMapLonLat2Client(new PointLatLng(ptgeo.Lat, ptgeo.Lon));
 
       /// <summary>
       /// rechnet die geogr. Koordinaten in Clientkoordinaten der Karte um
       /// </summary>
       /// <param name="ptgeo"></param>
       /// <returns></returns>
-      public Point MapLonLat2Client(Gpx.GpxTrackPoint ptgeo) {
-         return smc.MapLonLat2Client(new PointLatLng(ptgeo.Lat, ptgeo.Lon));
-      }
+      public Point MapLonLat2Client(Gpx.GpxTrackPoint ptgeo) => smc.SpecMapLonLat2Client(new PointLatLng(ptgeo.Lat, ptgeo.Lon));
 
       /// <summary>
       /// Wird gerade ein Auswahlrechteck gezeichnet?
       /// </summary>
       [Browsable(false)]
-      public bool MapSelectionAreaIsStarted {
-         get => smc.MapSelectionAreaIsStarted;
-      }
+      public bool MapSelectionAreaIsStarted => smc.SpecMapSelectionAreaIsStarted;
 
       /// <summary>
       /// startet die Auswahl einer Fläche
       /// </summary>
-      public void MapStartSelectionArea() {
-         smc.MapStartSelectionArea();
-      }
+      public void MapStartSelectionArea() => smc.SpecMapStartSelectionArea();
 
       /// <summary>
       /// liefert eine ausgewählte Fläche oder null
       /// </summary>
       /// <returns></returns>
-      public Gpx.GpxBounds MapEndSelectionArea() {
-         return smc.MapEndSelectionArea();
-      }
+      public Gpx.GpxBounds MapEndSelectionArea() => smc.SpecMapEndSelectionArea();
 
 
       /// <summary>
@@ -492,9 +422,8 @@ namespace GpxViewer {
       /// <param name="proxyport">proxy portnumber</param>
       /// <param name="user">username</param>
       /// <param name="password">userpassword</param>
-      public static void MapSetProxy(string proxy, int proxyport, string user, string password) {
-         SmallMapCtrl.MapSetProxy(proxy, proxyport, user, password);
-      }
+      public static void MapSetProxy(string proxy, int proxyport, string user, string password) =>
+         MapCtrl.SpecMapSetProxy(proxy, proxyport, user, password);
 
       /// <summary>
       /// registriert die zu verwendenden Karten-Provider in der Liste <see cref="MapProviderDefinitions"/>
@@ -504,9 +433,7 @@ namespace GpxViewer {
       /// <param name="wmsdefs"></param>
       /// <param name="kmzdefs"></param>
       public void MapRegisterProviders(IList<string> providernames,
-                                       List<MapProviderDefinition> provdefs) {
-         smc.MapRegisterProviders(providernames, provdefs);
-      }
+                                       List<MapProviderDefinition> provdefs) => smc.SpecMapRegisterProviders(providernames, provdefs);
 
       /// <summary>
       /// setzt den aktiven Karten-Provider
@@ -514,18 +441,17 @@ namespace GpxViewer {
       /// <param name="idx"></param>
       /// <param name="demalpha">Alpha für Hillshading</param>
       /// <param name="dem">Hilfsdaten für Höhenangaben und Hillshading</param>
-      public void MapSetActivProvider(int idx, int demalpha, DemData dem = null) {
-         smc.MapSetActivProvider(idx, demalpha, dem);
-      }
+      public void MapSetActivProvider(int idx, int demalpha, DemData dem = null) => smc.SpecMapSetActivProvider(idx, demalpha, dem);
 
       /// <summary>
       /// zeichnet die Karte neu
       /// </summary>
+      /// <param name="reload">löst auch ein Reload aus</param>
       /// <param name="clearmemcache">löscht auch den Cache im Hauptspeicher (Die Tiles in diesem Cache haben KEINE DbId!))</param>
       /// <param name="clearcache">löscht auch den Cache auf HD und/oder Server</param>
-      public void MapRefresh(bool clearmemcache, bool clearcache) {
-         smc.MapRefresh(clearmemcache, clearcache);
-      }
+      public void MapRefresh(bool reload, bool clearmemcache, bool clearcache) => smc.SpecMapRefresh(reload, clearmemcache, clearcache);
+
+      public void MapCancelLoad() => smc.SpecMapCancelUnnecessaryLoadings();
 
       /// <summary>
       /// setzt die Kartenpos. (Mittelpunkt) und den Zoom
@@ -533,60 +459,46 @@ namespace GpxViewer {
       /// <param name="zoom"></param>
       /// <param name="centerlon"></param>
       /// <param name="centerlat"></param>
-      public void MapSetLocationAndZoom(double zoom, double centerlon, double centerlat) {
-         smc.MapSetLocationAndZoom(zoom, centerlon, centerlat);
-      }
+      public void MapSetLocationAndZoom(double zoom, double centerlon, double centerlat) => smc.SpecMapSetLocationAndZoom(zoom, centerlon, centerlat);
 
       /// <summary>
       /// Sicht auf die Karte prozentual zur Größe des Sichtfenster verschieben
       /// </summary>
       /// <param name="dxpercent">-1..0..1; prozentual zur Breite des Sichtfenster; ein positiver Wert verschiebt das Sichtfenster nach rechts</param>
       /// <param name="dypercent">-1..0..1; prozentual zur Höhe des Sichtfenster; ein positiver Wert verschiebt das Sichtfenster nach oben</param>
-      public void MapMoveView(double dxpercent, double dypercent) {
-         smc.MapMoveView(dxpercent, dypercent);
-      }
+      public void MapMoveView(double dxpercent, double dypercent) => smc.SpecMapMoveView(dxpercent, dypercent);
 
       /// <summary>
       /// zum Bereich zoomen
       /// </summary>
       /// <param name="topleft"></param>
       /// <param name="bottomright"></param>
-      public void MapZoomToRange(PointD topleft, PointD bottomright) {
-         smc.MapZoomToRange(topleft, bottomright);
-      }
+      public void MapZoomToRange(PointD topleft, PointD bottomright) => smc.SpecMapZoomToRange(topleft, bottomright, false);
 
       /// <summary>
       /// liefert den Index des aktiven Providers in der <see cref="MapProviderDefinitions"/>-Liste
       /// </summary>
       /// <returns></returns>
-      public int MapGetActiveProviderIdx() {
-         return smc.MapGetActiveProviderIdx();
-      }
+      public int MapGetActiveProviderIdx() => smc.SpecMapGetActiveProviderIdx();
 
       /// <summary>
       /// löscht den lokalen SQLite- und, falls vorhanden, den Server-Map-Cache
       /// </summary>
       /// <param name="provider"></param>
       /// <returns>Anzahl der Tiles</returns>
-      public int MapClearCache(GMapProvider provider = null) {
-         return smc.MapClearCache(provider);
-      }
+      public int MapClearCache(GMapProvider provider = null) => smc.SpecMapClearCache(provider);
 
       /// <summary>
       /// löscht den lokalen SQLite- und, falls vorhanden, den Server-Map-Cache
       /// </summary>
       /// <param name="idx">bezieht sich auf die Liste der <see cref="MapProviderDefinitions"/>; falls negativ, wird alles gelöscht</param>
       /// <returns></returns>
-      public int MapClearCache(int idx) {
-         return smc.MapClearCache(idx);
-      }
+      public int MapClearCache(int idx) => smc.SpecMapClearCache(idx);
 
       /// <summary>
       /// löscht den Map-Cache im Hauptspeicher
       /// </summary>
-      public void MapClearMemoryCache() {
-         smc.MapClearMemoryCache();
-      }
+      public void MapClearMemoryCache() => smc.SpecMapClearMemoryCache();
 
       /// <summary>
       /// liefert eine Liste aller Foto-Marker im Bereich
@@ -596,9 +508,8 @@ namespace GpxViewer {
       /// <param name="minlat"></param>
       /// <param name="maxlat"></param>
       /// <returns></returns>
-      public List<Marker> MapGetPictureMarkersInArea(double minlon, double maxlon, double minlat, double maxlat) {
-         return smc.MapGetPictureMarkersInArea(minlon, maxlon, minlat, maxlat);
-      }
+      public List<Marker> MapGetPictureMarkersInArea(double minlon, double maxlon, double minlat, double maxlat) =>
+         smc.SpecMapGetPictureMarkersInArea(minlon, maxlon, minlat, maxlat);
 
       /// <summary>
       /// liefert eine Liste aller Foto-Marker im Bereich um den Client-Punkt herum
@@ -607,9 +518,8 @@ namespace GpxViewer {
       /// <param name="deltax"></param>
       /// <param name="deltay"></param>
       /// <returns></returns>
-      public List<Marker> MapGetPictureMarkersAround(Point localcenter, int deltax, int deltay) {
-         return smc.MapGetPictureMarkersAround(localcenter, deltax, deltay);
-      }
+      public List<Marker> MapGetPictureMarkersAround(Point localcenter, int deltax, int deltay) =>
+         smc.SpecMapGetPictureMarkersAround(localcenter, deltax, deltay);
 
       /// <summary>
       /// liefert für eine Garmin-Karte Infos über Objekte in der Nähe des Punktes
@@ -618,9 +528,8 @@ namespace GpxViewer {
       /// <param name="deltax"></param>
       /// <param name="deltay"></param>
       /// <returns></returns>
-      public List<GarminImageCreator.SearchObject> MapGetGarminObjectInfos(Point ptclient, int deltax, int deltay) {
-         return smc.MapGetGarminObjectInfos(ptclient, deltax, deltay);
-      }
+      public List<GarminImageCreator.SearchObject> MapGetGarminObjectInfos(Point ptclient, int deltax, int deltay) =>
+         smc.SpecMapGetGarminObjectInfos(ptclient, deltax, deltay);
 
       /// <summary>
       /// zeigt einen <see cref="Track"/> auf der Karte an oder entfernt ihn aus der Karte
@@ -628,45 +537,35 @@ namespace GpxViewer {
       /// <param name="vt"></param>
       /// <param name="on"></param>
       /// <param name="posttrack">Nachfolger (liegt beim Zeichnen "darüber"); bei null immer an letzter Stelle</param>
-      public void MapShowTrack(Track track, bool on, Track posttrack) {
-         smc.MapShowTrack(track, on, posttrack);
-      }
+      public void MapShowTrack(Track track, bool on, Track posttrack) => smc.SpecMapShowTrack(track, on, posttrack);
 
       /// <summary>
       /// zeigt alle <see cref="Track"/> auf der Karte an oder entfernt sie aus der Karte
       /// </summary>
       /// <param name="tracks"></param>
       /// <param name="on"></param>
-      public void MapShowTrack(IList<Track> tracks, bool on) {
-         smc.MapShowTrack(tracks, on);
-      }
+      public void MapShowTrack(IList<Track> tracks, bool on) => smc.SpecMapShowTrack(tracks, on);
 
       /// <summary>
       /// zeigt die Liste der Punktfolgen als Tracks mit besonderem Stil an
       /// </summary>
       /// <param name="mastertrack"></param>
       /// <param name="idxlst"></param>
-      public void MapShowSelectedParts(Track mastertrack, IList<int> idxlst) {
-         smc.MapShowSelectedParts(mastertrack, idxlst);
-      }
+      public void MapShowSelectedParts(Track mastertrack, IList<int> idxlst) => smc.SpecMapShowSelectedParts(mastertrack, idxlst);
 
       /// <summary>
       /// liefert alle aktuell angezeigten Tracks
       /// </summary>
       /// <param name="onlyeditable">nur editierbare</param>
       /// <returns></returns>
-      public List<Track> MapGetVisibleTracks(bool onlyeditable) {
-         return smc.MapGetVisibleTracks(onlyeditable);
-      }
+      public List<Track> MapGetVisibleTracks(bool onlyeditable) => smc.SpecMapGetVisibleTracks(onlyeditable);
 
       /// <summary>
       /// die Reihenfolge der Anzeige der editierbaren <see cref="Track"/> wird ev. angepasst
       /// </summary>
       /// <param name="trackorder">gewünschte Reihenfolge (kann auch nichtangezeigte <see cref="Track"/> enthalten)</param>
       /// <returns>true, wenn verändert</returns>
-      public bool MapChangeEditableTrackDrawOrder(IList<Track> trackorder) {
-         return smc.MapChangeEditableTrackDrawOrder(trackorder);
-      }
+      public bool MapChangeEditableTrackDrawOrder(IList<Track> trackorder) => smc.SpecMapChangeEditableTrackDrawOrder(trackorder);
 
       /// <summary>
       /// zeigt einen <see cref="Marker"/> auf der Karte an oder entfernt ihn aus der Karte
@@ -674,18 +573,14 @@ namespace GpxViewer {
       /// <param name="marker"></param>
       /// <param name="on"></param>
       /// <param name="postmarker">Nachfolger (liegt beim Zeichnen "darüber"); bei null immer an letzter Stelle</param>
-      public void MapShowMarker(Marker marker, bool on, Marker postmarker = null) {
-         smc.MapShowMarker(marker, on, postmarker);
-      }
+      public void MapShowMarker(Marker marker, bool on, Marker postmarker = null) => smc.SpecMapShowMarker(marker, on, postmarker);
 
       /// <summary>
       /// zeigt alle <see cref="Marker"/> auf der Karte an oder entfernt sie aus der Karte
       /// </summary>
       /// <param name="markers"></param>
       /// <param name="on"></param>
-      public void MapShowMarker(IList<Marker> markers, bool on) {
-         smc.MapShowMarker(markers, on);
-      }
+      public void MapShowMarker(IList<Marker> markers, bool on) => smc.SpecMapShowMarker(markers, on);
 
       /// <summary>
       /// zeigt einen <see cref="VisualMarker"/> auf der Karte an oder entfernt ihn aus der Karte
@@ -694,42 +589,32 @@ namespace GpxViewer {
       /// <param name="on"></param>
       /// <param name="toplayer"></param>
       /// <param name="postvm">Nachfolger (liegt beim Zeichnen "darüber"); bei null immer an letzter Stelle</param>
-      public void MapShowVisualMarker(VisualMarker vm, bool on, bool toplayer, VisualMarker postvm = null) {
-         smc.MapShowVisualMarker(vm, on, toplayer, postvm);
-      }
+      public void MapShowVisualMarker(VisualMarker vm, bool on, bool toplayer, VisualMarker postvm = null) => smc.SpecMapShowVisualMarker(vm, on, toplayer, postvm);
 
       /// <summary>
       /// liefert alle aktuell angezeigten Marker
       /// </summary>
       /// <param name="onlyeditable">nur editierbare</param>
       /// <returns></returns>
-      public List<Marker> MapGetVisibleMarkers(bool onlyeditable) {
-         return MapGetVisibleMarkers(onlyeditable);
-      }
+      public List<Marker> MapGetVisibleMarkers(bool onlyeditable) => MapGetVisibleMarkers(onlyeditable);
 
       /// <summary>
       /// die Reihenfolge der Anzeige der editierbaren <see cref="Marker"/> wird ev. angepasst
       /// </summary>
       /// <param name="trackorder">gewünschte Reihenfolge (kann auch nichtangezeigte <see cref="Marker"/> enthalten)</param>
       /// <returns>true, wenn verändert</returns>
-      public bool MapChangeEditableMarkerDrawOrder(IList<Marker> markerorder) {
-         return MapChangeEditableMarkerDrawOrder(markerorder);
-      }
+      public bool MapChangeEditableMarkerDrawOrder(IList<Marker> markerorder) => MapChangeEditableMarkerDrawOrder(markerorder);
 
       public List<PointD> MapGetPointsForText(string txt, int mapprovideridx = -1) {
-         GMapProvider gMapProvider = mapprovideridx >= 0 ? smc.MapProviderDefinitions[mapprovideridx].Provider : null;
-         return smc.GetPositionByKeywords(txt, gMapProvider as GeocodingProvider);
+         GMapProvider gMapProvider = mapprovideridx >= 0 ? smc.SpecMapProviderDefinitions[mapprovideridx].Provider : null;
+         return smc.SpecMapGetPositionByKeywords(txt, gMapProvider as GeocodingProvider);
       }
 
       #endregion
 
-      public void UpdateVisualTrack(Track t) {
-         t.UpdateVisualTrack(smc);
-      }
+      public void UpdateVisualTrack(Track t) => t.UpdateVisualTrack(smc);
 
-      public void UpdateVisualMarker(Marker m) {
-         m.UpdateVisualMarker(smc);
-      }
+      public void UpdateVisualMarker(Marker m) => m.UpdateVisualMarker(smc);
 
    }
 }

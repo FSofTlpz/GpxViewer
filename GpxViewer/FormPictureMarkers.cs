@@ -1,4 +1,4 @@
-﻿using SmallMapControl;
+﻿using SpecialMapCtrl;
 using System;
 using System.Collections.Generic;
 using System.IO;

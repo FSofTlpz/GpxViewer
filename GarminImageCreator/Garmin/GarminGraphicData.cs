@@ -1,8 +1,13 @@
-﻿using System;
+﻿using GarminCore;
+using GarminCore.Files;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using GarminCore;
-using GarminCore.Files;
+#if DRAWWITHSKIA
+using SkiaSharp;
+using System.IO;
+using System.Reflection;
+#endif
 
 namespace GarminImageCreator.Garmin {
 
@@ -527,20 +532,50 @@ namespace GarminImageCreator.Garmin {
          readonly Font[] textFont;
 
 
-         public ObjectFonts(double fontfactor) {
+         public ObjectFonts(double fontfactor, string fontname) {
             Factor = fontfactor;
 
             textFont = new Font[1 + (int)ObjectData.FontSize.Large];    // VORSICHT: nur korrekt wenn FontSize.Large die höchste Indexnummer hat
             textFont[(int)ObjectData.FontSize.NoFont] = null;
-            textFont[(int)ObjectData.FontSize.Small] = new Font("Arial", 5 * (float)fontfactor);
-            textFont[(int)ObjectData.FontSize.Default] = new Font("Arial", 10 * (float)fontfactor);
-            textFont[(int)ObjectData.FontSize.Normal] = new Font("Arial", 10 * (float)fontfactor);
-            textFont[(int)ObjectData.FontSize.Large] = new Font("Arial", 12 * (float)fontfactor);
+#if DRAWWITHSKIA
+            loadExternFontdata(fontname);
+
+            textFont[(int)ObjectData.FontSize.Small] = new Font(getStdSKTypeface(), 5 * (float)fontfactor);
+            textFont[(int)ObjectData.FontSize.Default] = new Font(getStdSKTypeface(), 10 * (float)fontfactor);
+            textFont[(int)ObjectData.FontSize.Normal] = new Font(getStdSKTypeface(), 10 * (float)fontfactor);
+            textFont[(int)ObjectData.FontSize.Large] = new Font(getStdSKTypeface(), 12 * (float)fontfactor);
+#else
+            textFont[(int)ObjectData.FontSize.Small] = new Font(fontname, 5 * (float)fontfactor);
+            textFont[(int)ObjectData.FontSize.Default] = new Font(fontname, 10 * (float)fontfactor);
+            textFont[(int)ObjectData.FontSize.Normal] = new Font(fontname, 10 * (float)fontfactor);
+            textFont[(int)ObjectData.FontSize.Large] = new Font(fontname, 12 * (float)fontfactor);
+#endif
          }
 
          public Font TextFont(ObjectData.FontSize size) {
             return textFont[(int)size];
          }
+
+
+#if DRAWWITHSKIA
+         byte[] dataStdTypeface;
+
+         void loadExternFontdata(string fontname) {
+            var assembly = Assembly.GetExecutingAssembly();
+            System.IO.Stream stream = assembly.GetManifestResourceStream(assembly.GetName().Name + "." + fontname + ".ttf");
+            dataStdTypeface = new byte[stream.Length];
+            stream.Read(dataStdTypeface, 0, dataStdTypeface.Length);
+            stream?.Dispose();
+         }
+
+         SKTypeface getStdSKTypeface() {
+            MemoryStream tmp = new MemoryStream(dataStdTypeface);
+            SKTypeface sKTypeface = SKTypeface.FromStream(tmp);
+            tmp.Dispose();
+            return sKTypeface;
+         }
+
+#endif
 
          ~ObjectFonts() {
             Dispose(false);
@@ -599,6 +634,10 @@ namespace GarminImageCreator.Garmin {
       /// Def. für jeden Punkttyp
       /// </summary>
       public readonly Dictionary<long, PointData> Points;
+      /// <summary>
+      /// Reihenfolge für das Zeichnen von Gebietstypen; Value: upper 8 Bit Type, lower 8 Bit Subtype)
+      /// </summary>
+      public readonly SortedDictionary<uint, uint> AreaDrawOrder;
 
       public readonly ObjectFonts Fonts;
 
@@ -613,10 +652,12 @@ namespace GarminImageCreator.Garmin {
       /// 
       /// </summary>
       /// <param name="typfile"></param>
+      /// <param name="fontname"></param>
       /// <param name="fontfactor">zum Ändern der Originalgröße der Texte</param>
       /// <param name="linefactor">zum Ändern der Originalbreite der Linien</param>
       /// <param name="symbolfactor">zum Ändern der Originalgröße der Symbole</param>
       public GarminGraphicData(string typfile,
+                               string fontname,
                                double fontfactor = 1.0,
                                double linefactor = 1.0,
                                double symbolfactor = 1.0) {
@@ -625,10 +666,12 @@ namespace GarminImageCreator.Garmin {
          Lines = new Dictionary<long, LineData>();
          Points = new Dictionary<long, PointData>();
          Areas = new Dictionary<long, AreaData>();
+         AreaDrawOrder = new SortedDictionary<uint, uint>();
          read(linefactor, symbolfactor);
 
-         Fonts = new ObjectFonts(fontfactor);
+         Fonts = new ObjectFonts(fontfactor, fontname);
       }
+
 
       void read(double linefactor, double symbolfactor) {
          try {
@@ -646,11 +689,14 @@ namespace GarminImageCreator.Garmin {
                   Points.Add(PointData.GetFulltype(point.Type, point.Subtype), new PointData(point, symbolfactor));
                }
 
+               uint draworderdelta = 0;
                for (int i = 0; i < typ.PolygonCount; i++) {
                   GarminCore.Files.Typ.Polygone area = typ.GetPolygone(i);
+                  while (AreaDrawOrder.ContainsKey(area.Draworder + draworderdelta))
+                     draworderdelta++;
+                  AreaDrawOrder.Add(area.Draworder + draworderdelta, (area.Type << 8) | area.Subtype);
                   Areas.Add(AreaData.GetFulltype(area.Type, area.Subtype), new AreaData(area));
                }
-
                typ.Dispose();
             }
          } catch (Exception ex) {
@@ -709,4 +755,3 @@ namespace GarminImageCreator.Garmin {
 
    }
 }
-

@@ -29,6 +29,7 @@ Sie sollten ein Exemplar der GNU General Public License zusammen mit
 diesem Programm erhalten haben. Falls nicht, siehe 
 <http://www.gnu.org/licenses/>. 
 */
+using GarminCore.OptimizedReader;
 using System;
 
 namespace GarminCore {
@@ -91,6 +92,7 @@ namespace GarminCore {
          Offset = br.Read4UInt();
          Length = br.Read4UInt();
       }
+
       /// <summary>
       /// schreibt die Blockdaten
       /// </summary>
@@ -99,6 +101,7 @@ namespace GarminCore {
          bw.Write(Offset);
          bw.Write(Length);
       }
+      
       /// <summary>
       /// Offset um die Differenz verändern
       /// </summary>

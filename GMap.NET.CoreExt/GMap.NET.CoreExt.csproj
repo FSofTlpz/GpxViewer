@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GMap.NET.CoreExt</RootNamespace>
     <AssemblyName>GMap.NET.CoreExt</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -79,7 +79,7 @@
       <Project>{1e53793f-a6ec-435f-bbe2-097e4009a6d8}</Project>
       <Name>GMap.NET.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\GMap.NET-master\GMap.NET\GMap.NET.WindowsForms\GMap.NET.WindowsForms.csproj">
+    <ProjectReference Include="..\GMap.NET.WindowsForms\GMap.NET.WindowsForms.csproj">
       <Project>{a092251c-ef53-4f2a-aaed-b631bf84fcb4}</Project>
       <Name>GMap.NET.WindowsForms</Name>
     </ProjectReference>

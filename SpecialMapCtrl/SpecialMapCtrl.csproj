@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{93BD1D5D-9C44-437D-9133-9A7D9574A887}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SpecialMapCtrl</RootNamespace>
+    <AssemblyName>SpecialMapCtrl</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EditHelper\EditHelper.cs" />
+    <Compile Include="EditHelper\EditMarkerHelper.cs" />
+    <Compile Include="EditHelper\EditTrackHelper.cs" />
+    <Compile Include="Marker.cs" />
+    <Compile Include="GpxAllExt.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Scale4Map.cs" />
+    <Compile Include="SpecialMapCtrl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Track.cs" />
+    <Compile Include="VisualMarker.cs" />
+    <Compile Include="VisualTrack.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FSofTUtils\FSofTUtils.csproj">
+      <Project>{647215b2-bba7-4df2-ab85-d679bdc701e5}</Project>
+      <Name>FSofTUtils</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GarminImageCreator\GarminImageCreator.csproj">
+      <Project>{29c115fc-77e6-44c1-a46e-5eb4d0385428}</Project>
+      <Name>GarminImageCreator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GMap.NET-master\GMap.NET\GMap.NET.Core\GMap.NET.Core.csproj">
+      <Project>{1e53793f-a6ec-435f-bbe2-097e4009a6d8}</Project>
+      <Name>GMap.NET.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GMap.NET.WindowsForms\GMap.NET.WindowsForms.csproj">
+      <Project>{a092251c-ef53-4f2a-aaed-b631bf84fcb4}</Project>
+      <Name>GMap.NET.WindowsForms</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GMap.NET.CoreExt\GMap.NET.CoreExt.csproj">
+      <Project>{016dd415-1e3c-4a32-a418-ea1cd07e2c29}</Project>
+      <Name>GMap.NET.CoreExt</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Images\FlagBlue.png" />
+    <Content Include="Images\FlagGreen.png" />
+    <Content Include="Images\Foto.png" />
+    <None Include="Images\GeoTagging.png" />
+    <None Include="Images\Point1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SpecialMapCtrl.resx">
+      <DependentUpon>SpecialMapCtrl.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

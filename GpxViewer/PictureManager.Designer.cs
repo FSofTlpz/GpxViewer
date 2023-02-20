@@ -41,11 +41,14 @@
          this.ToolStripMenuItemSave = new System.Windows.Forms.ToolStripMenuItem();
          this.ToolStripMenuItemShow = new System.Windows.Forms.ToolStripMenuItem();
          this.ToolStripMenuItemSet = new System.Windows.Forms.ToolStripMenuItem();
+         this.ToolStripMenuItemEditFilename = new System.Windows.Forms.ToolStripMenuItem();
          this.pictureBox1 = new System.Windows.Forms.PictureBox();
          this.toolStrip1 = new System.Windows.Forms.ToolStrip();
          this.toolStripButton_OpenPath = new System.Windows.Forms.ToolStripButton();
+         this.toolStripButton_Reload = new System.Windows.Forms.ToolStripButton();
          this.toolStripButton_WithSubDirs = new System.Windows.Forms.ToolStripButton();
          this.toolStripButton_SaveAll = new System.Windows.Forms.ToolStripButton();
+         this.toolStripButton_SaveGpx = new System.Windows.Forms.ToolStripButton();
          this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripDropDownButton1 = new System.Windows.Forms.ToolStripDropDownButton();
          this.ToolStripMenuItem_ViewAll = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,7 +64,6 @@
          this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripButton_SwapView = new System.Windows.Forms.ToolStripButton();
          this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-         this.toolStripButton_SaveGpx = new System.Windows.Forms.ToolStripButton();
          this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
          this.toolStripContainer1.BottomToolStripPanel.SuspendLayout();
          this.toolStripContainer1.ContentPanel.SuspendLayout();
@@ -214,9 +216,10 @@
          this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ToolStripMenuItemSave,
             this.ToolStripMenuItemShow,
-            this.ToolStripMenuItemSet});
+            this.ToolStripMenuItemSet,
+            this.ToolStripMenuItemEditFilename});
          this.contextMenuStrip1.Name = "contextMenuStrip1";
-         this.contextMenuStrip1.Size = new System.Drawing.Size(218, 70);
+         this.contextMenuStrip1.Size = new System.Drawing.Size(218, 92);
          this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
          // 
          // ToolStripMenuItemSave
@@ -240,6 +243,13 @@
          this.ToolStripMenuItemSet.Text = "neue &Position setzen";
          this.ToolStripMenuItemSet.Click += new System.EventHandler(this.ToolStripMenuItemSet_Click);
          // 
+         // ToolStripMenuItemEditFilename
+         // 
+         this.ToolStripMenuItemEditFilename.Name = "ToolStripMenuItemEditFilename";
+         this.ToolStripMenuItemEditFilename.Size = new System.Drawing.Size(217, 22);
+         this.ToolStripMenuItemEditFilename.Text = "Datename ändern";
+         this.ToolStripMenuItemEditFilename.Click += new System.EventHandler(this.ToolStripMenuItemEditFilename_Click);
+         // 
          // pictureBox1
          // 
          this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -257,6 +267,7 @@
          this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
          this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton_OpenPath,
+            this.toolStripButton_Reload,
             this.toolStripButton_WithSubDirs,
             this.toolStripButton_SaveAll,
             this.toolStripButton_SaveGpx,
@@ -267,7 +278,7 @@
             this.toolStripButton_SwapView});
          this.toolStrip1.Location = new System.Drawing.Point(3, 0);
          this.toolStrip1.Name = "toolStrip1";
-         this.toolStrip1.Size = new System.Drawing.Size(210, 27);
+         this.toolStrip1.Size = new System.Drawing.Size(265, 27);
          this.toolStrip1.TabIndex = 0;
          // 
          // toolStripButton_OpenPath
@@ -279,6 +290,16 @@
          this.toolStripButton_OpenPath.Size = new System.Drawing.Size(24, 24);
          this.toolStripButton_OpenPath.Text = "Bildverzeichnis auswählen";
          this.toolStripButton_OpenPath.Click += new System.EventHandler(this.toolStripButton_OpenPath_Click);
+         // 
+         // toolStripButton_Reload
+         // 
+         this.toolStripButton_Reload.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+         this.toolStripButton_Reload.Image = global::GpxViewer.Properties.Resources.arrow_refresh;
+         this.toolStripButton_Reload.ImageTransparentColor = System.Drawing.Color.Magenta;
+         this.toolStripButton_Reload.Name = "toolStripButton_Reload";
+         this.toolStripButton_Reload.Size = new System.Drawing.Size(24, 24);
+         this.toolStripButton_Reload.Text = "neu einlesen";
+         this.toolStripButton_Reload.Click += new System.EventHandler(this.toolStripButton_Reload_Click);
          // 
          // toolStripButton_WithSubDirs
          // 
@@ -300,6 +321,16 @@
          this.toolStripButton_SaveAll.Size = new System.Drawing.Size(24, 24);
          this.toolStripButton_SaveAll.Text = "alle speichern";
          this.toolStripButton_SaveAll.Click += new System.EventHandler(this.toolStripButton_SaveAll_Click);
+         // 
+         // toolStripButton_SaveGpx
+         // 
+         this.toolStripButton_SaveGpx.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+         this.toolStripButton_SaveGpx.Image = global::GpxViewer.Properties.Resources.speicherngpx;
+         this.toolStripButton_SaveGpx.ImageTransparentColor = System.Drawing.Color.Magenta;
+         this.toolStripButton_SaveGpx.Name = "toolStripButton_SaveGpx";
+         this.toolStripButton_SaveGpx.Size = new System.Drawing.Size(24, 24);
+         this.toolStripButton_SaveGpx.Text = "markierte Bilder als Verweise in GPX-Datei speichern";
+         this.toolStripButton_SaveGpx.Click += new System.EventHandler(this.toolStripButton_SaveGpx_Click);
          // 
          // toolStripSeparator2
          // 
@@ -419,16 +450,6 @@
          this.folderBrowserDialog1.RootFolder = System.Environment.SpecialFolder.MyComputer;
          this.folderBrowserDialog1.ShowNewFolderButton = false;
          // 
-         // toolStripButton_SaveGpx
-         // 
-         this.toolStripButton_SaveGpx.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_SaveGpx.Image = global::GpxViewer.Properties.Resources.speicherngpx;
-         this.toolStripButton_SaveGpx.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_SaveGpx.Name = "toolStripButton_SaveGpx";
-         this.toolStripButton_SaveGpx.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_SaveGpx.Text = "markierte Bilder als Verweise in GPX-Datei speichern";
-         this.toolStripButton_SaveGpx.Click += new System.EventHandler(this.toolStripButton_SaveGpx_Click);
-         // 
          // saveFileDialog1
          // 
          this.saveFileDialog1.Filter = "GPX-Dateien|*.gpx";
@@ -505,5 +526,7 @@
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_Filename;
       private System.Windows.Forms.ToolStripButton toolStripButton_SaveGpx;
       private System.Windows.Forms.SaveFileDialog saveFileDialog1;
-   }
+        private System.Windows.Forms.ToolStripButton toolStripButton_Reload;
+        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemEditFilename;
+    }
 }

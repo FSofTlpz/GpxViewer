@@ -72,11 +72,13 @@ namespace GMap.NET.CoreExt.MapProviders {
       /// <returns></returns>
       protected PureImage getPureImage(int width, int height, PointLatLng p1, PointLatLng p2, int zoom) {
          Bitmap bm = GetBitmap(width, height, p1, p2, zoom);
-
-         // Bitmap in PureImage umwandeln
-         MemoryStream memoryStream = new MemoryStream();
-         bm.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
-         return GetTileImageFromArray(memoryStream.ToArray());
+         if (bm != null) {
+            // Bitmap in PureImage umwandeln
+            MemoryStream memoryStream = new MemoryStream();
+            bm.Save(memoryStream, System.Drawing.Imaging.ImageFormat.Png);
+            return GetTileImageFromArray(memoryStream.ToArray());
+         }
+         return null;
       }
 
       static protected Task DrawHillshadeAsync(FSofTUtils.Geography.DEM.DemData dem,

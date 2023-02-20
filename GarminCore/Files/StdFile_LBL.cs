@@ -1073,7 +1073,7 @@ namespace GarminCore.Files {
                   } while ((v & 0x80) == 0);
                   StreetNumber = DecodeString11(lst);
                } else {
-                  br.BaseStream.Seek(-1, SeekOrigin.Current);
+                  br.Seek(-1, SeekOrigin.Current);
                   StreetNumberOffset = br.Read3AsUInt();
                }
             }
@@ -1105,7 +1105,7 @@ namespace GarminCore.Files {
                   } while ((v & 0x80) == 0);
                   PhoneNumber = DecodeString11(lst);
                } else {
-                  br.BaseStream.Seek(-1, SeekOrigin.Current);
+                  br.Seek(-1, SeekOrigin.Current);
                   PhoneNumberOffset = br.Read3AsUInt();
                }
             }
@@ -3267,7 +3267,7 @@ namespace GarminCore.Files {
                long nextpos = i < offsets.Length - 1 ?
                                        startpos + offsets[i + 1] * TextList.OffsetMultiplier :
                                        startpos + TextList.Length;
-               while (bw.BaseStream.Position < nextpos)
+               while (bw.Position < nextpos)
                   bw.Write((byte)0);
             }
          }

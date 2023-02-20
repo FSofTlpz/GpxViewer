@@ -1,5 +1,4 @@
 ﻿//#define DRAWBITMAPSEQUENTIEL     // Bilder NACHEINANDER erzeugen (ohne Multithreading einfacher zu debuggen)
-//#define WITHOUT_SQLITECACHE      // ohne Cache einiger Level in SQLite
 //#define GARMINDRAWTEST
 
 using System;
@@ -8,9 +7,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
-#if !WITHOUT_SQLITECACHE
-using System.IO;
-#endif
 using System.Threading;
 using GarminCore;
 using GarminImageCreator.Garmin;
@@ -23,34 +19,87 @@ namespace GarminImageCreator {
       /// </summary>
       List<GarminMapData> garminMapData = null;
 
-      /// <summary>
-      /// dieser Pfad wird als Cache verwendet
-      /// </summary>
-      readonly string garminCachePath;
-
 #if DRAWBITMAPSEQUENTIEL
       readonly object lock4drawbitmapsequentiel = new object();
 #endif
+
+      /// <summary>
+      /// Teil des Bildes, der gezeichnet werden soll
+      /// </summary>
+      public enum PictureDrawing {
+         /// <summary>
+         /// gesamtes Bild
+         /// </summary>
+         all,
+         /// <summary>
+         /// alles VOR dem Hillshading
+         /// </summary>
+         beforehillshade,
+         /// <summary>
+         /// alles NACH dem Hillshading
+         /// </summary>
+         afterhillshade,
+      }
+
+      /// <summary>
+      /// Objekt für die Übergabe der Kartendaten für die 2 Aurufe von <see cref="DrawImage(Bitmap, double, double, double, double, IList{GarminMapData}, IList{double}, PictureDrawing, ref object)"/>
+      /// </summary>
+      class MapData4Image {
+
+         class MapData4ImageItem {
+
+            public readonly SortedList<int, List<GeoPoint>> Points;
+            public readonly SortedList<int, List<GeoPoly>> Lines;
+            public readonly SortedList<int, List<GeoPoly>> Areas;
+
+            public MapData4ImageItem(SortedList<int, List<GeoPoint>> points,
+                                     SortedList<int, List<GeoPoly>> lines,
+                                     SortedList<int, List<GeoPoly>> areas) {
+               Points = points;
+               Lines = lines;
+               Areas = areas;
+            }
+
+         }
+
+         List<MapData4ImageItem> mapData4ImageItems;
+
+         public readonly Dictionary<ObjectText.ObjectType, List<ObjectText>> TextLists4Type;
+
+         public int Count => mapData4ImageItems.Count;
+
+
+         public MapData4Image(Dictionary<ObjectText.ObjectType, List<ObjectText>> textlists4type) {
+            TextLists4Type = textlists4type;
+            mapData4ImageItems = new List<MapData4ImageItem>();
+         }
+
+         public void AddMapData(SortedList<int, List<GeoPoint>> points,
+                                SortedList<int, List<GeoPoly>> lines,
+                                SortedList<int, List<GeoPoly>> areas) {
+            mapData4ImageItems.Add(new MapData4ImageItem(points, lines, areas));
+         }
+
+         public SortedList<int, List<GeoPoint>> Points(int idx) {
+            return mapData4ImageItems[idx].Points;
+         }
+
+         public SortedList<int, List<GeoPoly>> Lines(int idx) {
+            return mapData4ImageItems[idx].Lines;
+         }
+
+         public SortedList<int, List<GeoPoly>> Areas(int idx) {
+            return mapData4ImageItems[idx].Areas;
+         }
+
+      }
 
 
       /// <summary>
       /// zum erzeugen einer Gesamtkarte
       /// </summary>
       /// <param name="mapdefs">def. der einzelnen Garminkarten die zur Gesamtkarte gehören</param>
-      /// <param name="garmincachepath">Pfad für den Garmindatencache</param>
-      public ImageCreator(IList<GarminMapData> mapdefs = null,
-                          string garmincachepath = null) {
-         if (!string.IsNullOrEmpty(garmincachepath))
-            garminCachePath = garmincachepath;
-         else {
-            garminCachePath =
-#if WITHOUT_SQLITECACHE
-                              "";
-#else
-                              Path.Combine(Path.GetTempPath(), "garminimagecreator");
-#endif
-         }
-
+      public ImageCreator(IList<GarminMapData> mapdefs = null) {
          garminMapData = new List<GarminMapData>();
 
          if (mapdefs != null)
@@ -75,23 +124,6 @@ namespace GarminImageCreator {
          return Interlocked.Exchange(ref garminMapData, garminMapData);
       }
 
-      /// <summary>
-      /// Teil des Bildes, der gezeichnet werden soll
-      /// </summary>
-      public enum PictureDrawing {
-         /// <summary>
-         /// gesamtes Bild
-         /// </summary>
-         all,
-         /// <summary>
-         /// alles VOR dem Hillshading
-         /// </summary>
-         beforehillshade,
-         /// <summary>
-         /// alles NACH dem Hillshading
-         /// </summary>
-         afterhillshade,
-      }
 
 
       /// <summary>
@@ -102,18 +134,22 @@ namespace GarminImageCreator {
       /// <param name="lat1">unten</param>
       /// <param name="lon2">rechts</param>
       /// <param name="lat2">oben</param>
-      /// <param name="garminMapData"></param>
-      /// <param name="zoom">Zoomstufe</param>
-      public void DrawImage(Bitmap bm,
+      /// <param name="garminMapdata"></param>
+      /// <param name="groundResolution"></param>
+      /// <param name="picturePart"></param>
+      /// <param name="extdata"></param>
+      /// <param name="cancel"></param>
+      /// <returns>bei false wird kein Ergebnis geliefert</returns>
+      public bool DrawImage(Bitmap bm,
                             double lon1,
                             double lat1,
                             double lon2,
                             double lat2,
                             IList<GarminMapData> garminMapdata,
                             IList<double> groundResolution,
-                            int zoom,
                             PictureDrawing picturePart,
-                            ref object extdata) {
+                            ref object extdata,
+                            ref long cancel) {
 #if DRAWBITMAPSEQUENTIEL
          lock (lock4drawbitmapsequentiel) {
 #endif
@@ -139,36 +175,51 @@ namespace GarminImageCreator {
 
             if (picturePart == PictureDrawing.all ||
                 picturePart == PictureDrawing.beforehillshade)
-               //canvas.Clear(Color.White);
                canvas.Clear(Color.LightGray);
-            //canvas.DrawRectangle(new Pen(Color.Black, 3), 0, 0, bm.Width, bm.Height);
-            //Font font = new Font("Arial", 10);
-            //canvas.DrawString(string.Format("Lon {0}, Lat {1}", lon1, lat1), font, new SolidBrush(Color.Red), 5, 5);
-            //Debug.WriteLine(string.Format(">>> DrawImage: lon1={0} lon2={1} lat1={2} lat2={3}", lon1, lon2, lat1, lat2));
 
             Bound picturebound = new Bound(lon1, lon2, lat1, lat2);
-            Dictionary<ObjectText.ObjectType, List<ObjectText>> objectTextLists = extdata == null ?
-                                                         new Dictionary<ObjectText.ObjectType, List<ObjectText>>() :
-                                                         extdata as Dictionary<ObjectText.ObjectType, List<ObjectText>>;
-            extdata = objectTextLists;
-            List<double> textFactor = new List<double>();
 
+            MapData4Image mapData4Image;
+            if (extdata == null)    // neu anlegen
+               extdata = mapData4Image = new MapData4Image(new Dictionary<ObjectText.ObjectType, List<ObjectText>>());
+            else                    // übernehmen
+               mapData4Image = extdata as MapData4Image;
+
+            Dictionary<ObjectText.ObjectType, List<ObjectText>> objectTextLists = mapData4Image.TextLists4Type;
+            List<double> textFactor = new List<double>();
 
             if (garminMapdata != null) {
                try {
 
                   for (int m = 0; m < garminMapdata.Count; m++) {
                      GarminMapData gMapData = garminMapdata[m];
-                     double groundresolution = groundResolution[m]; // Projection.GetGroundResolution(zoom, gMapData.detailMapManager.GetMapCenterLat());
+                     double groundresolution = groundResolution[m];
+
+                     SortedList<int, List<GeoPoint>> points;
+                     SortedList<int, List<GeoPoly>> lines;
+                     SortedList<int, List<GeoPoly>> areas;
 
 #if GARMINDRAWTEST
                         hrw.Store(string.Format("Start DetailMapManager.GetAllData(), m={0}", m));
 #endif
-                     gMapData.DetailMapManager.GetAllData(picturebound,
-                                                          groundresolution,
-                                                          out SortedList<int, List<DetailMap.GeoPoint>> points,
-                                                          out SortedList<int, List<DetailMap.GeoPoly>> lines,
-                                                          out SortedList<int, List<DetailMap.GeoPoly>> areas);
+                     if (picturePart == PictureDrawing.all ||
+                         picturePart == PictureDrawing.beforehillshade) {
+                        gMapData.DetailMapManager.GetAllData(picturebound,
+                                                             groundresolution,
+                                                             out points,
+                                                             out lines,
+                                                             out areas,
+                                                             ref cancel);
+
+
+
+
+                        mapData4Image.AddMapData(points, lines, areas);
+                     }
+                     points = mapData4Image.Points(m);
+                     lines = mapData4Image.Lines(m);
+                     areas = mapData4Image.Areas(m);
+
 #if GARMINDRAWTEST
                         hrw.Store(string.Format("End DetailMapManager.GetAllData(), m={0}", m));
 #endif
@@ -269,47 +320,55 @@ namespace GarminImageCreator {
 #if DRAWBITMAPSEQUENTIEL
          }
 #endif
-
+         return true;
       }
 
       void drawAreas(Graphics canvas,
                      GeoConverter conv,
                      double groundresolution,
                      GarminMapData gMapData,
-                     SortedList<int, List<DetailMap.GeoPoly>> areas,
+                     SortedList<int, List<GeoPoly>> areas,
                      List<ObjectText> objectTextList) {
-         int[] types = new int[areas.Count];
-         areas.Keys.CopyTo(types, 0);
+         // Die Zeichenreihenfolge für Gebiete ist in der TYP-Datei vorgegeben!
+         uint[] types = new uint[gMapData.GraphicData.AreaDrawOrder.Count];
+         gMapData.GraphicData.AreaDrawOrder.Values.CopyTo(types, 0);
 
          try {
-
-            for (int type = types.Length - 1; type >= 0; type--) {   // höchste Typen zuerst zeichnen
-               if (types[type] == 0x4b00 ||
-                   types[type] == 0x4a00) // Garmin-Hintergrund
+            for (int typeidx = 0; typeidx < types.Length; typeidx++) {   // niedrigste (!) Typen zuerst zeichnen
+               int type = (int)types[typeidx];
+               if (type == 0x4b00 ||
+                   type == 0x4a00) // Garmin-Hintergrund
                   continue;
-               GarminGraphicData.AreaData drawdata = gMapData.GraphicData.Areas.TryGetValue(types[type], out drawdata) ? drawdata : null;
-               Brush brush = drawdata?.GetBrush();
+               if (areas.ContainsKey(type)) {
+                  GarminGraphicData.AreaData drawdata = gMapData.GraphicData.Areas.TryGetValue(type, out drawdata) ? drawdata : null;
+                  Brush brush = drawdata?.GetBrush();
 
-               GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
-               Font font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
+                  GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
+                  Font font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
+                  float fontheight = 0; // wegen Opt.
 
-               foreach (DetailMap.GeoPoly area in areas[types[type]]) {
-                  if (drawArea(canvas,
+                  foreach (GeoPoly area in areas[type]) {
+                     if (drawArea(canvas,
                                area,
                                conv,
                                brush,
                                groundresolution))
-                     if (!string.IsNullOrEmpty(area.Text) &&
-                         fontSize != GarminGraphicData.ObjectData.FontSize.NoFont)
-                        objectTextList.Add(new ObjectText(area.Text,
-                                                          ObjectText.ObjectType.Area,
-                                                          types[type],
-                                                          font,
-                                                          drawdata.TextColor,
-                                                          conv.Convert(area.Bound.CenterXDegree, area.Bound.CenterYDegree)));
-               }
+                        if (!string.IsNullOrEmpty(area.Text) &&
+                            fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
+                           if (fontheight == 0)
+                              fontheight = font.GetHeight();
+                           objectTextList.Add(new ObjectText(area.Text,
+                                                             ObjectText.ObjectType.Area,
+                                                             type,
+                                                             font,
+                                                             drawdata.TextColor,
+                                                             conv.Convert(area.Bound.CenterXDegree, area.Bound.CenterYDegree),
+                                                             fontheight));
+                        }
+                  }
 
-               brush?.Dispose();
+                  brush?.Dispose();
+               }
             }
 
          } catch (Exception ex) {
@@ -321,7 +380,7 @@ namespace GarminImageCreator {
                      GeoConverter conv,
                      double groundresolution,
                      GarminMapData gMapData,
-                     SortedList<int, List<DetailMap.GeoPoly>> lines,
+                     SortedList<int, List<GeoPoly>> lines,
                      List<ObjectText> objectTextList) {
          int[] types = new int[lines.Count];
          lines.Keys.CopyTo(types, 0);
@@ -342,8 +401,9 @@ namespace GarminImageCreator {
 
                   GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
                   Font font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
+                  float fontheight = 0; // wegen Opt.
 
-                  foreach (DetailMap.GeoPoly line in lines[types[type]]) {
+                  foreach (GeoPoly line in lines[types[type]]) {
                      if (drawLine(canvas,
                                   line,
                                   conv,
@@ -353,7 +413,8 @@ namespace GarminImageCreator {
                                   groundresolution))
                         if (!string.IsNullOrEmpty(line.Text) &&
                             fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
-
+                           if (fontheight == 0)
+                              fontheight = font.GetHeight();
                            getRefLine4LineText(line.Points, out PointF p1, out PointF p2);
                            objectTextList.Add(new ObjectText(line.Text,
                                                              ObjectText.ObjectType.Line,
@@ -361,7 +422,8 @@ namespace GarminImageCreator {
                                                              font,
                                                              drawdata.TextColor,
                                                              conv.Convert(p1.X, p1.Y),
-                                                             conv.Convert(p2.X, p2.Y)));
+                                                             conv.Convert(p2.X, p2.Y),
+                                                             fontheight));
                         }
 
                   }
@@ -382,7 +444,7 @@ namespace GarminImageCreator {
                       GeoConverter conv,
                       double groundresolution,
                       GarminMapData gMapData,
-                      SortedList<int, List<DetailMap.GeoPoint>> points,
+                      SortedList<int, List<GeoPoint>> points,
                       List<ObjectText> objectTextList) {
          int[] types = new int[points.Count];
          points.Keys.CopyTo(types, 0);
@@ -397,11 +459,12 @@ namespace GarminImageCreator {
 
                GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
                Font font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
+               float fontheight = 0; // wegen Opt.
                float pointdeltay = fontSize != GarminGraphicData.ObjectData.FontSize.NoFont ?
                                           (font.GetHeight() + bitmap.Height) / 2 :
                                           0;
 
-               foreach (DetailMap.GeoPoint point in points[types[type]]) {
+               foreach (GeoPoint point in points[types[type]]) {
                   drawPoint(canvas,
                             point,
                             conv,
@@ -409,6 +472,8 @@ namespace GarminImageCreator {
                             groundresolution);
                   if (!string.IsNullOrEmpty(point.Text) &&
                       fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
+                     if (fontheight == 0)
+                        fontheight = font.GetHeight();
                      PointF pt = conv.Convert(point);
                      pt.Y -= pointdeltay;
                      objectTextList.Add(new ObjectText(point.Text,
@@ -416,7 +481,8 @@ namespace GarminImageCreator {
                                                        types[type],
                                                        font,
                                                        drawdata.TextColor,
-                                                       pt));
+                                                       pt,
+                                                       fontheight));
                   }
                }
 
@@ -459,10 +525,12 @@ namespace GarminImageCreator {
          canvas.TextRenderingHint = TextRenderingHint.SystemDefault;
          canvas.InterpolationMode = InterpolationMode.Default;
 
-         Pen penOutline = new Pen(Color.White, fontFactor * 3) {      // Stift für die Umrandung der Schrift (bessere Lesbarkeit)
-            LineJoin = LineJoin.Round        // damit u.a. die M's nicht spitz sind
+         Pen penOutline = new Pen(Color.FromArgb(200, Color.White),     // leicht transparent
+                                  fontFactor * 3) {                     // Stift für die Umrandung der Schrift (bessere Lesbarkeit)
+            LineJoin = LineJoin.Round,       // damit u.a. die M's nicht spitz sind
+            StartCap = LineCap.Round,
+            EndCap = LineCap.Round,
          };
-
 
          List<ObjectText> usedText = new List<ObjectText>();
 
@@ -555,8 +623,9 @@ namespace GarminImageCreator {
       /// <returns></returns>
       bool areaIsFree4Text(ObjectText text, List<ObjectText> objectTextList) {
          foreach (var item in objectTextList) {
-            if (text.IntersectsWith(item, null))
+            if (text.IntersectsWith(item, null)) {
                return false;
+            }
          }
          return true;
       }
@@ -592,28 +661,55 @@ namespace GarminImageCreator {
          } else {
 
             using (GraphicsPath path = new GraphicsPath()) {
+#if DRAWWITHSKIA
                path.AddString(
-                   text,
-#if DRAWWITHSKIA
-                font.FontFamilyname,
+                  text,
+                  font,
+                  pt,
+                  sf);
 #else
-                font.FontFamily,
+               path.AddString(
+                  text,
+                  font.FontFamily,
+                  (int)font.Style,
+                  canvas.DpiY * font.SizeInPoints / 72,       // point -> em size
+                  pt,
+                  sf);
 #endif
-                (int)font.Style,
-#if DRAWWITHSKIA
-                font.SizeInPoints,
-#else
-                canvas.DpiY * font.SizeInPoints / 72,       // point -> em size
-#endif
-                pt,
-                   sf);
+
                if (angle != 0) {
                   Matrix rotateMatrix = new Matrix();
                   rotateMatrix.RotateAt(angle, pt);
-                  path.Transform(rotateMatrix);
+                  canvas.Transform = rotateMatrix;
                }
+
                canvas.DrawPath(outlinepen, path);
+
+#if DRAWWITHSKIA
+               //brush.SKPaintSolid.IsAntialias = true;
+               //brush.SKPaintSolid.IsAutohinted= true;
+               //brush.SKPaintSolid.IsDither = true;
+               //brush.SKPaintSolid.FilterQuality= SkiaSharp.SKFilterQuality.High;
+               //canvas.FillPath(brush, path);
+
+               // ACHTUNG: DrawPath und DrawString passt nicht genau zusammen, aber FillPath liefert kein Antialising!
+
+               // experimentell
+               pt.Y += outlinepen.Width * .25F;
+               pt.X += outlinepen.Width * .25F;
+
+               canvas.DrawString(text,
+                                 font,
+                                 brush,
+                                 pt,
+                                 sf);
+#else
                canvas.FillPath(brush, path);
+#endif
+
+               if (angle != 0)
+                  canvas.ResetTransform();
+
             }
 
          }
@@ -633,7 +729,7 @@ namespace GarminImageCreator {
       /// <param name="innerpen"></param>
       /// <param name="groundresolution">Meter je Pixel</param>
       bool drawLine(Graphics canvas,
-                    DetailMap.GeoPoly line,
+                    GeoPoly line,
                     GeoConverter conv,
                     bool bitmappen,
                     Pen pen,
@@ -695,13 +791,12 @@ namespace GarminImageCreator {
       /// <param name="brush"></param>
       /// <param name="groundresolution">Meter je Pixel</param>
       bool drawArea(Graphics canvas,
-                 DetailMap.GeoPoly area,
-                 GeoConverter conv,
-                 Brush brush,
-                 double groundresolution) {
+                    GeoPoly area,
+                    GeoConverter conv,
+                    Brush brush,
+                    double groundresolution) {
          if (!conv.HasMinSize(area.Bound))
             return false;
-
          if (brush == null)
             brush = new SolidBrush(Color.LightGray);
          canvas.FillPolygon(brush, conv.Convert(area));
@@ -716,7 +811,7 @@ namespace GarminImageCreator {
       /// <param name="conv"></param>
       /// <param name="bitmap"></param>
       /// <param name="groundresolution">Meter je Pixel</param>
-      void drawPoint(Graphics canvas, DetailMap.GeoPoint point, GeoConverter conv, Bitmap bitmap, double groundresolution) {
+      void drawPoint(Graphics canvas, GeoPoint point, GeoConverter conv, Bitmap bitmap, double groundresolution) {
          PointF pt = conv.Convert(point);
          if (bitmap != null)
             canvas.DrawImageUnscaled(bitmap, (int)(pt.X - bitmap.Width / 2), (int)(pt.Y - bitmap.Height / 2));
@@ -806,6 +901,7 @@ namespace GarminImageCreator {
 
       /// <summary>
       /// holt Infos über Garminobjekte an dieser Position (und im Umfeld)
+      /// <para>Getestet wird nur über das umschließende Rechteck!</para>
       /// </summary>
       /// <param name="lon"></param>
       /// <param name="lat"></param>
@@ -820,11 +916,13 @@ namespace GarminImageCreator {
          if (mapData != null) {
             Bound searcharea = new Bound(lon - deltalon, lon + deltalon, lat - deltalat, lat + deltalat);
             foreach (GarminMapData gMapData in mapData) {
+               long cancel = 0;
                gMapData.DetailMapManager.GetAllData(searcharea,
                                                     groundresolution,
-                                                    out SortedList<int, List<Garmin.DetailMap.GeoPoint>> points,
-                                                    out SortedList<int, List<Garmin.DetailMap.GeoPoly>> lines,
-                                                    out SortedList<int, List<Garmin.DetailMap.GeoPoly>> areas);
+                                                    out SortedList<int, List<GeoPoint>> points,
+                                                    out SortedList<int, List<GeoPoly>> lines,
+                                                    out SortedList<int, List<GeoPoly>> areas,
+                                                    ref cancel);
 
                try {
                   foreach (int type in areas.Keys) {
@@ -833,7 +931,7 @@ namespace GarminImageCreator {
                      string name = "";
                      if (gMapData.GraphicData.Areas.TryGetValue(type, out GarminGraphicData.AreaData d))
                         name = d.Name;
-                     foreach (DetailMap.GeoPoly area in areas[type]) {
+                     foreach (GeoPoly area in areas[type]) {
                         if (!PointIsInPolygon(lon, lat, area.Points))
                            continue;
                         if (name != "" || !string.IsNullOrEmpty(area.Text)) {
@@ -856,7 +954,7 @@ namespace GarminImageCreator {
                      string name = "";
                      if (gMapData.GraphicData.Lines.TryGetValue(type, out GarminGraphicData.LineData d))
                         name = d.Name;
-                     foreach (DetailMap.GeoPoly line in lines[type]) {
+                     foreach (GeoPoly line in lines[type]) {
                         if (!PointIsInNearPolyline(lon, lat, line.Points, (deltalon + deltalat) / 2))
                            continue;
                         if (name != "" || line.Text.Length > 0) {
@@ -879,7 +977,7 @@ namespace GarminImageCreator {
                      string name = "";
                      if (gMapData.GraphicData.Points.TryGetValue(type, out GarminGraphicData.PointData d))
                         name = d.Name + ": ";
-                     foreach (DetailMap.GeoPoint point in points[type]) {
+                     foreach (GeoPoint point in points[type]) {
                         if (!PointIsInNearPoint(lon, lat, new PointF(point.Point.X, point.Point.Y), (deltalon + deltalat) / 2))
                            continue;
                         if (name != "" || point.Text.Length > 0) {
@@ -899,7 +997,34 @@ namespace GarminImageCreator {
             }
          }
 
-         info.Sort();
+         info.Sort(delegate (SearchObject so1, SearchObject so2) {
+            if (so1 == null && so2 == null)
+               return 0;
+            if (so1 == null)
+               return -1;
+            if (so1 == null)
+               return 1;
+
+            // Area = 0, Line = 1, Point = 2
+            if ((int)so2.Objecttype > (int)so1.Objecttype)
+               return 1;
+            else if ((int)so2.Objecttype < (int)so1.Objecttype)
+               return -1;
+
+            if (so2.TypeNo > so1.TypeNo)
+               return -1;
+            else if (so2.TypeNo < so1.TypeNo)
+               return 1;
+
+            int ret = string.Compare(so2.Name, so1.Name);
+            if (ret > 0)
+               return 1;
+            else if (ret < 0)
+               return -1;
+
+            return 0;
+         });
+
          for (int i = 0; i < info.Count; i++)
             while (i + 1 < info.Count &&
                    info[i] == info[i + 1])
@@ -909,6 +1034,11 @@ namespace GarminImageCreator {
       }
 
       #endregion
+
+
+      static public void test() {
+         //GarminCore.Fastreader.Test.Test1();
+      }
 
    }
 }

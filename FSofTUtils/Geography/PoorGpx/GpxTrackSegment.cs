@@ -40,8 +40,9 @@ namespace FSofTUtils.Geography.PoorGpx {
          XPathNavigator nav = GetNavigator4XmlText(removenamespace ? RemoveNamespace(xmltxt) : xmltxt);
 
          string[] tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxTrackPoint.NODENAME);
-         for (int p = 0; p < tmp.Length; p++)
-            Points.Add(new GpxTrackPoint(tmp[p]));
+         if (tmp != null)
+            for (int p = 0; p < tmp.Length; p++)
+               Points.Add(new GpxTrackPoint(tmp[p]));
 
          // registrieren der unbehandelten Childs
          RegisterUnhandledChild(nav,
@@ -56,7 +57,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// </summary>
       /// <param name="scale">Umfang der Ausgabe</param>
       /// <returns></returns>
-      public override string AsXml(int scale= int.MaxValue) {
+      public override string AsXml(int scale = int.MaxValue) {
          StringBuilder sb = new StringBuilder();
 
          // Sequenz: trkpt (mehrfach), extensions

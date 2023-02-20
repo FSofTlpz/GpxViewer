@@ -1,5 +1,5 @@
 ﻿using FSofTUtils.Geography.Garmin;
-using SmallMapControl;
+using SpecialMapCtrl;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -139,7 +139,7 @@ namespace GpxViewer {
          if (WaypointChanged &&
              !MarkerIsReadOnly) {
             if (Marker.GpxDataContainer != null)
-               Marker.GpxDataContainer.GpxFileChanged = true;
+               Marker.GpxDataContainer.GpxDataChanged = true;
 
             Marker.Waypoint.Name = comboBox_Name.Text.Trim();
             Marker.Waypoint.Description = textBoxDescription.Text.Trim();

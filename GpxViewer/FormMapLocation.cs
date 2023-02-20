@@ -42,6 +42,9 @@ namespace GpxViewer {
          }
       }
 
+      public AppData AppData = null;
+
+
 
       public FormMapLocation() {
          InitializeComponent();
@@ -49,11 +52,17 @@ namespace GpxViewer {
 
       private void FormMapLocation_Load(object sender, EventArgs e) {
          formmain = Owner as FormMain;
-         LoadFromFile();
+         if (AppData == null)
+            LoadFromFile();
+         else
+            LoadFromList();
       }
 
       private void FormMapLocation_FormClosing(object sender, FormClosingEventArgs e) {
-         SaveAsFile();
+         if (AppData == null)
+            SaveAsFile();
+         else
+            SaveAsList();
          Owner.RemoveOwnedForm(this);     // Owner ist danach null !
       }
 
@@ -169,6 +178,27 @@ namespace GpxViewer {
          } catch (Exception ex) {
             MessageBox.Show(ex.Message, "Fehler beim Lesen", MessageBoxButtons.OK, MessageBoxIcon.Error);
          }
+      }
+
+      void SaveAsList() {
+         List<string> lst = new List<string>();
+         foreach (Position pos in poslst)
+            lst.Add(pos.Zoom.ToString() + "\t" + pos.Lon.ToString() + "\t" + pos.Lat.ToString() + "\t" + pos.Name.Trim());
+         AppData.PositionList = lst;
+      }
+
+      void LoadFromList() {
+         foreach (string line in AppData.PositionList) {
+            string txt = line.Trim();
+            if (txt.Length > 0) {
+               string[] fields = txt.Split(new char[] { '\t' });
+               if (fields.Length >= 3) {
+                  poslst.Add(new Position(fields[3], Convert.ToDouble(fields[0]), Convert.ToDouble(fields[1]), Convert.ToDouble(fields[2])));
+                  listBox_Locations.Items.Add(fields[3]);
+               }
+            }
+         }
+
       }
 
    }

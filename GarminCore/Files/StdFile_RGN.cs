@@ -158,29 +158,26 @@ namespace GarminCore.Files {
             StdFile_TRE.SubdivInfoBasic.SubdivContent Content = (StdFile_TRE.SubdivInfoBasic.SubdivContent)(ext >> 24);
             uint SubdivLength = ext & 0xFFFF;
 
+            DataBlock data_points = new DataBlock(UInt32.MaxValue, 0);
+            DataBlock data_idxpoints = new DataBlock(UInt32.MaxValue, 0);
+            DataBlock data_polylines = new DataBlock(UInt32.MaxValue, 0);
+            DataBlock data_polygons = new DataBlock(UInt32.MaxValue, 0);
+
             PointList1.Clear();
             PointList2.Clear();
             LineList.Clear();
             AreaList.Clear();
 
-            if (SubdivLength == 0)
-               return;
-
-            if (Content == StdFile_TRE.SubdivInfoBasic.SubdivContent.nothing) {
+            if (SubdivLength == 0 ||
+                Content == StdFile_TRE.SubdivInfoBasic.SubdivContent.nothing) {
                br.Seek(SubdivLength, SeekOrigin.Current);
-               Debug.WriteLine("Unbekannter Subdiv-Inhalt");
+               Debug.WriteLine("Unbekannter Subdiv-Inhalt/leer");
                return;
             }
-
 
             long subdivstart = br.Position;       // Startpunkt für die Offsetberechnung
 
             // ----- Ermittlung der Offsets für die einzelnen Objektarten -----
-
-            DataBlock data_points = new DataBlock(UInt32.MaxValue, 0);
-            DataBlock data_idxpoints = new DataBlock(UInt32.MaxValue, 0);
-            DataBlock data_polylines = new DataBlock(UInt32.MaxValue, 0);
-            DataBlock data_polygons = new DataBlock(UInt32.MaxValue, 0);
 
             Queue<StdFile_TRE.SubdivInfoBasic.SubdivContent> offstype = new Queue<StdFile_TRE.SubdivInfoBasic.SubdivContent>();
 
@@ -1317,10 +1314,6 @@ namespace GarminCore.Files {
             }
             return rb;
          }
-
-
-
-
 
          public override string ToString() {
             return string.Format("Typ {0:x2}, LabelOffset {1}, LabelInNET {2}, RawDeltaLongitude {3}, RawDeltaLatitude {4}, WithExtraBit {5}, Datenbytes {6}",
@@ -2725,7 +2718,7 @@ namespace GarminCore.Files {
                   if (SubdivList[idx] == null) {         // tatsächlich noch nicht eingelesen
                      List<SubdivData> lst;
                      if (subdivinfoList[idx].Data.Length > 0)
-                        lst = br.ReadArray<SubdivData>(subdivinfoList[idx].Data, new object[] { extdata[idx] });
+                        lst = br.ReadArray<SubdivData>(new DataBlock(subdivinfoList[idx].Data.Offset + src.Offset, subdivinfoList[idx].Data.Length), new object[] { extdata[idx] });
                      else
                         lst = new List<SubdivData>() { new SubdivData() }; // keine Daten -> leere Subdiv
                      SubdivList[idx] = lst[0];

@@ -41,8 +41,8 @@ namespace GMap.NET.CoreExt.WindowsForms.ToolTips {
                         SpecFont.FontFamily,
                         (int)SpecFont.Style,
                         canvas.DpiY * SpecFont.SizeInPoints / 72,       // point -> em size
-                        new Point(Marker.LocalPosition.X, 
-                                  Marker.LocalPosition.Y),
+                        new Point(Marker.LocalToolTipPosition.X,
+                                  Marker.LocalToolTipPosition.Y),
                         sf);
          canvas.DrawPath(penOutline, path);
          canvas.FillPath(SpecForeground, path);

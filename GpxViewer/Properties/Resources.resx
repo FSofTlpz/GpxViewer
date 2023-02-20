@@ -2956,4 +2956,16 @@
   <data name="speicherngpx" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\speicherngpx.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="goto2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\goto2.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="arrow_refresh" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\arrow_refresh.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="speichernmulti" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\speichernmulti.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TrackSimpl" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Images\TrackSimpl.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

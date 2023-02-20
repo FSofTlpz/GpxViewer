@@ -13,10 +13,10 @@ using System.Collections.Concurrent;
 
 namespace GMap.NET.Internals
 {
-    /// <summary>
-    ///     internal map control core
-    /// </summary>
-    internal sealed class Core : IDisposable
+   /// <summary>
+   ///     internal map control core
+   /// </summary>
+   internal /*sealed*/ class Core : IDisposable
     {
         internal PointLatLng _position;
         private GPoint _positionPixel;
@@ -61,7 +61,7 @@ namespace GMap.NET.Internals
         public readonly Stack<LoadTask> TileLoadQueue = new Stack<LoadTask>();
 #endif
 
-        static readonly int GThreadPoolSize = 4;
+        static internal /*readonly*/ int GThreadPoolSize = 4;
 
         DateTime _lastTileLoadStart = DateTime.Now;
         DateTime _lastTileLoadEnd = DateTime.Now;

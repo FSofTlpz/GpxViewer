@@ -8,10 +8,13 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <NoWarn>1701;1702;IDE1006</NoWarn>
+    <DefineConstants>$(DefineConstants)TRACE;GMAP4SKIA</DefineConstants>
+    <Optimize>False</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn>1701;1702;IDE1006</NoWarn>
+    <DefineConstants>$(DefineConstants)TRACE;GMAP4SKIA</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.639" />
+    <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="GeoAPI.CoordinateSystems" Version="1.7.5" />
     <PackageReference Include="GeoAPI.Core" Version="1.7.5" />
     <PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />

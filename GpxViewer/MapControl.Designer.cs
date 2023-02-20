@@ -24,7 +24,7 @@
       /// </summary>
       private void InitializeComponent() {
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MapControl));
-         this.smc = new SmallMapControl.SmallMapCtrl();
+         this.smc = new SpecialMapCtrl.SpecialMapCtrl();
          this.trackBarZoom = new System.Windows.Forms.TrackBar();
          this.moveControl1 = new GpxViewer.MoveControl();
          ((System.ComponentModel.ISupportInitialize)(this.trackBarZoom)).BeginInit();
@@ -32,44 +32,34 @@
          // 
          // smc
          // 
-         this.smc.Bearing = 0F;
-         this.smc.CanDragMap = true;
+         this.smc.Map_CanDragMap = true;
          this.smc.Dock = System.Windows.Forms.DockStyle.Left;
-         this.smc.EmptyTileColor = System.Drawing.Color.Navy;
-         this.smc.GrayScaleMode = false;
-         this.smc.HelperLineOption = GMap.NET.WindowsForms.HelperLineOptions.DontShow;
-         this.smc.LevelsKeepInMemory = 5;
+         this.smc.Map_EmptyTileColor = System.Drawing.Color.Navy;
+         this.smc.Map_LevelsKeepInMemory = 5;
          this.smc.Location = new System.Drawing.Point(0, 0);
-         this.smc.MapRenderZoom2RealDevice = 1F;
-         this.smc.MarkersEnabled = true;
-         this.smc.MaxZoom = 24;
-         this.smc.SMC_Cursor = System.Windows.Forms.Cursors.Default;
-         this.smc.SMC_DragButton = System.Windows.Forms.MouseButtons.Right;
-         this.smc.MinZoom = 2;
-         this.smc.MouseWheelZoomEnabled = true;
-         this.smc.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
+         this.smc.Map_RenderZoom2RealDevice = 1F;
+         this.smc.Map_MarkersEnabled = true;
+         this.smc.Map_MaxZoom = 24;
+         this.smc.SpecMapCursor = System.Windows.Forms.Cursors.Default;
+         this.smc.Map_DragButton = System.Windows.Forms.MouseButtons.Right;
+         this.smc.Map_MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
          this.smc.Name = "smc";
-         this.smc.NegativeMode = false;
-         this.smc.PolygonsEnabled = true;
-         this.smc.RetryLoadTile = 0;
-         this.smc.RoutesEnabled = true;
-         this.smc.ScaleMode = GMap.NET.WindowsForms.ScaleModes.Fractional;
-         this.smc.SelectedAreaFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(65)))), ((int)(((byte)(105)))), ((int)(((byte)(225)))));
-         this.smc.ShowTileGridLines = false;
+         this.smc.Map_PolygonsEnabled = true;
+         this.smc.Map_RetryLoadTile = 0;
+         this.smc.Map_TracksEnabled = true;
+         this.smc.Map_ScaleMode = GMap.NET.WindowsForms.GMapControl.ScaleModes.Fractional;
+         this.smc.Map_SelectedAreaFillColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(65)))), ((int)(((byte)(105)))), ((int)(((byte)(225)))));
+         this.smc.Map_ShowTileGridLines = false;
          this.smc.Size = new System.Drawing.Size(189, 213);
-         this.smc.SMC_EmptyMapBackground = System.Drawing.Color.LightGray;
-         this.smc.SMC_EmptyTileColor = System.Drawing.Color.Navy;
-         this.smc.SMC_EmptyTileText = "keine Daten";
-         this.smc.SMC_MapRenderZoom2RealDevice = 1F;
-         this.smc.SMC_MaxZoom = 24;
-         this.smc.SMC_MinZoom = 2;
-         this.smc.SMC_Position = ((GMap.NET.PointLatLng)(resources.GetObject("smc.SMC_Position")));
-         this.smc.SMC_ShowCenter = false;
-         this.smc.SMC_ShowTileGridLines = false;
+         this.smc.Map_EmptyMapBackgroundColor = System.Drawing.Color.LightGray;
+         this.smc.Map_EmptyTileColor = System.Drawing.Color.Navy;
+         this.smc.Map_EmptyTileText = "keine Daten";
+         this.smc.SpecMapMaxZoom = 24;
+         this.smc.SpecMapMinZoom = 2;
          this.smc.Width = 189;
-         this.smc.SMC_Zoom = 2D;
+         this.smc.SpecMapZoom = 2D;
          this.smc.TabIndex = 0;
-         this.smc.Zoom = 2D;
+         this.smc.Map_Zoom = 2D;
          this.smc.Load += new System.EventHandler(this.Smc_Load);
          // 
          // trackBarZoom
@@ -115,7 +105,7 @@
 
       #endregion
 
-      private SmallMapControl.SmallMapCtrl smc;
+      private SpecialMapCtrl.SpecialMapCtrl smc;
       private System.Windows.Forms.TrackBar trackBarZoom;
       private MoveControl moveControl1;
    }

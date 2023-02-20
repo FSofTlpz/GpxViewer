@@ -1,5 +1,5 @@
 ﻿using FSofTUtils;
-using SmallMapControl;
+using SpecialMapCtrl;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Gpx = FSofTUtils.Geography.PoorGpx;
 using System.Linq;
+using FSofTUtils.Threading;
 
 namespace GpxViewer {
    public partial class ReadOnlyTracklistControl : UserControl {
@@ -109,7 +110,7 @@ namespace GpxViewer {
          /// <summary>
          /// Gpx-Datenobjekt (oder null)
          /// </summary>
-         public PoorGpxAllExt Gpx { get; private set; }
+         public GpxAllExt Gpx { get; private set; }
 
          long _poorGpxAllExtIsLoading = 0;
          /// <summary>
@@ -226,7 +227,7 @@ namespace GpxViewer {
                createAndAppendVisualNode();
          }
 
-         public TNode(PoorGpxAllExt gpx,
+         public TNode(GpxAllExt gpx,
                       string visualtext,
                       bool createvisualnode = true) :
             this(NodeType.GpxObject, visualtext, false) {
@@ -463,7 +464,7 @@ namespace GpxViewer {
                                     string methodName,
                                     params object[] parameters)
                                     where ControlType : Control {
-            if (mastercontrol.InvokeRequired) {
+            if (mastercontrol != null && mastercontrol.InvokeRequired) {
                MethodCaller4TreeNodeCollection<ControlType> callerDelegate = InvokeMethod4TreeNodeCollection;
                mastercontrol.Invoke(callerDelegate,
                                     new object[] {
@@ -682,7 +683,7 @@ namespace GpxViewer {
             root?.StopUpdate();
 
             while (changedTreeNodes.TryTake(out TNode tn)) {
-               PoorGpxAllExt gpx = tn.Gpx;
+               GpxAllExt gpx = tn.Gpx;
 
                if (!tn.ExternName &&                        // Name nicht expl. vorgeg.
                    gpx.TrackList.Count == 1 &&              // genau 1 Track -> Trackname für TreeNode übernehmen
@@ -740,11 +741,11 @@ namespace GpxViewer {
       #region Event-Args
 
       public class ChooseEventArgs {
-         public readonly PoorGpxAllExt Gpx;
+         public readonly GpxAllExt Gpx;
          public readonly Track Track;
          public readonly string Name;
 
-         public ChooseEventArgs(PoorGpxAllExt gpx, Track track, string name) {
+         public ChooseEventArgs(GpxAllExt gpx, Track track, string name) {
             Gpx = gpx;
             Track = track;
             Name = name;
@@ -781,10 +782,10 @@ namespace GpxViewer {
       }
 
       public class ShowMarkerEventArgs {
-         public readonly PoorGpxAllExt Gpx;
+         public readonly GpxAllExt Gpx;
          public readonly bool On;
 
-         public ShowMarkerEventArgs(PoorGpxAllExt gpx, bool on) {
+         public ShowMarkerEventArgs(GpxAllExt gpx, bool on) {
             Gpx = gpx;
             On = on;
          }
@@ -865,8 +866,8 @@ namespace GpxViewer {
          }
          protected set {
             Interlocked.Exchange(ref _loadGpxfilesIsRunning, value ? 1 : 0);
-            bool searchtextexist = (FSofTUtils.Threading.ThreadsafeInvoker.InvokeControlPropertyReader(textBox_SearchText, "Text") as string).Trim().Length > 0;
-            FSofTUtils.Threading.ThreadsafeInvoker.InvokeControlPropertyWriter(button_Search, "Enabled", !value && searchtextexist);
+            bool searchtextexist = (ThreadsafeInvoker.InvokeControlPropertyReader(textBox_SearchText, "Text") as string).Trim().Length > 0;
+            ThreadsafeInvoker.InvokeControlPropertyWriter(button_Search, "Enabled", !value && searchtextexist);
          }
       }
 
@@ -1054,8 +1055,8 @@ namespace GpxViewer {
             switch (tn.Nodetype) {
                case TNode.NodeType.GpxObject:
                   if (!bTreeViewSelfChecked) { // "echte" Auswahl?
-                     tn.Gpx.Markers4StandardVisible =
-                     tn.Gpx.Markers4PicturesVisible = tn.VisualNode_IsChecked;
+                     tn.Gpx.Markers4StandardAreVisible =
+                     tn.Gpx.Markers4PicturesAreVisible = tn.VisualNode_IsChecked;
                      foreach (Track r in tn.Gpx.TrackList)
                         ShowTrackEvent?.Invoke(this, new ShowTrackEventArgs(r, tn.VisualNode_IsChecked));
 
@@ -1066,8 +1067,8 @@ namespace GpxViewer {
                         bTreeViewSelfChecked = false;
                      }
 
-                     ShowAllMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4StandardVisible));
-                     ShowAllFotoMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4PicturesVisible));
+                     ShowAllMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4StandardAreVisible));
+                     ShowAllFotoMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4PicturesAreVisible));
                   }
                   break;
 
@@ -1219,7 +1220,7 @@ namespace GpxViewer {
          }
 
          if (shouldload) {
-            PoorGpxAllExt gpx = null;
+            GpxAllExt gpx = null;
 
             LoadinfoEvent?.Invoke(this, new SendStringEventArgs("lese '" + tn.VisualNode_Text + "', (" + Path.GetFileName(tn.GpxFilename) + ") ..."));
             //Thread.Sleep(1000);        // nur für Test
@@ -1264,7 +1265,7 @@ namespace GpxViewer {
       /// <param name="gpx"></param>
       /// <param name="externname"></param>
       /// <returns></returns>
-      void replaceDummynodeWithTracknodes(TNode tn, PoorGpxAllExt gpx, bool externname) {
+      void replaceDummynodeWithTracknodes(TNode tn, GpxAllExt gpx, bool externname) {
          if (!externname &&                           // Name nicht expl. vorgeg.
              gpx.TrackList.Count == 1 &&              // genau 1 Track -> Trackname für TreeNode übernehmen
              gpx.TrackList[0].VisualName.Length > 0)
@@ -1283,7 +1284,7 @@ namespace GpxViewer {
       /// <summary>
       /// für den threadübergreifenden Aufruf von <see cref="replaceDummynodeWithTracknodes"/>() nötig 
       /// </summary>
-      private delegate void SafeCallDelegate4TreeNodePoorGpxAllExtBool2Void(TNode tn, PoorGpxAllExt gpx, bool externname);
+      private delegate void SafeCallDelegate4TreeNodePoorGpxAllExtBool2Void(TNode tn, GpxAllExt gpx, bool externname);
 
 
       /// <summary>
@@ -1294,7 +1295,7 @@ namespace GpxViewer {
       /// <param name="picturereferencepath"></param>
       /// <param name="stdcolor"></param>
       /// <returns></returns>
-      static PoorGpxAllExt buildPoorGpxAllExt(string gpxfilename, string gpxpicturefilename, string picturereferencepath, int stdcolor) {
+      static GpxAllExt buildPoorGpxAllExt(string gpxfilename, string gpxpicturefilename, string picturereferencepath, int stdcolor) {
          Color col;
          switch (stdcolor) {
             case 2:
@@ -1318,7 +1319,7 @@ namespace GpxViewer {
                break;
          }
 
-         PoorGpxAllExt gpx = new PoorGpxAllExt() {
+         GpxAllExt gpx = new GpxAllExt() {
             TrackColor = col,
             TrackWidth = (float)VisualTrack.StandardWidth,
          };
@@ -1339,7 +1340,7 @@ namespace GpxViewer {
             foreach (Gpx.GpxWaypoint wp in pictgpx.Waypoints) {
                if (wp.Name.StartsWith("file:///"))
                   wp.Name = wp.Name.Substring(8);
-               wp.Name = FSofTUtils.PathHelper.ReplaceEnvironmentVars(wp.Name);
+               wp.Name = PathHelper.ReplaceEnvironmentVars(wp.Name);
 
                wp.Name = Path.GetFullPath(Path.Combine(referencepath, wp.Name)); // GetFullPath() -> entfernt unnötige "." und ".."
                if (File.Exists(wp.Name))
@@ -1348,10 +1349,10 @@ namespace GpxViewer {
          }
 
          if (gpx.MarkerList.Count > 0)
-            gpx.Markers4StandardVisible = true;
+            gpx.Markers4StandardAreVisible = true;
 
          if (gpx.MarkerListPictures.Count > 0)
-            gpx.Markers4PicturesVisible = true;
+            gpx.Markers4PicturesAreVisible = true;
 
          return gpx;
       }
@@ -1454,7 +1455,7 @@ namespace GpxViewer {
                      // Rel. Pfade auf Standort der Listendatei beziehen!
                      string picturereferencepath = null;
 
-                     gpxfilename = FSofTUtils.PathHelper.GetFullPathAppliedDirectory(FSofTUtils.PathHelper.ReplaceEnvironmentVars(gpxfilename),
+                     gpxfilename = PathHelper.GetFullPathAppliedDirectory(PathHelper.ReplaceEnvironmentVars(gpxfilename),
                                                                                      filenamelist);
                      string name = gpxListReader.GpxName(group, gpx);
                      if (name == "")
@@ -1462,7 +1463,7 @@ namespace GpxViewer {
 
                      string gpxpicturefilename = gpxListReader.GpxPictureGpxFilename(group, gpx);
                      if (gpxpicturefilename != "") {
-                        gpxpicturefilename = FSofTUtils.PathHelper.GetFullPathAppliedDirectory(FSofTUtils.PathHelper.ReplaceEnvironmentVars(gpxpicturefilename),
+                        gpxpicturefilename = PathHelper.GetFullPathAppliedDirectory(PathHelper.ReplaceEnvironmentVars(gpxpicturefilename),
                                                                                                filenamelist);
                         picturereferencepath = Path.GetDirectoryName(filenamelist);
                      }
@@ -1515,11 +1516,11 @@ namespace GpxViewer {
       void removeGpxfileNode(TNode tn) {
          if (tn != null) {
             if (tn.Nodetype == TNode.NodeType.GpxObject) {
-               tn.Gpx.Markers4StandardVisible = false;
-               tn.Gpx.Markers4PicturesVisible = false;
+               tn.Gpx.Markers4StandardAreVisible = false;
+               tn.Gpx.Markers4PicturesAreVisible = false;
 
-               ShowAllMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4StandardVisible));
-               ShowAllFotoMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4PicturesVisible));
+               ShowAllMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4StandardAreVisible));
+               ShowAllFotoMarkerEvent?.Invoke(this, new ShowMarkerEventArgs(tn.Gpx, tn.Gpx.Markers4PicturesAreVisible));
                foreach (Track track in tn.Gpx.TrackList)
                   ShowTrackEvent?.Invoke(this, new ShowTrackEventArgs(track, false));
 
@@ -1595,7 +1596,7 @@ namespace GpxViewer {
       /// <param name="gpx"></param>
       /// <param name="tnlst"></param>
       /// <returns></returns>
-      TNode getNode4Gpx(PoorGpxAllExt gpx, IList<TNode> tnlst) {
+      TNode getNode4Gpx(GpxAllExt gpx, IList<TNode> tnlst) {
          TNode result = null;
          foreach (TNode tn in tnlst)
             BaseTreenode.Walk(tn,
@@ -1668,12 +1669,12 @@ namespace GpxViewer {
       }
 
       /// <summary>
-      /// liefert die Liste aller <see cref="PoorGpxAllExt"/> der Subnodes des TreeNode
+      /// liefert die Liste aller <see cref="GpxAllExt"/> der Subnodes des TreeNode
       /// </summary>
       /// <param name="parent"></param>
       /// <returns></returns>
-      List<PoorGpxAllExt> getAllGpxContainerFromSubnodes(TNode parent) {
-         List<PoorGpxAllExt> lst = new List<PoorGpxAllExt>();
+      List<GpxAllExt> getAllGpxContainerFromSubnodes(TNode parent) {
+         List<GpxAllExt> lst = new List<GpxAllExt>();
 
          foreach (TNode tn in parent.ChildNodes) {
             switch (tn.Nodetype) {
@@ -1785,7 +1786,7 @@ namespace GpxViewer {
       /// </summary>
       /// <param name="filename"></param>
       public void AddFile(string filename) {
-         filename = FSofTUtils.PathHelper.GetFullPathAppliedCurrentDirectory(FSofTUtils.PathHelper.ReplaceEnvironmentVars(filename));
+         filename = PathHelper.GetFullPathAppliedCurrentDirectory(PathHelper.ReplaceEnvironmentVars(filename));
 
          List<TNode> tnlst;
          string ext = Path.GetExtension(filename).ToLower();
@@ -1920,7 +1921,7 @@ namespace GpxViewer {
       /// </summary>
       /// <param name="gpx"></param>
       /// <param name="visible"></param>
-      public void ShowGpx(PoorGpxAllExt gpx, bool visible) {
+      public void ShowGpx(GpxAllExt gpx, bool visible) {
          TNode tn = getNode4Gpx(gpx, root.ChildNodes);
          if (tn != null) {
             if (tn.VisualNode_IsChecked != visible)
@@ -1933,7 +1934,7 @@ namespace GpxViewer {
       /// </summary>
       /// <param name="gpx"></param>
       /// <returns></returns>
-      public bool GpxIsVisible(PoorGpxAllExt gpx) {
+      public bool GpxIsVisible(GpxAllExt gpx) {
          TNode tn = getNode4Gpx(gpx, root.ChildNodes);
          return tn != null ?
                         tn.VisualNode_IsChecked :
@@ -1958,12 +1959,12 @@ namespace GpxViewer {
       }
 
       /// <summary>
-      /// liefert die akt. ausgewählte <see cref="PoorGpxAllExt"/> oder den <see cref="Track"/>
+      /// liefert die akt. ausgewählte <see cref="GpxAllExt"/> oder den <see cref="Track"/>
       /// </summary>
       /// <param name="gpx"></param>
       /// <param name="track"></param>
       /// <returns>false, wenn nicht (sinnvolles) ausgewählt ist</returns>
-      public bool GetSelectedObject(out PoorGpxAllExt gpx, out Track track) {
+      public bool GetSelectedObject(out GpxAllExt gpx, out Track track) {
          track = null;
          gpx = null;
 
@@ -1994,10 +1995,10 @@ namespace GpxViewer {
       /// liefert alle GPX-Dateien unter dem aktuell ausgewälten Objekt
       /// </summary>
       /// <returns></returns>
-      public List<PoorGpxAllExt> GetAllSubGpxContainerFromSelected() {
+      public List<GpxAllExt> GetAllSubGpxContainerFromSelected() {
          return root.SelectedNode != null ?
                      getAllGpxContainerFromSubnodes(root.SelectedNode) :
-                     new List<PoorGpxAllExt>();
+                     new List<GpxAllExt>();
       }
 
       /// <summary>

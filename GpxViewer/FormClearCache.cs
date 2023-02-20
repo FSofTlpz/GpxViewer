@@ -25,14 +25,14 @@ namespace GpxViewer {
 
       private void button_actMap_Click(object sender, EventArgs e) {
          Map.MapClearMemoryCache();
-         int count = Map.MapClearCache(ProviderIndex);
-         showResult(count);
+         showResult(Map.MapClearCache(ProviderIndex));
+         Close();
       }
 
       private void button_allMaps_Click(object sender, EventArgs e) {
          Map.MapClearMemoryCache();
-         int count = Map.MapClearCache(-1);
-         showResult(count);
+         showResult(Map.MapClearCache(-1));
+         Close();
       }
 
       void showResult(int count) {

@@ -8,7 +8,7 @@ namespace GMap.NET.CoreExt.WindowsForms.Markers {
    /// <summary>
    /// Marker ohne Symbol, aber mit Textausgabe
    /// </summary>
-   public class GMarkerText : GMapMarker, ISerializable {
+   public class GMarkerText : GMapMarker {
 
       public static readonly Font DefaultFont = new Font("Arial", 20);
       public static readonly SolidBrush DefaultBrush = new SolidBrush(Color.Black);
@@ -27,11 +27,6 @@ namespace GMap.NET.CoreExt.WindowsForms.Markers {
       public Brush Brush = DefaultBrush;
 
       /// <summary>
-      /// Offset zum geografischer Bezugspunktes in Graphics-Koordinaten
-      /// </summary>
-      public SizeF LocalOffset;
-
-      /// <summary>
       /// Ausgabeformat
       /// </summary>
       public StringFormat StringFormat;
@@ -43,7 +38,6 @@ namespace GMap.NET.CoreExt.WindowsForms.Markers {
       /// <param name="txt">Text</param>
       public GMarkerText(PointLatLng txtpt, string txt) : base(txtpt) {
          Text = txt;
-         LocalOffset = new SizeF(0, 0);
          StringFormat = new StringFormat {
             Alignment = StringAlignment.Center,
             LineAlignment = StringAlignment.Center
@@ -58,8 +52,8 @@ namespace GMap.NET.CoreExt.WindowsForms.Markers {
             g.DrawString(Text, 
                          Font, 
                          Brush, 
-                         LocalPosition.X + LocalOffset.Width, 
-                         LocalPosition.Y + LocalOffset.Height,
+                         LocalPosition.X + LocalOffset.X, 
+                         LocalPosition.Y + LocalOffset.Y,
                          StringFormat);
 
          }
@@ -68,22 +62,6 @@ namespace GMap.NET.CoreExt.WindowsForms.Markers {
       public override void Dispose() {
          base.Dispose();
       }
-
-#if !PocketPC
-
-      #region ISerializable Members
-
-      void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
-         base.GetObjectData(info, context);
-      }
-
-      protected GMarkerText(SerializationInfo info, StreamingContext context)
-         : base(info, context) {
-      }
-
-      #endregion
-
-#endif
 
       public override string ToString() {
          return string.Format("{{Position={0}, LocalPosition={1}, \"{2}\"}}", Position, LocalPosition, Text);

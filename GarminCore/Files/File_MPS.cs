@@ -94,14 +94,14 @@ namespace GarminCore.Files {
          public void Read(BinaryReaderWriter br) {
             Typ = (char)br.ReadByte();
             UInt16 len = br.Read2AsUShort();       // Anzahl der noch folgenden Bytes
-            long end = br.BaseStream.Position + len;
+            long end = br.Position + len;
 
             switch (Typ) {
                case 'L': // MapBlock
                   ProductID = br.Read2AsUShort();
                   FamilyID = br.Read2AsUShort();
                   MapNumber = br.Read4UInt();
-                  while (br.BaseStream.Position < end - 9)     // seriesName, mapDescription, areaName
+                  while (br.Position < end - 9)     // seriesName, mapDescription, areaName
                      Name.Add(br.ReadString());
                   Unknown0 = br.Read4UInt();
                   Unknown1 = br.Read4UInt();
@@ -118,12 +118,12 @@ namespace GarminCore.Files {
                case 'F': // vereinfachter MapBlock ?
                   ProductID = br.Read2AsUShort();
                   FamilyID = br.Read2AsUShort();
-                  while (br.BaseStream.Position < end)         // description (nur 1x?)
+                  while (br.Position < end)         // description (nur 1x?)
                      Name.Add(br.ReadString());
                   break;
 
                case 'V':
-                  while (br.BaseStream.Position < end - 1)
+                  while (br.Position < end - 1)
                      Name.Add(br.ReadString());
                   Unknown5 = br.ReadByte();
                   break;
@@ -214,7 +214,7 @@ namespace GarminCore.Files {
       /// <param name="br"></param>
       public void Read(BinaryReaderWriter br) {
          br.Seek(0);
-         while (br.BaseStream.Position < br.BaseStream.Length) {
+         while (br.Position < br.Length) {
             MapEntry me = new MapEntry();
             me.Read(br);
             Maps.Add(me);

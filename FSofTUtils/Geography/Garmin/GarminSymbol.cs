@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 
 namespace FSofTUtils.Geography.Garmin {
    public class GarminSymbol : IDisposable {
@@ -20,13 +21,28 @@ namespace FSofTUtils.Geography.Garmin {
          get; protected set;
       }
 
+      public int OffsetX {
+         get; protected set;
+      }
 
-      public GarminSymbol(string name, string group, string text, string filename) {
+      public int OffsetY {
+         get; protected set;
+      }
+
+      public GarminSymbol(string name, string group, string text, string filename, int offsetx, int offsety) {
          Name = name;
          Group = group;
          Text = text;
          using (Bitmap tmp = new Bitmap(filename)) {
             Bitmap = new Bitmap(tmp);
+         }
+         if (offsetx != int.MinValue &&
+             offsety != int.MinValue) {
+            OffsetX = offsetx;
+            OffsetY = offsety;
+         } else {
+            OffsetX = -Bitmap.Width / 2;
+            OffsetY = -Bitmap.Height / 2;
          }
       }
 

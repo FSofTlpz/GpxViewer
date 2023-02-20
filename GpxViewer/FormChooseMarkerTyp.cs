@@ -96,7 +96,8 @@ namespace GpxViewer {
             listView1.Items.Add(new ListViewItem(GarminMarkerSymbols[i].Name, i) {
                Group = listView1.Groups[Groups[GarminMarkerSymbols[i].Group]],
             });
-            if (string.IsNullOrEmpty(GarminSymbolName) && GarminMarkerSymbols[i].Name == GarminSymbolName) 
+            if (!string.IsNullOrEmpty(GarminSymbolName) && 
+                GarminMarkerSymbols[i].Name == GarminSymbolName) 
                selectedidx = i;
          }
 

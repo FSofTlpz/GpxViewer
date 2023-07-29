@@ -6,7 +6,6 @@ using System.Drawing;
 using GMap.NET.Skia;
 #else
 using GMap.NET.WindowsForms;
-using GMap.NET.CoreExt.WindowsForms.ToolTips;
 #endif
 
 namespace SpecialMapCtrl {
@@ -180,7 +179,7 @@ namespace SpecialMapCtrl {
          base(new GMap.NET.PointLatLng(marker.Waypoint.Lat, marker.Waypoint.Lon)) {
          MarkerPicture mp = markerPicture4Style(style, symbolname, symbolzoom);
          Bitmap = mp.Picture;
-         LocalSize = new Size(Bitmap.Width, Bitmap.Height);
+         ActiveClientSize = new Size(Bitmap.Width, Bitmap.Height);
          LocalOffset = mp.Offset;
          ToolTipText = name;
          RealMarker = marker;
@@ -190,14 +189,18 @@ namespace SpecialMapCtrl {
          this.shadowdeltapix = shadowdeltapix;
          _bitmapShadow = createShadowBitmap(Bitmap, shadowdeltapix);
 
-#if !GMAP4SKIA
          if (style != VisualStyle.FotoMarker) {
-            ToolTip = new GMapMarkerToolTip(this);
+            ToolTip = new GMapMarkerToolTip(this, 
+                                            Bitmap.Height * (float)symbolzoom *
+#if GMAP4SKIA
+                                                                                0.015F);
+#else
+                                                                                0.05F);
+#endif
             ToolTipText = RealMarker.Text;
             //ToolTipMode = GMap.NET.WindowsForms.MarkerTooltipMode.OnMouseOver;
             ToolTipMode = MarkerTooltipMode.Always;
          }
-#endif
       }
 
       #region static
@@ -279,18 +282,16 @@ namespace SpecialMapCtrl {
       }
 
       public override void OnRender(Graphics g) {
-         lock (Bitmap) {
-            int x = LocalPosition.X + LocalOffset.X;
-            int y = LocalPosition.Y + LocalOffset.Y;
-            if (_bitmapShadow != null) {
-               g.DrawImage(_bitmapShadow,
-                           x + shadowdeltapix,
-                           y + shadowdeltapix,
-                           LocalSize.Width,
-                           LocalSize.Height);
+         if (IsOnClientVisible)
+            lock (Bitmap) {
+               if (_bitmapShadow != null)
+                  g.DrawImage(_bitmapShadow,
+                              ActiveClientPosition.X + shadowdeltapix,
+                              ActiveClientPosition.Y + shadowdeltapix,
+                              ActiveClientSize.Width,
+                              ActiveClientSize.Height);
+               g.DrawImage(Bitmap, ActiveClientPosition.X, ActiveClientPosition.Y, ActiveClientSize.Width, ActiveClientSize.Height);
             }
-            g.DrawImage(Bitmap, x, y, LocalSize.Width, LocalSize.Height);
-         }
       }
 
       public override string ToString() {

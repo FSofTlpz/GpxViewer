@@ -92,6 +92,32 @@ namespace FSofTUtils.Geography.PoorGpx {
          return val != NOTUSE_TIME;
       }
 
+      /// <summary>
+      /// -180° .. 180°
+      /// </summary>
+      /// <param name="lat"></param>
+      /// <returns></returns>
+      public static double GetNormedLatitude(double lat) {
+         while (lat < -180)
+            lat += 360;
+         while (180 < lat)
+            lat -= 360;
+         return lat;
+      }
+
+      /// <summary>
+      /// -90° .. 90°
+      /// </summary>
+      /// <param name="lon"></param>
+      /// <returns></returns>
+      public static double GetNormedLongitude(double lon) {
+         while (lon < -90)
+            lon += 180;
+         while (90 < lon)
+            lon -= 180;
+         return lon;
+      }
+
       public static string RemoveNamespace(string xmltxt) {
          if (!string.IsNullOrEmpty(xmltxt)) {
             MatchCollection matchCol = Regex.Matches(xmltxt, "\\s+xmlns\\s*(:\\w)?\\s*=\\s*\\\"(?<url>[^\\\"]*)\\\"");
@@ -209,7 +235,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="v"></param>
       /// <returns></returns>
       protected static string XWrite(double v) {
-         return v.ToString(CultureInfo.InvariantCulture);
+         return v.ToString("g8", CultureInfo.InvariantCulture);    // NICHT Exp.; max. 8 Nachkommastellen
       }
 
       /// <summary>

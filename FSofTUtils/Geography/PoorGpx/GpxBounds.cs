@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Xml.XPath;
 
@@ -16,6 +17,10 @@ namespace FSofTUtils.Geography.PoorGpx {
       public double MinLon;
       public double MaxLon;
 
+      public double Width => MaxLon - MinLon;
+
+      public double Height => MaxLat - MinLat;
+
 
       public GpxBounds(string xmltext = null, bool removenamespace = false) :
          base(xmltext, removenamespace) { }
@@ -27,11 +32,19 @@ namespace FSofTUtils.Geography.PoorGpx {
          MaxLon = b.MaxLon;
       }
 
+      public GpxBounds(IList<GpxPointBase> pts) : base() {
+         Union(pts);
+      }
+
+      public GpxBounds(IList<GpxTrackPoint> pts) : base() {
+         Union(pts);
+      }
+
       public GpxBounds(double minlat, double maxlat, double minlon, double maxlon) : base() {
-         MinLat = minlat;
-         MaxLat = maxlat;
-         MinLon = minlon;
-         MaxLon = maxlon;
+         MinLat = GetNormedLatitude(minlat);
+         MaxLat = GetNormedLatitude(maxlat);
+         MinLon = GetNormedLongitude(minlon);
+         MaxLon = GetNormedLongitude(maxlon);
       }
 
       protected override void Init() {
@@ -62,8 +75,8 @@ namespace FSofTUtils.Geography.PoorGpx {
             MaxLon = bounds.MaxLon;
          } else {
             if (bounds.IsValid()) {
-               UnionLatLon(ref MinLon, ref MaxLon, bounds.MinLon, bounds.MaxLon, 180);
-               UnionLatLon(ref MinLat, ref MaxLat, bounds.MinLat, bounds.MaxLat, 360);
+               unionLatLon(ref MinLon, ref MaxLon, bounds.MinLon, bounds.MaxLon, 180);
+               unionLatLon(ref MinLat, ref MaxLat, bounds.MinLat, bounds.MaxLat, 360);
                return true;
             }
          }
@@ -87,7 +100,14 @@ namespace FSofTUtils.Geography.PoorGpx {
          }
       }
 
-      void UnionLatLon(ref double min, ref double max, double min1, double max1, double period) {
+      public bool Union<T>(IList<T> pts) where T : GpxPointBase {
+         foreach (var item in pts)
+            if (!Union(item))
+               return false;
+         return true;
+      }
+
+      void unionLatLon(ref double min, ref double max, double min1, double max1, double period) {
          // falls eine Bereichsgrenze ungültig ist, wird zunächst ein "punktförmiger" Bereich angenommen
          if (min == NOTVALID_DOUBLE)
             min = max;
@@ -130,6 +150,20 @@ namespace FSofTUtils.Geography.PoorGpx {
             if (min < -period / 2)
                min += period; // wieder in den gültigen Wertebereich (geht über period/2 hinaus)
          }
+      }
+
+      /// <summary>
+      /// ACHTUNG<para>nur mathematisch; Überschreitung der "Datumsgrenze" noch NICHT berücksichtigt</para>
+      /// </summary>
+      /// <param name="bounds"></param>
+      /// <returns></returns>
+      public bool IntersectsWith(GpxBounds bounds) {
+         if (bounds.MinLon < MinLon + Width &&
+             MinLon < bounds.MinLon + bounds.Width &&
+             bounds.MinLat < MinLat + Height) {
+            return MinLat < bounds.MinLat + bounds.Height;
+         }
+         return false;
       }
 
       /// <summary>

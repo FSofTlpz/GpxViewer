@@ -77,12 +77,15 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AppData.cs" />
-    <Compile Include="BitmapHelper.cs" />
-    <Compile Include="Config.cs" />
+    <Compile Include="Common\AppData.cs" />
+    <Compile Include="Common\Config.cs" />
+    <Compile Include="Common\EditHelper.cs" />
+    <Compile Include="Common\GpxWorkbench.cs" />
+    <Compile Include="Common\TrackHeightProfile.cs" />
+    <Compile Include="ConfigEdit\MapTreeViewHelper.cs" />
     <Compile Include="Cursors4Map.cs" />
     <Compile Include="EditableTracklistControl.cs">
       <SubType>UserControl</SubType>
@@ -103,6 +106,12 @@
     <Compile Include="FormClearCache.Designer.cs">
       <DependentUpon>FormClearCache.cs</DependentUpon>
     </Compile>
+    <Compile Include="ConfigEdit\FormConfig.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigEdit\FormConfig.Designer.cs">
+      <DependentUpon>FormConfig.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormEditPictureFilename.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -121,11 +130,23 @@
     <Compile Include="FormGoToPos.Designer.cs">
       <DependentUpon>FormGoToPos.cs</DependentUpon>
     </Compile>
+    <Compile Include="ConfigEdit\FormMapProviderDefinitionEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigEdit\FormMapProviderDefinitionEdit.Designer.cs">
+      <DependentUpon>FormMapProviderDefinitionEdit.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormObjectInfo.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="FormObjectInfo.Designer.cs">
       <DependentUpon>FormObjectInfo.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormOffsetPictureGpx.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormOffsetPictureGpx.Designer.cs">
+      <DependentUpon>FormOffsetPictureGpx.cs</DependentUpon>
     </Compile>
     <Compile Include="FormSearch.cs">
       <SubType>Form</SubType>
@@ -145,9 +166,7 @@
     <Compile Include="FormTrackSimplificationcs.Designer.cs">
       <DependentUpon>FormTrackSimplificationcs.cs</DependentUpon>
     </Compile>
-    <Compile Include="FSofTUtils\PersistentDataXml.cs" />
-    <Compile Include="FSofTUtils\Threading\ThreadsafeInvoker.cs" />
-    <Compile Include="GpxListReader.cs" />
+    <Compile Include="Common\GpxListReader.cs" />
     <Compile Include="MoveControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -214,19 +233,11 @@
     <Compile Include="FormPrintPreview.Designer.cs">
       <DependentUpon>FormPrintPreview.cs</DependentUpon>
     </Compile>
-    <Compile Include="FSofTUtils\PathHelper.cs" />
-    <Compile Include="FSofTUtils\Sys\HighResolutionWatch.cs" />
     <Compile Include="MapControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="MapControl.Designer.cs">
       <DependentUpon>MapControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="FSofTUtils\MyMessageBox.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="FSofTUtils\MyMessageBox.designer.cs">
-      <DependentUpon>MyMessageBox.cs</DependentUpon>
     </Compile>
     <Compile Include="NumericUpDownMenuItem.cs">
       <SubType>Component</SubType>
@@ -279,6 +290,9 @@
     <Compile Include="Unclassified.UI\SpecColorSelectorDialog.Designer.cs">
       <DependentUpon>SpecColorSelectorDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Common\ConfigHelper.cs" />
+    <Compile Include="Common\IOHelper.cs" />
+    <Compile Include="Common\UIHelper.cs" />
     <None Include="Prog.png" />
     <EmbeddedResource Include="EditableTracklistControl.resx">
       <DependentUpon>EditableTracklistControl.cs</DependentUpon>
@@ -289,6 +303,9 @@
     <EmbeddedResource Include="FormClearCache.resx">
       <DependentUpon>FormClearCache.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ConfigEdit\FormConfig.resx">
+      <DependentUpon>FormConfig.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormEditPictureFilename.resx">
       <DependentUpon>FormEditPictureFilename.cs</DependentUpon>
     </EmbeddedResource>
@@ -298,8 +315,14 @@
     <EmbeddedResource Include="FormGoToPos.resx">
       <DependentUpon>FormGoToPos.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="ConfigEdit\FormMapProviderDefinitionEdit.resx">
+      <DependentUpon>FormMapProviderDefinitionEdit.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormObjectInfo.resx">
       <DependentUpon>FormObjectInfo.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormOffsetPictureGpx.resx">
+      <DependentUpon>FormOffsetPictureGpx.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormSearch.resx">
       <DependentUpon>FormSearch.cs</DependentUpon>
@@ -340,9 +363,6 @@
     <EmbeddedResource Include="FormTrackSimplificationcs.resx">
       <DependentUpon>FormTrackSimplificationcs.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FSofTUtils\MyMessageBox.resx">
-      <DependentUpon>MyMessageBox.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="MapControl.resx">
       <DependentUpon>MapControl.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -371,7 +391,6 @@
     <Content Include="gpx-tracks.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="GpxViewer_TemporaryKey.pfx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -399,6 +418,10 @@
     <None Include="Images\arrow_undo.png" />
     <None Include="Images\CursorFoto.cur" />
     <None Include="Images\arrow_refresh.png" />
+    <None Include="Images\arrow_down.png" />
+    <None Include="Images\arrow_left.png" />
+    <None Include="Images\arrow_right.png" />
+    <None Include="Images\arrow_up.png" />
     <Content Include="Images\CursorSplit.cur" />
     <None Include="gpxviewer.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -518,6 +541,7 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <ContentSQLiteInteropFiles>true</ContentSQLiteInteropFiles>

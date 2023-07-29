@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using GMap.NET.MapProviders;
+using System;
 using System.Drawing;
-using System.Reflection;
-using GMap.NET.MapProviders;
+using System.IO;
+using System.Threading;
 
 namespace GMap.NET.CoreExt.MapProviders {
 
@@ -91,15 +91,28 @@ namespace GMap.NET.CoreExt.MapProviders {
 
       public class KmzMapDefinition : MapProviderDefinition {
 
+         static UniqueIDDelta uniqueIDDelta = null;
+
+
          /// <summary>
          /// KMZ-Datei
          /// </summary>
-         public string KmzFile { get; protected set; }
+         public string KmzFile { get; set; }
 
          /// <summary>
          /// spez. Delta für die DbId für diese Karte
          /// </summary>
          public int DbIdDelta { get; protected set; }
+
+         /// <summary>
+         /// Mit Hillshading ?
+         /// </summary>
+         public bool HillShading { get; set; }
+
+         /// <summary>
+         /// Transparenz für Hillshading
+         /// </summary>
+         public byte HillShadingAlpha { get; set; }
 
 
          /// <summary>
@@ -112,19 +125,30 @@ namespace GMap.NET.CoreExt.MapProviders {
          /// <param name="maxzoom">größter zulässiger Zoom</param>
          /// <param name="kmzfile"></param>
          public KmzMapDefinition(string mapname,
-                                 int dbiddelta,
                                  double zoom4display,
                                  int minzoom,
                                  int maxzoom,
-                                 string kmzfile) :
+                                 string kmzfile,
+                                 bool hillshading = false,
+                                 byte hillshadingalpha = 100) :
             base(mapname, GarminKmzProvider.Instance.Name, zoom4display, minzoom, maxzoom) {
             KmzFile = kmzfile;
-            DbIdDelta = dbiddelta;
+
+            HillShading = hillshading;
+            HillShadingAlpha = hillshadingalpha;
+
+            string hash4delta = UniqueIDDelta.GetHashString(mapname + File.GetLastWriteTime(kmzfile).Ticks, GetBytesFromFile(kmzfile, 0, 1024));
+            if (uniqueIDDelta == null)
+               uniqueIDDelta = new UniqueIDDelta(Path.Combine(PublicCore.MapCacheLocation, "iddelta.garminKmz"));
+            DbIdDelta = uniqueIDDelta.GetDelta(hash4delta);
          }
 
          public KmzMapDefinition(KmzMapDefinition def) :
             base(def.MapName, def.ProviderName, def.Zoom4Display, def.MinZoom, def.MaxZoom) {
             KmzFile = def.KmzFile;
+            DbIdDelta = def.DbIdDelta;
+            HillShading = def.HillShading;
+            HillShadingAlpha = def.HillShadingAlpha;
          }
 
          public override string ToString() {
@@ -175,9 +199,13 @@ namespace GMap.NET.CoreExt.MapProviders {
          // Das Hillshading wird ev. über die eigentliche Karte darübergelegt.
          if (DEM != null &&
              DEM.WithHillshade &&
-             bm != null)
-            //DrawHillshade(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha);
-            DrawHillshadeAsync(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha).Wait(); // blockiert wahrscheinlich nicht ganz so stark wie die synchrone Methode
+             bm != null) {
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+            DrawHillshade(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha, cancellationTokenSource.Token);
+            // blockiert wahrscheinlich nicht ganz so stark wie die synchrone Methode ABER manchmal fehlt das Hillshading im Ergebnis
+            //DrawHillshadeAsync(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha, cancellationTokenSource.Token).Wait(); 
+         }
 
          return bm;
       }

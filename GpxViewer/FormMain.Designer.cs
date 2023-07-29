@@ -32,6 +32,7 @@
          this.readOnlyTracklistControl1 = new GpxViewer.ReadOnlyTracklistControl();
          this.contextMenuStripReadOnlyTracks = new System.Windows.Forms.ContextMenuStrip(this.components);
          this.toolStripMenuItem_ReadOnlyTrackShow = new System.Windows.Forms.ToolStripMenuItem();
+         this.toolStripMenuItem_ReadOnlyTrackShowSlope = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem_ReadOnlyTrackZoom = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem_ReadOnlyGpxShowMarker = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker = new System.Windows.Forms.ToolStripMenuItem();
@@ -65,6 +66,7 @@
          this.toolStripMenuItem_EditableTrackDelete = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripSeparator15 = new System.Windows.Forms.ToolStripSeparator();
          this.toolStripMenuItem_EditableTrackShow = new System.Windows.Forms.ToolStripMenuItem();
+         this.toolStripMenuItem_EditableTrackShowSlope = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem_EditableTrackZoom = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem_EditableTrackInfo = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStripMenuItem_EditableTrackExtInfo = new System.Windows.Forms.ToolStripMenuItem();
@@ -95,10 +97,12 @@
          this.toolStripStatusLabel_Zoom = new System.Windows.Forms.ToolStripStatusLabel();
          this.toolStripStatusLabel_Pos = new System.Windows.Forms.ToolStripStatusLabel();
          this.toolStripStatusLabel_TrackMiniInfo = new System.Windows.Forms.ToolStripStatusLabel();
-         this.toolStripStatusLabel_EditInfo = new System.Windows.Forms.ToolStripStatusLabel();
+         this.toolStripStatusLabel_TrackInfo = new System.Windows.Forms.ToolStripStatusLabel();
          this.toolStripStatusLabel_GpxLoad = new System.Windows.Forms.ToolStripStatusLabel();
          this.menuStrip1 = new System.Windows.Forms.MenuStrip();
          this.ToolStripMenuItemMaps = new System.Windows.Forms.ToolStripMenuItem();
+         this.ToolStripMenuItemExtra = new System.Windows.Forms.ToolStripMenuItem();
+         this.ToolStripMenuIemConfig = new System.Windows.Forms.ToolStripMenuItem();
          this.toolStrip_Standard = new System.Windows.Forms.ToolStrip();
          this.toolStripButton_CancelMapLoading = new System.Windows.Forms.ToolStripButton();
          this.toolStripButton_ReloadMap = new System.Windows.Forms.ToolStripButton();
@@ -125,8 +129,6 @@
          this.colorDialog1 = new System.Windows.Forms.ColorDialog();
          this.openFileDialogGpx = new System.Windows.Forms.OpenFileDialog();
          this.saveFileDialogGpx = new System.Windows.Forms.SaveFileDialog();
-         this.toolStripMenuItem_EditableTrackShowSlope = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope = new System.Windows.Forms.ToolStripMenuItem();
          this.panelMap.SuspendLayout();
          ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
          this.splitContainer1.Panel1.SuspendLayout();
@@ -158,7 +160,7 @@
          this.panelMap.Dock = System.Windows.Forms.DockStyle.Fill;
          this.panelMap.Location = new System.Drawing.Point(0, 0);
          this.panelMap.Name = "panelMap";
-         this.panelMap.Size = new System.Drawing.Size(1318, 794);
+         this.panelMap.Size = new System.Drawing.Size(1318, 729);
          this.panelMap.TabIndex = 2;
          // 
          // splitContainer1
@@ -174,8 +176,8 @@
          // splitContainer1.Panel2
          // 
          this.splitContainer1.Panel2.Controls.Add(this.mapControl1);
-         this.splitContainer1.Size = new System.Drawing.Size(1316, 792);
-         this.splitContainer1.SplitterDistance = 339;
+         this.splitContainer1.Size = new System.Drawing.Size(1316, 727);
+         this.splitContainer1.SplitterDistance = 338;
          this.splitContainer1.TabIndex = 0;
          // 
          // tabControl1
@@ -186,7 +188,7 @@
          this.tabControl1.Location = new System.Drawing.Point(0, 0);
          this.tabControl1.Name = "tabControl1";
          this.tabControl1.SelectedIndex = 0;
-         this.tabControl1.Size = new System.Drawing.Size(339, 792);
+         this.tabControl1.Size = new System.Drawing.Size(338, 727);
          this.tabControl1.TabIndex = 8;
          // 
          // tabPageFiles
@@ -196,7 +198,7 @@
          this.tabPageFiles.Location = new System.Drawing.Point(4, 22);
          this.tabPageFiles.Name = "tabPageFiles";
          this.tabPageFiles.Padding = new System.Windows.Forms.Padding(3);
-         this.tabPageFiles.Size = new System.Drawing.Size(331, 766);
+         this.tabPageFiles.Size = new System.Drawing.Size(330, 701);
          this.tabPageFiles.TabIndex = 0;
          this.tabPageFiles.Text = "Dateien";
          // 
@@ -210,7 +212,7 @@
          this.readOnlyTracklistControl1.Location = new System.Drawing.Point(3, 3);
          this.readOnlyTracklistControl1.Margin = new System.Windows.Forms.Padding(4);
          this.readOnlyTracklistControl1.Name = "readOnlyTracklistControl1";
-         this.readOnlyTracklistControl1.Size = new System.Drawing.Size(325, 760);
+         this.readOnlyTracklistControl1.Size = new System.Drawing.Size(324, 695);
          this.readOnlyTracklistControl1.TabIndex = 8;
          this.readOnlyTracklistControl1.SelectGpxEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ChooseEventArgs>(this.readOnlyTracklistControl1_SelectGpxEvent);
          this.readOnlyTracklistControl1.SelectTrackEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ChooseEventArgs>(this.readOnlyTracklistControl1_SelectTrackEvent);
@@ -243,7 +245,7 @@
             this.toolStripMenuItem_ReadOnlyTrackClone,
             this.toolStripMenuItem_ReadOnlyGpxRemove});
          this.contextMenuStripReadOnlyTracks.Name = "contextMenuStripTrack";
-         this.contextMenuStripReadOnlyTracks.Size = new System.Drawing.Size(269, 344);
+         this.contextMenuStripReadOnlyTracks.Size = new System.Drawing.Size(269, 341);
          this.contextMenuStripReadOnlyTracks.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenuStripReadOnlyTracks_Closed);
          this.contextMenuStripReadOnlyTracks.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripReadOnlyTracks_Opening);
          // 
@@ -254,6 +256,13 @@
          this.toolStripMenuItem_ReadOnlyTrackShow.Size = new System.Drawing.Size(268, 26);
          this.toolStripMenuItem_ReadOnlyTrackShow.Text = "Track &anzeigen";
          this.toolStripMenuItem_ReadOnlyTrackShow.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackShow_Click);
+         // 
+         // toolStripMenuItem_ReadOnlyTrackShowSlope
+         // 
+         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Name = "toolStripMenuItem_ReadOnlyTrackShowSlope";
+         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Size = new System.Drawing.Size(268, 26);
+         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Text = "Anstiegssymbole anzeigen";
+         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackShowSlope_Click);
          // 
          // toolStripMenuItem_ReadOnlyTrackZoom
          // 
@@ -342,7 +351,7 @@
             0,
             0});
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Name = "numericUpDownMenuItem_ReadOnlyLineThickness";
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Size = new System.Drawing.Size(139, 33);
+         this.numericUpDownMenuItem_ReadOnlyLineThickness.Size = new System.Drawing.Size(133, 30);
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Text = "Liniendicke";
          this.numericUpDownMenuItem_ReadOnlyLineThickness.Value = new decimal(new int[] {
             5,
@@ -376,7 +385,7 @@
          this.tabPageEditable.Controls.Add(this.toolStripContainer2);
          this.tabPageEditable.Location = new System.Drawing.Point(4, 22);
          this.tabPageEditable.Name = "tabPageEditable";
-         this.tabPageEditable.Size = new System.Drawing.Size(331, 766);
+         this.tabPageEditable.Size = new System.Drawing.Size(330, 701);
          this.tabPageEditable.TabIndex = 3;
          this.tabPageEditable.Text = "neue Tracks/Marker";
          this.tabPageEditable.UseVisualStyleBackColor = true;
@@ -387,11 +396,11 @@
          // toolStripContainer2.ContentPanel
          // 
          this.toolStripContainer2.ContentPanel.Controls.Add(this.editableTracklistControl1);
-         this.toolStripContainer2.ContentPanel.Size = new System.Drawing.Size(331, 739);
+         this.toolStripContainer2.ContentPanel.Size = new System.Drawing.Size(330, 674);
          this.toolStripContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
          this.toolStripContainer2.Location = new System.Drawing.Point(0, 0);
          this.toolStripContainer2.Name = "toolStripContainer2";
-         this.toolStripContainer2.Size = new System.Drawing.Size(331, 766);
+         this.toolStripContainer2.Size = new System.Drawing.Size(330, 701);
          this.toolStripContainer2.TabIndex = 1;
          this.toolStripContainer2.Text = "toolStripContainer2";
          // 
@@ -407,9 +416,8 @@
          this.editableTracklistControl1.Location = new System.Drawing.Point(0, 0);
          this.editableTracklistControl1.Margin = new System.Windows.Forms.Padding(4);
          this.editableTracklistControl1.Name = "editableTracklistControl1";
-         this.editableTracklistControl1.Size = new System.Drawing.Size(331, 739);
+         this.editableTracklistControl1.Size = new System.Drawing.Size(330, 674);
          this.editableTracklistControl1.TabIndex = 0;
-         this.editableTracklistControl1.SelectTrackEvent += new System.EventHandler<GpxViewer.EditableTracklistControl.IdxEventArgs>(this.editableTracklistControl1_SelectTrackEvent);
          // 
          // toolStrip_Edit
          // 
@@ -498,12 +506,13 @@
          this.mapControl1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
          this.mapControl1.Dock = System.Windows.Forms.DockStyle.Fill;
          this.mapControl1.Location = new System.Drawing.Point(0, 0);
+         this.mapControl1.MapClickTolerance4Tracks = 1F;
          this.mapControl1.MapCursor = System.Windows.Forms.Cursors.Default;
          this.mapControl1.MapDragButton = System.Windows.Forms.MouseButtons.Right;
          this.mapControl1.MapMinZoom = 3;
          this.mapControl1.Margin = new System.Windows.Forms.Padding(4);
          this.mapControl1.Name = "mapControl1";
-         this.mapControl1.Size = new System.Drawing.Size(973, 792);
+         this.mapControl1.Size = new System.Drawing.Size(974, 727);
          this.mapControl1.TabIndex = 1;
          // 
          // contextMenuStripEditableTracks
@@ -532,7 +541,7 @@
             this.ToolStripMenuItem_HideAllEditableTracks,
             this.ToolStripMenuItem_RemoveVisibleEditableTracks});
          this.contextMenuStripEditableTracks.Name = "contextMenuStripTrack";
-         this.contextMenuStripEditableTracks.Size = new System.Drawing.Size(257, 502);
+         this.contextMenuStripEditableTracks.Size = new System.Drawing.Size(257, 477);
          this.contextMenuStripEditableTracks.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenuStripEditableTracks_Closed);
          this.contextMenuStripEditableTracks.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripEditableTracks_Opening);
          // 
@@ -597,6 +606,13 @@
          this.toolStripMenuItem_EditableTrackShow.Text = "&Track anzeigen";
          this.toolStripMenuItem_EditableTrackShow.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackShow_Click);
          // 
+         // toolStripMenuItem_EditableTrackShowSlope
+         // 
+         this.toolStripMenuItem_EditableTrackShowSlope.Name = "toolStripMenuItem_EditableTrackShowSlope";
+         this.toolStripMenuItem_EditableTrackShowSlope.Size = new System.Drawing.Size(256, 26);
+         this.toolStripMenuItem_EditableTrackShowSlope.Text = "Anstiegssymbole anzeigen";
+         this.toolStripMenuItem_EditableTrackShowSlope.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackShowSlope_Click);
+         // 
          // toolStripMenuItem_EditableTrackZoom
          // 
          this.toolStripMenuItem_EditableTrackZoom.Image = global::GpxViewer.Properties.Resources.zoom1;
@@ -653,7 +669,7 @@
             0,
             0});
          this.numericUpDownMenuItem_EditableLineThickness.Name = "numericUpDownMenuItem_EditableLineThickness";
-         this.numericUpDownMenuItem_EditableLineThickness.Size = new System.Drawing.Size(163, 33);
+         this.numericUpDownMenuItem_EditableLineThickness.Size = new System.Drawing.Size(157, 30);
          this.numericUpDownMenuItem_EditableLineThickness.Text = "Trackliniendicke";
          this.numericUpDownMenuItem_EditableLineThickness.Value = new decimal(new int[] {
             5,
@@ -802,11 +818,11 @@
          // toolStripContainer1.ContentPanel
          // 
          this.toolStripContainer1.ContentPanel.Controls.Add(this.panelMap);
-         this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(1318, 794);
+         this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(1318, 729);
          this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
          this.toolStripContainer1.Location = new System.Drawing.Point(0, 0);
          this.toolStripContainer1.Name = "toolStripContainer1";
-         this.toolStripContainer1.Size = new System.Drawing.Size(1318, 845);
+         this.toolStripContainer1.Size = new System.Drawing.Size(1318, 804);
          this.toolStripContainer1.TabIndex = 7;
          this.toolStripContainer1.Text = "toolStripContainer1";
          // 
@@ -824,7 +840,7 @@
             this.toolStripStatusLabel_Zoom,
             this.toolStripStatusLabel_Pos,
             this.toolStripStatusLabel_TrackMiniInfo,
-            this.toolStripStatusLabel_EditInfo,
+            this.toolStripStatusLabel_TrackInfo,
             this.toolStripStatusLabel_GpxLoad});
          this.statusStrip1.Location = new System.Drawing.Point(0, 0);
          this.statusStrip1.Name = "statusStrip1";
@@ -862,15 +878,15 @@
          this.toolStripStatusLabel_TrackMiniInfo.Name = "toolStripStatusLabel_TrackMiniInfo";
          this.toolStripStatusLabel_TrackMiniInfo.Size = new System.Drawing.Size(4, 19);
          // 
-         // toolStripStatusLabel_EditInfo
+         // toolStripStatusLabel_TrackInfo
          // 
-         this.toolStripStatusLabel_EditInfo.BorderSides = ((System.Windows.Forms.ToolStripStatusLabelBorderSides)((((System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top) 
+         this.toolStripStatusLabel_TrackInfo.BorderSides = ((System.Windows.Forms.ToolStripStatusLabelBorderSides)((((System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top) 
             | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right) 
             | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
-         this.toolStripStatusLabel_EditInfo.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-         this.toolStripStatusLabel_EditInfo.ForeColor = System.Drawing.SystemColors.GrayText;
-         this.toolStripStatusLabel_EditInfo.Name = "toolStripStatusLabel_EditInfo";
-         this.toolStripStatusLabel_EditInfo.Size = new System.Drawing.Size(4, 19);
+         this.toolStripStatusLabel_TrackInfo.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
+         this.toolStripStatusLabel_TrackInfo.ForeColor = System.Drawing.SystemColors.GrayText;
+         this.toolStripStatusLabel_TrackInfo.Name = "toolStripStatusLabel_TrackInfo";
+         this.toolStripStatusLabel_TrackInfo.Size = new System.Drawing.Size(4, 19);
          // 
          // toolStripStatusLabel_GpxLoad
          // 
@@ -884,11 +900,12 @@
          this.menuStrip1.Dock = System.Windows.Forms.DockStyle.None;
          this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
          this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItemMaps});
+            this.ToolStripMenuItemMaps,
+            this.ToolStripMenuItemExtra});
          this.menuStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow;
          this.menuStrip1.Location = new System.Drawing.Point(3, 0);
          this.menuStrip1.Name = "menuStrip1";
-         this.menuStrip1.Size = new System.Drawing.Size(61, 24);
+         this.menuStrip1.Size = new System.Drawing.Size(111, 24);
          this.menuStrip1.Stretch = false;
          this.menuStrip1.TabIndex = 2;
          this.menuStrip1.Text = "menuStrip1";
@@ -898,6 +915,21 @@
          this.ToolStripMenuItemMaps.Name = "ToolStripMenuItemMaps";
          this.ToolStripMenuItemMaps.Size = new System.Drawing.Size(53, 20);
          this.ToolStripMenuItemMaps.Text = "Karten";
+         // 
+         // ToolStripMenuItemExtra
+         // 
+         this.ToolStripMenuItemExtra.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ToolStripMenuIemConfig});
+         this.ToolStripMenuItemExtra.Name = "ToolStripMenuItemExtra";
+         this.ToolStripMenuItemExtra.Size = new System.Drawing.Size(50, 20);
+         this.ToolStripMenuItemExtra.Text = "Extras";
+         // 
+         // ToolStripMenuIemConfig
+         // 
+         this.ToolStripMenuIemConfig.Name = "ToolStripMenuIemConfig";
+         this.ToolStripMenuIemConfig.Size = new System.Drawing.Size(147, 22);
+         this.ToolStripMenuIemConfig.Text = "Konfiguration";
+         this.ToolStripMenuIemConfig.Click += new System.EventHandler(this.ToolStripMenuIemConfig_Click);
          // 
          // toolStrip_Standard
          // 
@@ -927,9 +959,9 @@
             this.toolStripButton_TrackSearch,
             this.toolStripSeparator6,
             this.toolStripButton_MiniHelp});
-         this.toolStrip_Standard.Location = new System.Drawing.Point(64, 0);
+         this.toolStrip_Standard.Location = new System.Drawing.Point(3, 24);
          this.toolStrip_Standard.Name = "toolStrip_Standard";
-         this.toolStrip_Standard.Size = new System.Drawing.Size(539, 27);
+         this.toolStrip_Standard.Size = new System.Drawing.Size(570, 27);
          this.toolStrip_Standard.TabIndex = 0;
          // 
          // toolStripButton_CancelMapLoading
@@ -976,7 +1008,7 @@
          this.toolStripButton_OpenGpxfile.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.toolStripButton_OpenGpxfile.Name = "toolStripButton_OpenGpxfile";
          this.toolStripButton_OpenGpxfile.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_OpenGpxfile.Text = "GPX-Datei öffnen";
+         this.toolStripButton_OpenGpxfile.Text = "GPX-Datei öffnen (Strg+O)";
          this.toolStripButton_OpenGpxfile.Click += new System.EventHandler(this.toolStripButton_OpenGpxfile_Click);
          // 
          // toolStripButton_SaveGpxFileExt
@@ -1056,7 +1088,7 @@
          this.toolStripButton_ZoomIn.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.toolStripButton_ZoomIn.Name = "toolStripButton_ZoomIn";
          this.toolStripButton_ZoomIn.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ZoomIn.Text = "hineinzoomen";
+         this.toolStripButton_ZoomIn.Text = "hineinzoomen (Strg+ +)";
          this.toolStripButton_ZoomIn.Click += new System.EventHandler(this.toolStripButton_ZoomIn_Click);
          // 
          // toolStripButton_ZoomOut
@@ -1066,7 +1098,7 @@
          this.toolStripButton_ZoomOut.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.toolStripButton_ZoomOut.Name = "toolStripButton_ZoomOut";
          this.toolStripButton_ZoomOut.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ZoomOut.Text = "herauszoomen";
+         this.toolStripButton_ZoomOut.Text = "herauszoomen (Strg+ -)";
          this.toolStripButton_ZoomOut.Click += new System.EventHandler(this.toolStripButton_ZoomOut_Click);
          // 
          // toolStripButton_TrackZoom
@@ -1092,7 +1124,7 @@
          this.toolStripButton_LocationForm.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.toolStripButton_LocationForm.Name = "toolStripButton_LocationForm";
          this.toolStripButton_LocationForm.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_LocationForm.Text = "gespeicherte Orte";
+         this.toolStripButton_LocationForm.Text = "gespeicherte Orte (Strg+Shift+O)";
          this.toolStripButton_LocationForm.Click += new System.EventHandler(this.toolStripButton_LocationForm_Click);
          // 
          // toolStripButton_GoToPos
@@ -1102,7 +1134,7 @@
          this.toolStripButton_GoToPos.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.toolStripButton_GoToPos.Name = "toolStripButton_GoToPos";
          this.toolStripButton_GoToPos.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_GoToPos.Text = "zu geografischen Koordinaten gehen";
+         this.toolStripButton_GoToPos.Text = "zu geografischen Koordinaten gehen (Strg+Shift+K)";
          this.toolStripButton_GoToPos.Click += new System.EventHandler(this.toolStripButton_GoToPos_Click);
          // 
          // toolStripButton_GeoSearch
@@ -1112,7 +1144,7 @@
          this.toolStripButton_GeoSearch.ImageTransparentColor = System.Drawing.Color.Magenta;
          this.toolStripButton_GeoSearch.Name = "toolStripButton_GeoSearch";
          this.toolStripButton_GeoSearch.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_GeoSearch.Text = "geografisches Objekt suchen";
+         this.toolStripButton_GeoSearch.Text = "geografisches Objekt suchen (Strg+S)";
          this.toolStripButton_GeoSearch.Click += new System.EventHandler(this.toolStripButton_GeoSearch_Click);
          // 
          // toolStripButton_TrackSearch
@@ -1156,28 +1188,15 @@
          // 
          this.saveFileDialogGpx.DefaultExt = "gpx";
          this.saveFileDialogGpx.Filter = "Gpx-Dateien|*.gpx|KMZ-Dateien|*.kmz|KML-Dateien|*.kml";
+         this.saveFileDialogGpx.OverwritePrompt = false;
          this.saveFileDialogGpx.Title = "speichern unter ...";
-         // 
-         // toolStripMenuItem_EditableTrackShowSlope
-         // 
-         this.toolStripMenuItem_EditableTrackShowSlope.Name = "toolStripMenuItem_EditableTrackShowSlope";
-         this.toolStripMenuItem_EditableTrackShowSlope.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackShowSlope.Text = "Anstiegssymbole anzeigen";
-         this.toolStripMenuItem_EditableTrackShowSlope.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackShowSlope_Click);
-         // 
-         // toolStripMenuItem_ReadOnlyTrackShowSlope
-         // 
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Name = "toolStripMenuItem_ReadOnlyTrackShowSlope";
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Text = "Anstiegssymbole anzeigen";
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackShowSlope_Click);
          // 
          // FormMain
          // 
          this.AllowDrop = true;
          this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(1318, 845);
+         this.ClientSize = new System.Drawing.Size(1318, 804);
          this.Controls.Add(this.toolStripContainer1);
          this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
          this.KeyPreview = true;
@@ -1234,7 +1253,7 @@
       private System.Windows.Forms.StatusStrip statusStrip1;
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_MapLoad;
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_Pos;
-      private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_EditInfo;
+      private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_TrackInfo;
       private System.Windows.Forms.ToolStripButton toolStripButton_ReloadMap;
       private System.Windows.Forms.ToolStripButton toolStripButton_TrackZoom;
       private System.Windows.Forms.ColorDialog colorDialog1;
@@ -1328,6 +1347,8 @@
       private System.Windows.Forms.ToolStripContainer toolStripContainer2;
       private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_ReadOnlyTrackShowSlope;
       private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_EditableTrackShowSlope;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemExtra;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuIemConfig;
    }
 }
 

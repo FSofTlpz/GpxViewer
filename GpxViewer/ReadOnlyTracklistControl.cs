@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using Gpx = FSofTUtils.Geography.PoorGpx;
 using System.Linq;
 using FSofTUtils.Threading;
+using GpxViewer.Common;
 
 namespace GpxViewer {
    public partial class ReadOnlyTracklistControl : UserControl {

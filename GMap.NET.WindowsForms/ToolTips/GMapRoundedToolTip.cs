@@ -39,44 +39,47 @@ namespace GMap.NET.Skia.ToolTips {
       }
 
       public override void OnRender(Graphics g) {
+         if (Marker.IsOnClientVisible) {
+            Point pt = Marker.LocalToolTipPosition;
 #if !GMAP4SKIA
-         var st = g.MeasureString(Marker.ToolTipText, Font).ToSize();
+            var st = g.MeasureString(Marker.ToolTipText, Font).ToSize();
 
-         var rect = new Rectangle(Marker.LocalToolTipPosition.X,
-             Marker.LocalToolTipPosition.Y - st.Height,
-             st.Width + TextPadding.Width * 2,
-             st.Height + TextPadding.Height);
-         rect.Offset(Offset.X, Offset.Y);
+            var rect = new Rectangle(pt.X,
+                                     pt.Y - st.Height,
+                                     st.Width + TextPadding.Width * 2,
+                                     st.Height + TextPadding.Height);
+            rect.Offset(Offset.X, Offset.Y);
 
-         int lineOffset = 0;
-         if (!g.VisibleClipBounds.Contains(rect)) {
-            var clippingOffset = new Point();
-            if (rect.Right > g.VisibleClipBounds.Right) {
-               clippingOffset.X = -((rect.Left - Marker.LocalPosition.X) / 2 + rect.Width);
-               lineOffset = -(rect.Width - (int)Radius);
+            int lineOffset = 0;
+            if (!g.VisibleClipBounds.Contains(rect)) {
+               var clippingOffset = new Point();
+               if (rect.Right > g.VisibleClipBounds.Right) {
+                  clippingOffset.X = -((rect.Left - Marker.ActiveClientPosition.X) / 2 + rect.Width);
+                  lineOffset = -(rect.Width - (int)Radius);
+               }
+
+               if (rect.Top < g.VisibleClipBounds.Top) {
+                  clippingOffset.Y = ((rect.Bottom - Marker.ActiveClientPosition.Y) + (rect.Height * 2));
+               }
+
+               rect.Offset(clippingOffset);
             }
 
-            if (rect.Top < g.VisibleClipBounds.Top) {
-               clippingOffset.Y = ((rect.Bottom - Marker.LocalPosition.Y) + (rect.Height * 2));
+            g.DrawLine(Stroke,
+                       pt.X,
+                       pt.Y,
+                       (rect.X - lineOffset) + Radius / 2,
+                       rect.Y + rect.Height - Radius / 2);
+
+            DrawRoundRectangle(g, Stroke, rect.X, rect.Y, rect.Width, rect.Height, Radius);
+
+            if (Format.Alignment == StringAlignment.Near) {
+               rect.Offset(TextPadding.Width, 0);
             }
 
-            rect.Offset(clippingOffset);
-         }
-
-         g.DrawLine(Stroke,
-             Marker.LocalToolTipPosition.X,
-             Marker.LocalToolTipPosition.Y,
-             (rect.X - lineOffset) + Radius / 2,
-             rect.Y + rect.Height - Radius / 2);
-
-         DrawRoundRectangle(g, Stroke, rect.X, rect.Y, rect.Width, rect.Height, Radius);
-
-         if (Format.Alignment == StringAlignment.Near) {
-            rect.Offset(TextPadding.Width, 0);
-         }
-
-         g.DrawString(Marker.ToolTipText, Font, Foreground, rect, Format);
+            g.DrawString(Marker.ToolTipText, Font, Foreground, rect, Format);
 #endif
+         }
       }
 
 

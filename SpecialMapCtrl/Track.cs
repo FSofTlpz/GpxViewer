@@ -65,7 +65,8 @@ namespace SpecialMapCtrl {
       /// <summary>
       /// Ist der Track editierbar (wird, wenn vorhanden, vom <see cref="GpxDataContainer"/> vorgegeben, sonst true)?
       /// </summary>
-      public bool IsEditable => GpxDataContainer == null || GpxDataContainer.GpxFileEditable;
+      public bool IsEditable =>
+         GpxDataContainer == null || GpxDataContainer.GpxFileEditable;
 
       bool _iseditinwork = false;
       /// <summary>
@@ -82,6 +83,8 @@ namespace SpecialMapCtrl {
             }
          }
       }
+
+      public bool IsOnLiveDraw { get; set; } = false;
 
       bool _isMarked = false;
       /// <summary>
@@ -110,6 +113,7 @@ namespace SpecialMapCtrl {
             }
          }
       }
+
       /// <summary>
       /// <see cref="Track"/> ist nur ein Teil-Track (spez. Anzeige)
       /// </summary>
@@ -404,7 +408,8 @@ namespace SpecialMapCtrl {
          return length;
       }
 
-      public double Length() => GpxSegment != null ? Length(0, GpxSegment.Points.Count - 1) : 0;
+      public double Length() =>
+         GpxSegment != null ? Length(0, GpxSegment.Points.Count - 1) : 0;
 
       /// <summary>
       /// liefert die stat. Daten als Text
@@ -507,7 +512,7 @@ namespace SpecialMapCtrl {
                               double lon,
                               double elevation = Gpx.BaseElement.NOTVALID_DOUBLE) {
          Gpx.GpxTrackPoint newpt = new Gpx.GpxTrackPoint(lon, lat, elevation);
-         if (idx < 0 || idx >= GpxSegment.Points.Count) {
+         if (idx < 0 || GpxSegment.Points.Count <= idx) {
             GpxSegment.Points.Add(newpt);
             if (VisualTrack != null)
                VisualTrack.Points.Add(new GMap.NET.PointLatLng(newpt.Lat, newpt.Lon));
@@ -554,207 +559,32 @@ namespace SpecialMapCtrl {
 
       #endregion
 
-      #region Schnittpunkt Segment - Rechteck
-
       /// <summary>
-      /// berührt die <see cref="Track"/> in irgendeiner Weise das Rechteck?
+      /// berührt der <see cref="Track"/> in irgendeiner Weise das Rechteck?
       /// </summary>
       /// <param name="rect"></param>
       /// <returns></returns>
-      public bool IsCrossing(Gpx.GpxBounds rect) {
-         Debug.WriteLine(string.Format("IsCrossing(): {0}", this));
-         if (isoverlapping(rect, Bounds)) {  // sonst lohnt eine Untersuchung nicht
-                                             // min. 1 Punkt innerhalb des Rechtecks?
-            foreach (var pt in GpxSegment.Points) {
-               if (rect.MinLon <= pt.Lon && pt.Lon <= rect.MaxLon &&
-                   rect.MinLat <= pt.Lat && pt.Lat <= rect.MaxLat) {
-                  Debug.WriteLine(string.Format("IsCrossing(): Point in rect: {0} / {1}", pt, rect));
-                  return true;
-               }
-            }
-            Debug.WriteLine(string.Format("IsCrossing(): no Point in rect: {0}", rect));
-
-            // Schneidet eine Verbindung zwischen 2 Punkten das Rechteck?
-            for (int i = 1; i < GpxSegment.Points.Count; i++) {
-               if (iscrossing(GpxSegment.Points[i - 1].Lon,
-                              GpxSegment.Points[i - 1].Lat,
-                              GpxSegment.Points[i].Lon,
-                              GpxSegment.Points[i].Lat,
-                              rect.MinLon,
-                              rect.MaxLon,
-                              rect.MinLat,
-                              rect.MaxLat)) {
-                  Debug.WriteLine(string.Format("IsCrossing(): iscrossing: {0} / {1}, {2}", rect, GpxSegment.Points[i - 1], GpxSegment.Points[i]));
-                  return true;
-               }
-            }
-         } else
-            Debug.WriteLine(string.Format("IsCrossing(): no overlapping: {0} / {1}", rect, Bounds));
-         return false;
-      }
-
-      /// <summary>
-      /// Überlappen sich die 2 Rechtecke?
-      /// </summary>
-      /// <param name="rect1"></param>
-      /// <param name="rect2"></param>
-      /// <returns></returns>
-      bool isoverlapping(Gpx.GpxBounds rect1, Gpx.GpxBounds rect2) {
-         return isoverlapping(rect1.MinLat, rect1.MaxLat, rect2.MinLat, rect2.MaxLat) &&
-                isoverlapping(rect1.MinLon, rect1.MaxLon, rect2.MinLon, rect2.MaxLon);
-      }
-
-      /* 2 Strecken: 
-       *    (vektoriell) mit Punkt P und P+R, 
-       *                     sowie Q und Q+S
-       * 
-       * Schnittpunkt bei:  P + t*R = Q + u*S      (t 0..1 und u 0..1)
-       * mit "x S"
-       * (P + t*R) x S = (Q + u*S) x S
-       * wegen S x S = 0:     
-       *    t*(R x S) = (Q - P) x S
-       * also
-       *    t = (Q - P) x S / (R x S)
-       * und analog mit "x R"         
-       *    u = (P - Q) x R / (R x S)
-       * 
-       * Wenn R x S = 0 und (Q - P) x R = 0     => Strecken liegen auf einer gemeinsamen Gerade -> Überlappung testen
-       * Wenn R x S = 0                         => parallel, also kein Schnittpunkt
-       * Wenn R x S <> 0 und t 0..1 und u 0..1  => Schnittpunkt in P + t * R = Q + u * S
-       * sonst                                  => nicht parallel aber auch kein Schnittpunkt
-       */
-
-      /* ABER!
-       * Spezialfall mit achsenparallelen Seiten des Rechtsecks ist einfacher zu testen.
-       * 
-       * Strecke AB ((xa,ya),(xb,yb)) mit xa <= xb; Rechteck mit xl, xr, yo, und yu (xl <= xr, yu <= yo)
-       * Streckengleichung:   y = ya + dy / dx * x       dx=xb-xa, dy=yb-ya
-       * 
-       * Test für senkrechte Seiten des Rechtecks:
-       *    Sonderfall dx=0 -> wenn xa=xl bzw. xa=xr liegt die Strecke auf der gleichen Gerade wie die Rechteckseite -> Test Überlappung nötig -> ...
-       *                       sonst kein Schnittpunkt
-       *    sonst
-       *       wenn   yu <= ya + dy / dx * (xl - xa) <= yo  (linke Seite)      dann Schnittpunkt
-       *       wenn   yu <= ya + dy / dx * (xr - xa) <= yo  (rechte Seite)     dann Schnittpunkt
-       *       
-       * Test für waagrechte Seiten des Rechtecks:
-       *    Sonderfall dy=0 -> wenn ya=yl bzw. ya=yr liegt die Strecke auf der gleichen Gerade wie die Rechteckseite -> Test Überlappung nötig -> ...
-       *                       sonst kein Schnittpunkt
-       *    sonst
-       *       wenn   xl <= xa + (yu - ya) * dx / dy <= xr  (untere Seite)   dann Schnittpunkt
-       *       wenn   xl <= xa + (yo - ya) * dx / dy <= xr  (obere Seite)    dann Schnittpunkt
-       *       
-       */
-
-      /// <summary>
-      /// 
-      /// </summary>
-      /// <param name="xa">x-Wert Punkt A der Strecke</param>
-      /// <param name="ya">y-Wert Punkt A der Strecke</param>
-      /// <param name="xb">x-Wert Punkt B der Strecke</param>
-      /// <param name="yb">y-Wert Punkt B der Strecke</param>
-      /// <param name="xl">x-Wert der linken Rechteckseite</param>
-      /// <param name="xr">x-Wert der rechten Rechteckseite</param>
-      /// <param name="yu">y-Wert der unteren Rechteckseite</param>
-      /// <param name="yo">y-Wert der oberen Rechteckseite</param>
-      /// <returns>true wenn Schnittpunkt/Berührungspunkt</returns>
-      bool iscrossing(double xa, double ya, double xb, double yb, double xl, double xr, double yu, double yo) {
-         if (xa > xb) {
-            swap(ref xa, ref xb);
-            swap(ref ya, ref yb);
-         }
-         if (xl > xr)
-            swap(ref xl, ref xr);
-         if (yu > yo)
-            swap(ref yu, ref yo);
-
-         double dx = xb - xa;
-         double dy = yb - ya;
-
-         // senkrechte Rechteckseiten
-         if (dx == 0) { // Sonderfall
-            if (xa == xl || xa == xr) { // ev. Überlappung
-               return isoverlapping(yu, yo, ya, yb);
-            }
-         } else {
-            if (xa <= xl && xl <= xb) {
-               double y = ya + dy / dx * (xl - xa);
-               if (yu <= y && y <= yo)
-                  return true;            // Schnittpunkt mit linker Seite
-            }
-            if (xa <= xr && xr <= xb) {
-               double y = ya + dy / dx * (xr - xa);
-               if (yu <= y && y <= yo)
-                  return true;            // Schnittpunkt mit rechter Seite
-            }
-         }
-
-         // waagerechte Rechteckseiten
-         if (dy == 0) { // Sonderfall
-            if (ya == yu || ya == yo) { // ev. Überlappung
-               return isoverlapping(xl, xr, xa, xb);
-            }
-         } else {
-            if ((ya <= yu && yu <= yb) ||
-                (yb <= yu && yu <= ya)) {
-               double x = xa + (yu - ya) * dx / dy;
-               if (xl <= x && x <= xr)
-                  return true;            // Schnittpunkt mit unterer Seite
-            }
-            if ((ya <= yo && yo <= yb) ||
-                (yb <= yo && yo <= ya)) {
-               double x = xa + (yo - ya) * dx / dy;
-               if (xl <= x && x <= xr)
-                  return true;            // Schnittpunkt mit oberer Seite
-            }
-         }
-
-         return false;
-      }
-
-      /// <summary>
-      /// Austausch der Werte
-      /// </summary>
-      /// <param name="v1"></param>
-      /// <param name="v2"></param>
-      void swap(ref double v1, ref double v2) {
-         double tmp = v1;
-         v1 = v2;
-         v2 = tmp;
-      }
-
-      /// <summary>
-      /// Überlappen sich die 2 Bereiche?
-      /// </summary>
-      /// <param name="va1">Wert 1 Bereich A</param>
-      /// <param name="va2">Wert 2 Bereich A</param>
-      /// <param name="vb1">Wert 1 Bereich B</param>
-      /// <param name="vb2">Wert 2 Bereich B</param>
-      /// <returns></returns>
-      bool isoverlapping(double va1, double va2, double vb1, double vb2) {
-         if (va1 > va2)
-            swap(ref va1, ref va2);
-         if (vb1 > vb2)
-            swap(ref vb1, ref vb2);
-         return vb2 >= va1 && vb1 <= va2;
-      }
-
-      #endregion
+      public bool IsCrossing(Gpx.GpxBounds rect) => RouteCrossing.IsRouteCrossing(rect, GpxSegment.Points);
 
       /// <summary>
       /// liefert den <see cref="VisualTrack.VisualStyle"/> für den akt. Zustand
       /// </summary>
       /// <returns></returns>
       VisualTrack.VisualStyle getVisualStyle() {
-         VisualTrack.VisualStyle style = IsSelectedPart ?
+         // Style ev. nicht einfach nur "kaskadierend" festlegen (?)
+         VisualTrack.VisualStyle style =
+            IsSelectedPart ?
                VisualTrack.VisualStyle.SelectedPart :
                IsOnEdit || IsMarked4Edit ?
                   VisualTrack.VisualStyle.InEdit :
                   IsMarked ?
                      VisualTrack.VisualStyle.Marked :
-                     IsEditable ?
-                        VisualTrack.VisualStyle.Editable :
-                        VisualTrack.VisualStyle.Standard;
+                     IsOnLiveDraw ?
+                        VisualTrack.VisualStyle.LiveDraw :
+                        IsEditable ?
+                           VisualTrack.VisualStyle.Editable :
+                           VisualTrack.VisualStyle.Standard;
+
          if (style == VisualTrack.VisualStyle.Standard) {
             if (LineColor == VisualTrack.StandardColor) {
 
@@ -800,7 +630,9 @@ namespace SpecialMapCtrl {
                (style == VisualTrack.VisualStyle.Editable &&
                  (LineColor != VisualTrack.EditableColor ||
                   LineWidth != VisualTrack.EditableWidth))) {
+
                VisualTrack.SetVisualStyle(LineColor, LineWidth);
+
             } else
                VisualTrack.SetVisualStyle(style);
          }

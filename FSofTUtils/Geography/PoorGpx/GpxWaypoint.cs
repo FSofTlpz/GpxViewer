@@ -97,6 +97,10 @@ namespace FSofTUtils.Geography.PoorGpx {
          int handled = 0; // für die Reihenfolge der handled Childs
          int lastidx = -1;
          string txt;
+
+         while ((txt = HandledAsXml(handled++, scale)) != null) // noch alle behandelten Childs ausgegeben
+            sb.Append(txt);
+
          foreach (KeyValuePair<int, string> item in UnhandledChildXml) {
             while (item.Key - 1 != lastidx) { // Lücke in der Folge der Childs, d.h. davor liegt min. 1 behandeltes Child
                txt = HandledAsXml(handled++, scale);
@@ -108,8 +112,6 @@ namespace FSofTUtils.Geography.PoorGpx {
                sb.Append(item.Value);
             lastidx = item.Key;
          }
-         while ((txt = HandledAsXml(handled++, scale)) != null) // noch alle behandelten Childs ausgegeben
-            sb.Append(txt);
 
          return XWriteNode(NODENAME, attrname, attrvalue, sb.ToString());
       }

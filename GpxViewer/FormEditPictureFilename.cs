@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace GpxViewer {
@@ -6,16 +7,20 @@ namespace GpxViewer {
 
       public string EditText = "";
 
+      public List<string> ProposalText = new List<string>();
+
+
       public FormEditPictureFilename() {
          InitializeComponent();
       }
 
       private void FormEditPictureFilename_Shown(object sender, EventArgs e) {
-         textBox1.Text = EditText;
+         comboBox1.Text = EditText;
+         comboBox1.Items.AddRange(ProposalText.ToArray());
       }
 
       private void FormEditPictureFilename_FormClosed(object sender, FormClosedEventArgs e) {
-         EditText = textBox1.Text.Trim();
+         EditText = comboBox1.Text.Trim();
       }
 
       private void FormEditPictureFilename_KeyDown(object sender, KeyEventArgs e) {

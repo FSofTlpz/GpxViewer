@@ -1,5 +1,4 @@
-﻿#define GPXONLYLOADONDEMAND          // (zum Testen) GPX-Dateien erst bei Bedarf einlesen
-//#define ONLY_PRINT_PREVIEW       // zum Testen der Druckerausgabe 'True'
+﻿//#define ONLY_PRINT_PREVIEW       // zum Testen der Druckerausgabe 'True'
 //#define GARMINDRAWTEST
 //#define SHADINGDRAWTEST
 
@@ -10,8 +9,9 @@ using FSofTUtils.Geography.GeoCoding;
 using FSofTUtils.Geometry;
 using GMap.NET.CoreExt.MapProviders;
 using GMap.NET.WindowsForms;
+using GpxViewer.Common;
+using GpxViewer.ConfigEdit;
 using SpecialMapCtrl;
-using SpecialMapCtrl.EditHelper;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,7 +22,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using AppData = GpxViewer.Common.AppData;
 using Gpx = FSofTUtils.Geography.PoorGpx;
+using MapCtrl = SpecialMapCtrl.SpecialMapCtrl;
 
 namespace GpxViewer {
    public partial class FormMain : Form {
@@ -30,10 +32,31 @@ namespace GpxViewer {
       /// <summary>
       /// Subdirectory für das Verzeichnis der ApplicationData (lokal, d.h. Environment.SpecialFolder.LocalApplicationData)
       /// </summary>
-      const string PrivateApplicationDataPath = @"FSofT\GpxViewer";
+      const string PRIVATEAPPLICATIONDATAPATH = @"FSofT\GpxViewer";
 
       /// <summary>
-      /// für den threadübergreifenden Aufruf von Close() und <see cref="RefreshProgramState"/>() nötig (keine Parameter, kein Ergebnis)
+      /// Name der Konfigurationsdatei (im <see cref="DATAPATH"/>)
+      /// </summary>
+      const string CONFIGFILE = "gpxviewer.xml";
+
+      /// <summary>
+      /// Logdatei für Exceptions (im <see cref="DATAPATH"/>)
+      /// </summary>
+      const string ERRORLOGFILE = "error.txt";
+
+      /// <summary>
+      /// normale Logdatei (im <see cref="DATAPATH"/>)
+      /// </summary>
+      const string LOGFILE = "log.txt";
+
+      /// <summary>
+      /// (private) Datei für die Workbench-Daten
+      /// </summary>
+      const string WORKBENCHGPXFILE = "persistent.gpx";
+
+
+      /// <summary>
+      /// für den threadübergreifenden Aufruf von Close() und <see cref="refreshProgramState"/>() nötig (keine Parameter, kein Ergebnis)
       /// </summary>
       private delegate void SafeCallDelegate4Void2Void();
 
@@ -41,6 +64,203 @@ namespace GpxViewer {
       /// für den threadübergreifenden Aufruf von <see cref="setGpxLoadInfo"/>() nötig 
       /// </summary>
       private delegate void SafeCallDelegate4String2Void(string text);
+
+
+      class MapMenuManager {
+
+         public class ActivateIdxArgs {
+
+            public readonly int ProviderIdx;
+
+            public ActivateIdxArgs(int idx) {
+               ProviderIdx = idx;
+            }
+         }
+
+         public event EventHandler<ActivateIdxArgs> ActivateIdx;
+
+         /// <summary>
+         /// Programmdaten
+         /// </summary>
+         AppData appData;
+
+         /// <summary>
+         /// übergeordnetes Item für alle Menüitems
+         /// </summary>
+         ToolStripMenuItem masteritem;
+
+         int maxidx = -1;
+
+         /// <summary>
+         /// IDX-Liste der zuletzt verwendeten Karten
+         /// </summary>
+         List<int> lastusedmapsidx;
+
+         /// <summary>
+         /// max. Anzahl der zuletzt verwendeten Karten
+         /// </summary>
+         readonly int lastusedmapsmax = 0;
+
+         int lastusedstartidx = -1;
+
+         /// <summary>
+         /// Liste der Providerdefinitionen
+         /// </summary>
+         IList<MapProviderDefinition> providerdefs;
+
+         int _actidx = -1;
+
+         public int ActualProviderIdx {
+            get => _actidx;
+            set {
+               if (0 <= value && value <= maxidx) {
+                  insertLastUsedMaps(value);
+                  ActivateIdx?.Invoke(this, new ActivateIdxArgs(value));
+                  _actidx = value;
+
+                  masteritem.Text = "Karte: [" + providerdefs[_actidx].MapName + "]";
+
+                  if (lastusedmapsidx.Count > 0) {
+                     List<string> mapnames = new List<string>();
+                     for (int i = 0; i < lastusedmapsidx.Count; i++)
+                        mapnames.Add(providerdefs[lastusedmapsidx[i]].MapName);
+                     appData.LastUsedMapnames = mapnames;
+                  }
+               }
+            }
+         }
+
+
+         /// <summary>
+         /// 
+         /// </summary>
+         /// <param name="config">Konfigurationsdaten</param>
+         /// <param name="appData">Programmdaten</param>
+         /// <param name="masteritem">übergeordnetes Menüitem</param>
+         /// <param name="providerdefs">Liste der Providerdefinitionen</param>
+         /// <param name="providxpaths">Liste der Indexpfade für das Providermenü</param>
+         public MapMenuManager(Config config,
+                               AppData appData,
+                               ToolStripMenuItem masteritem,
+                               IList<MapProviderDefinition> providerdefs,
+                               IList<int[]> providxpaths) {
+            this.appData = appData;
+            this.masteritem = masteritem;
+            this.providerdefs = providerdefs;
+            maxidx = providerdefs.Count - 1;
+            lastusedmapsidx = new List<int>();
+
+            masteritem.DropDownItems.Clear();
+            for (int provideridx = 0; provideridx < providerdefs.Count; provideridx++) {
+               // ev. für übergeordnete Providergruppen noch die Menüitems erzeugen
+               ToolStripMenuItem mi = masteritem;
+               for (int level = 1; level < providxpaths[provideridx].Length; level++) {
+                  if (level < providxpaths[provideridx].Length - 1) {   // Providergroup
+                     int groupidx = providxpaths[provideridx][level];
+
+                     ToolStripMenuItem mi4group = null;
+                     int destidx = -1;
+                     for (int i = 0; i < mi.DropDownItems.Count; i++) {
+                        if ((mi.DropDownItems[i] as ToolStripMenuItem).Tag == null) {
+                           if (++destidx == groupidx) {
+                              mi4group = mi.DropDownItems[i] as ToolStripMenuItem;
+                              break;
+                           }
+                        }
+                     }
+
+                     if (mi4group == null) {
+                        mi.DropDownItems.Add(config.ProviderGroupName(providxpaths[provideridx], level + 1));
+                        mi = mi.DropDownItems[mi.DropDownItems.Count - 1] as ToolStripMenuItem;
+                     } else
+                        mi = mi4group;
+
+                  } else {                                              // Provideritem
+
+                     //ToolStripItem it = mi.DropDownItems.Add(config.MapName(providxpaths[provideridx]));
+                     ToolStripItem it = mi.DropDownItems.Add(providerdefs[provideridx].MapName);
+                     it.Tag = provideridx;
+                     it.Click += (object s, EventArgs ea) => {  // Eventhandler setzt den aktuellen Provider-IDX auf den Idx im Tag
+                        ToolStripMenuItem tsmi = s as ToolStripMenuItem;
+                        if (tsmi.Tag != null)
+                           ActualProviderIdx = Convert.ToInt32(tsmi.Tag);
+                     };
+
+                  }
+               }
+            }
+
+            lastusedmapsmax = Math.Max(0, config.LastUsedMapsCount);
+            if (lastusedmapsmax > 0) {
+               masteritem.DropDownItems.Add(new ToolStripSeparator());
+               masteritem.DropDownItems[masteritem.DropDownItems.Count - 1].Tag = -1;
+
+               lastusedstartidx = masteritem.DropDownItems.Count;
+
+               List<string> mapnames = appData.LastUsedMapnames;
+               if (mapnames != null)
+                  for (int i = mapnames.Count - 1; i >= 0; i--) {
+                     int idx = getIdx4Mapname(mapnames[i]);
+                     if (0 <= idx)
+                        insertLastUsedMaps(idx);
+                  }
+            }
+         }
+
+         void insertLastUsedMaps(int mapidx) {
+            if (0 <= mapidx && mapidx <= maxidx) {
+               lastusedmapsidx.Insert(0, mapidx);
+
+               for (int i = lastusedmapsidx.Count - 1; i > 0; i--)
+                  if (lastusedmapsidx[i] == mapidx)
+                     lastusedmapsidx.RemoveAt(i);
+
+               // max. Anzahl einhalten
+               while (lastusedmapsidx.Count > lastusedmapsmax)
+                  lastusedmapsidx.RemoveAt(lastusedmapsidx.Count - 1);
+
+               while (lastusedmapsidx.Count > masteritem.DropDownItems.Count - lastusedstartidx) {
+                  masteritem.DropDownItems.Add("");
+                  masteritem.DropDownItems[masteritem.DropDownItems.Count - 1].Click += (object s, EventArgs ea) => {
+                     ToolStripMenuItem mi = s as ToolStripMenuItem;
+                     if (mi.Tag != null)
+                        ActualProviderIdx = Convert.ToInt32(mi.Tag);
+                  };
+               }
+
+               for (int i = lastusedstartidx, j = 0; i < masteritem.DropDownItems.Count; i++, j++) {
+                  int idx = lastusedmapsidx[i - lastusedstartidx];
+                  masteritem.DropDownItems[i].Tag = idx;
+                  masteritem.DropDownItems[i].Text = providerdefs[idx].MapName;
+
+                  // Shortcutkey setzen
+                  if (0 < j && j <= 10) { // ab dem 2. Item (1. ist sinnlos, da aktuell)
+                     Keys keys = Keys.D1;
+                     switch (j) {
+                        case 1: keys = Keys.D1; break;
+                        case 2: keys = Keys.D2; break;
+                        case 3: keys = Keys.D3; break;
+                        case 4: keys = Keys.D4; break;
+                        case 5: keys = Keys.D5; break;
+                        case 6: keys = Keys.D6; break;
+                        case 7: keys = Keys.D7; break;
+                        case 8: keys = Keys.D8; break;
+                        case 9: keys = Keys.D9; break;
+                     }
+                     (masteritem.DropDownItems[i] as ToolStripMenuItem).ShortcutKeys = keys | Keys.Control;
+                  }
+               }
+            }
+         }
+
+         int getIdx4Mapname(string mapname) {
+            for (int j = 0; j < providerdefs.Count; j++)
+               if (providerdefs[j].MapName == mapname)
+                  return j;
+            return -1;
+         }
+
+      }
 
       AppData appData;
 
@@ -50,92 +270,9 @@ namespace GpxViewer {
       DemData dem = null;
 
       /// <summary>
-      /// editierbare Gpx-Sammlung
-      /// </summary>
-      GpxAllExt EditableGpx;
-
-      /// <summary>
-      /// Dateiname für die Backupdatei der GPX-Daten
-      /// </summary>
-      string editablegpxbackupfile;
-
-      //long _loadGpxfilesIsRunning = 0;
-      ///// <summary>
-      ///// Werden gerade Gpx-Daten (asynchron) eingelesen?
-      ///// </summary>
-      //bool LoadGpxfilesIsRunning {
-      //   get {
-      //      return Interlocked.Read(ref _loadGpxfilesIsRunning) != 0;
-      //   }
-      //   set {
-      //      Interlocked.Exchange(ref _loadGpxfilesIsRunning, value ? 1 : 0);
-      //   }
-      //}
-      ///// <summary>
-      ///// Sollte das Einlesen von Gpx-Daten abgebrochen werden?
-      ///// </summary>
-      //bool LoadGpxfilesCancel {
-      //   get {
-      //      return Interlocked.Read(ref _loadGpxfilesIsRunning) > 1;
-      //   }
-      //   set {
-      //      if (value)
-      //         Interlocked.Exchange(ref _loadGpxfilesIsRunning, 2);
-      //   }
-      //}
-
-      long _formIsOnClosing = 0;
-      /// <summary>
-      /// Soll das Programm gerade beendet werden (FormClosing() wurde abgebrochen)?
-      /// </summary>
-      bool FormIsOnClosing {
-         get {
-            return Interlocked.Read(ref _formIsOnClosing) != 0;
-         }
-         set {
-            Interlocked.Exchange(ref _formIsOnClosing, value ? 1 : 0);
-         }
-      }
-
-      /// <summary>
-      /// Hilfsfunktionen für das Editieren von Tracks
-      /// </summary>
-      EditTrackHelper editTrackHelper;
-
-      /// <summary>
-      /// Hilfsfunktionen für das Editieren von Markern
-      /// </summary>
-      EditMarkerHelper editMarkerHelper;
-
-      /// <summary>
-      /// Liste der akt. hervorgehobenen <see cref="Track"/>
-      /// </summary>
-      readonly List<Track> highlightedTrackSegments = new List<Track>();
-
-      /// <summary>
-      /// diverse Cursoren für die Karte
-      /// </summary>
-      Cursors4Map cursors4Map;
-
-      /// <summary>
-      /// Konfigurationsdaten
-      /// </summary>
-      Config config;
-
-      /// <summary>
-      /// Programmname (aus der Assemblyinfo)
-      /// </summary>
-      string Progname;
-
-      /// <summary>
-      /// Programmversion (aus der Assemblyinfo)
-      /// </summary>
-      string Progversion;
-
-      /// <summary>
       /// Soll eine Speicherung mit den Garmin-Erweiterungen erfolgen? (notwendig z.B. für spez. Markerbilder)
       /// </summary>
-      bool SaveWithGarminExtensions {
+      bool saveWithGarminExtensions {
          get {
             return toolStripButton_SaveWithGarminExt.Checked;
          }
@@ -144,12 +281,12 @@ namespace GpxViewer {
       /// <summary>
       /// Liste der registrierten Garmin-Symbole
       /// </summary>
-      List<GarminSymbol> GarminMarkerSymbols;
+      List<GarminSymbol> garminMarkerSymbols;
 
       /// <summary>
       /// (ev. benutzerdef.) Farben für Auswahldialog
       /// </summary>
-      static Color[] predefColors = new Color[] {
+      internal static Color[] PredefColors = new Color[] {
          Color.Black,
          Color.FromArgb(192, 0, 0),
          Color.FromArgb(192, 64, 0),
@@ -184,123 +321,50 @@ namespace GpxViewer {
          Color.FromArgb(255, 192, 255),
       };
 
-      FormSplashScreen formSplashScreen = null;
+      List<int[]> providxpaths = new List<int[]>();
 
-
-      class MapMenuManager {
-
-         public class ActivateIdxArgs {
-
-            public readonly int ProviderIdx;
-
-            public ActivateIdxArgs(int idx) {
-               ProviderIdx = idx;
-            }
-         }
-
-         public event EventHandler<ActivateIdxArgs> ActivateIdx;
-
-
-
-         ToolStripMenuItem masteritem;
-
-         int _actidx = -1;
-
-         public int ActualProviderIdx {
-            get => _actidx;
-            set {
-               if (0 <= value && value <= maxidx) {
-                  lastusedmapsidx.Insert(0, value);
-                  for (int i = lastusedmapsidx.Count - 1; i > 0; i--)
-                     if (lastusedmapsidx[i] == value)
-                        lastusedmapsidx.RemoveAt(i);
-                  // max. Anzahl einhalten
-                  while (lastusedmapsidx.Count > lastusedmapsmax)
-                     lastusedmapsidx.RemoveAt(lastusedmapsidx.Count - 1);
-
-                  while (lastusedmapsidx.Count > masteritem.DropDownItems.Count - lastusedstartidx) {
-                     masteritem.DropDownItems.Add("");
-                     masteritem.DropDownItems[masteritem.DropDownItems.Count - 1].Click += (object s, EventArgs ea) => {
-                        ToolStripMenuItem mi = s as ToolStripMenuItem;
-                        if (mi.Tag != null)
-                           ActualProviderIdx = Convert.ToInt32(mi.Tag);
-                     };
-                  }
-
-                  for (int i = lastusedstartidx; i < masteritem.DropDownItems.Count; i++) {
-                     int idx = lastusedmapsidx[i - lastusedstartidx];
-                     masteritem.DropDownItems[i].Tag = idx;
-                     masteritem.DropDownItems[i].Text = providerdefs[idx].MapName;
-                  }
-
-                  ActivateIdx?.Invoke(this, new ActivateIdxArgs(value));
-
-                  _actidx = value;
-               }
-            }
-         }
-
-         int maxidx = -1;
-
-         List<int> lastusedmapsidx;
-
-         int lastusedmapsmax = 0;
-
-         int lastusedstartidx = -1;
-
-         IList<MapProviderDefinition> providerdefs;
-
-
-         public MapMenuManager(Config config, ToolStripMenuItem masteritem, IList<MapProviderDefinition> providerdefs) {
-            this.masteritem = masteritem;
-            this.providerdefs = providerdefs;
-            maxidx = providerdefs.Count - 1;
-            lastusedmapsidx = new List<int>();
-
-            for (int i = 0; ; i++) {
-               string name = config.ProvidermenuItemName(i);
-               if (!string.IsNullOrEmpty(name)) {
-                  masteritem.DropDownItems.Add(name);
-                  ToolStripItem ti = masteritem.DropDownItems[i];
-                  ti.Tag = -1;
-                  int[] no = config.ProvidermenuItemSubItems(i);
-                  for (int j = 0; j < no.Length; j++) {
-                     if (0 <= no[j] && no[j] <= maxidx) {
-                        ToolStripMenuItem tmi = (ti as ToolStripMenuItem);
-                        tmi.DropDownItems.Add(providerdefs[no[j]].MapName);
-                        tmi.DropDownItems[j].Tag = no[j];
-                        tmi.DropDownItems[j].Click += (object s, EventArgs ea) => {
-                           ToolStripMenuItem mi = s as ToolStripMenuItem;
-                           if (mi.Tag != null)
-                              ActualProviderIdx = Convert.ToInt32(mi.Tag);
-                        };
-                     }
-                  }
-               } else {
-                  int no = config.ProvidermenuItemNo(i);
-                  if (no < 0)
-                     break;
-                  if (0 <= no && no <= maxidx) {
-                     masteritem.DropDownItems.Add(providerdefs[no].MapName);
-                     masteritem.DropDownItems[i].Tag = no;
-                     masteritem.DropDownItems[i].Click += (object s, EventArgs ea) => {
-                        ToolStripMenuItem mi = s as ToolStripMenuItem;
-                        if (mi.Tag != null)
-                           ActualProviderIdx = Convert.ToInt32(mi.Tag);
-                     };
-                  }
-               }
-            }
-            lastusedmapsmax = Math.Max(0, config.ProvidermenuLastuseditems);
-            if (lastusedmapsmax > 0) {
-               masteritem.DropDownItems.Add(new ToolStripSeparator());
-               masteritem.DropDownItems[masteritem.DropDownItems.Count - 1].Tag = -1;
-               lastusedstartidx = masteritem.DropDownItems.Count;
-            }
-
-         }
-
+      long _formIsOnClosing = 0;
+      /// <summary>
+      /// Soll das Programm gerade beendet werden (FormClosing() wurde abgebrochen)?
+      /// </summary>
+      bool formIsOnClosing {
+         get => Interlocked.Read(ref _formIsOnClosing) != 0;
+         set => Interlocked.Exchange(ref _formIsOnClosing, value ? 1 : 0);
       }
+
+      /// <summary>
+      /// Liste der akt. hervorgehobenen <see cref="Track"/>
+      /// </summary>
+      readonly List<Track> highlightedTrackSegments = new List<Track>();
+
+      /// <summary>
+      /// diverse Cursoren für die Karte
+      /// </summary>
+      Cursors4Map cursors4Map;
+
+      /// <summary>
+      /// Konfigurationsdaten
+      /// </summary>
+      Config config;
+
+      /// <summary>
+      /// Programmname (aus der Assemblyinfo)
+      /// </summary>
+      string Progname;
+
+      /// <summary>
+      /// Programmversion (aus der Assemblyinfo)
+      /// </summary>
+      string Progversion;
+
+      string lastSaveFilename = "";
+
+      /// <summary>
+      /// Ist das Program in irgendeinem Editier-Status?
+      /// </summary>
+      bool progIsInEditState => programState != ProgState.Viewer;
+
+      FormSplashScreen formSplashScreen = null;
 
       MapMenuManager mapMenuManager;
 
@@ -308,37 +372,381 @@ namespace GpxViewer {
       DateTime dtLoadTime = DateTime.Now;
 #endif
 
+      GpxWorkbench gpxWorkbench;
+
+      /// <summary>
+      /// wenn Tiles geladen werden 1, sonst 0 (threadsichere Abfrage!)
+      /// </summary>
+      long tileLoadIsRunning = 0;
+
 
       public FormMain() {
          try {
             InitializeComponent();
 
+#if DEBUG
             GarminImageCreator.ImageCreator.test();
+#endif
 
+            GpxWorkbench.LoadInfoEvent += (sender, e) => appendStartInfo("  " + e.Info);
 
          } catch (Exception ex) {
-            ShowExceptionError(ex);
-            this.BindingContextChanged += formMain_BindingContextChanged;  // 1. Event nach HandleCreated
+            UIHelper.ShowExceptionError(ex);
+            BindingContextChanged += FormMain_BindingContextChanged;  // 1. Event nach HandleCreated
          }
       }
 
-      #region Events der Form
-
-      private void formMain_BindingContextChanged(object sender, EventArgs e) {
-         Close();
-      }
+      #region Initialisierung
 
       void startSplashScreen() {
-         formSplashScreen = new FormSplashScreen();
-         Thread splashThread = new Thread(new ThreadStart(() => Application.Run(formSplashScreen)));
-         splashThread.SetApartmentState(ApartmentState.STA);
-         splashThread.Start();
+         if (formSplashScreen == null) {
+            formSplashScreen = new FormSplashScreen();
+            Thread splashThread = new Thread(new ThreadStart(() => Application.Run(formSplashScreen)));
+            splashThread.SetApartmentState(ApartmentState.STA);
+            splashThread.Start();
+         }
       }
 
       void endSplashScreen() {
          formSplashScreen?.End();
          formSplashScreen = null;
          Activate();    // FormMain im Vordergrund
+      }
+
+      void appendStartInfo(string txt) =>
+         formSplashScreen?.AppendTextLine(txt);
+
+      /// <summary>
+      /// gesamte Init. mit Anzeige im <see cref="FormSplashScreen"/>
+      /// <para>Bei einem schweren Fehler wird das Programm geschlossen.</para>
+      /// </summary>
+      void initAllWithInfo() {
+         startSplashScreen();
+         appendStartInfo(Text + " startet ...");
+
+         try {
+            initAll();
+
+            //throw new Exception("TEST");
+         } catch (Exception ex) {
+            UIHelper.ShowExceptionError(ex);
+            Close();
+            return;
+         } finally {
+            endSplashScreen();
+         }
+      }
+
+      void initAll() {
+         appendStartInfo("Init ...");
+
+         string progpath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
+#if DEBUG
+         appData = new AppData(PRIVATEAPPLICATIONDATAPATH, progpath);
+#else
+         appData = new AppData(PRIVATEAPPLICATIONDATAPATH);
+#endif
+
+         try {
+            appendStartInfo("initDepTools() ...");
+            // Bis auf Ausnahmen muss die gesamte Init-Prozedur fehlerfrei laufen. Sonst erfolgt ein Prog-Abbruch.
+#if DEBUG
+            string datapath = Path.Combine(progpath, PRIVATEAPPLICATIONDATAPATH);
+#else
+            string datapath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), PRIVATEAPPLICATIONDATAPATH);
+#endif
+
+            UIHelper.ExceptionLogfile = Path.Combine(datapath, ERRORLOGFILE);
+            //logfile = Path.Combine(datapath, LOGFILE);
+
+            if (initDataPath(datapath)) {
+               string currentpath = Directory.GetCurrentDirectory();
+               Directory.SetCurrentDirectory(datapath); // Directory.GetCurrentDirectory() liefert z.B.: /storage/emulated/0/TrackEddi
+
+               string configfile = Path.Combine(progpath, CONFIGFILE);
+               appendStartInfo(nameof(initConfig) + "(" + configfile + ") ...");
+               config = initConfig(configfile);
+
+               appendStartInfo(nameof(initDEM) + "() ...");
+               dem = initDEM(config);
+               appendStartInfo("   DemPath " + config.DemPath);
+               appendStartInfo("   DemCachesize " + config.DemCachesize);
+               appendStartInfo("   DemCachePath " + config.DemCachePath);
+
+               mapControl1.MapCtrl.SpecMapCacheLocation = datapath;
+               appendStartInfo(nameof(initMapProvider) + "() ...");
+               Directory.SetCurrentDirectory(currentpath);
+               initMapProvider(mapControl1.MapCtrl, config);
+               Directory.SetCurrentDirectory(datapath);
+
+               appendStartInfo(nameof(initAndStartMap) + "() ...");
+               initAndStartMap(mapControl1.MapCtrl, config);
+
+               appendStartInfo(nameof(setProviderZoomPosition) + "() ...");
+               int idx = config.StartProvider;
+               for (int i = 0; i < mapControl1.MapCtrl.SpecMapProviderDefinitions.Count; i++) {
+                  if (mapControl1.MapCtrl.SpecMapProviderDefinitions[i].MapName == appData.LastMapname) {
+                     idx = i;
+                     break;
+                  }
+               }
+               setProviderZoomPosition(idx,                 // entweder config.StartProvider oder entsprechend appData.LastMapname
+                                       appData.LastZoom,
+                                       appData.LastLongitude,
+                                       appData.LastLatitude);
+               appendStartInfo(nameof(initVisualTrackData) + "() ...");
+               initVisualTrackData(config);
+
+               try {
+                  appendStartInfo(nameof(initGarminMarkerSymbols) + "() ...");
+                  garminMarkerSymbols = initGarminMarkerSymbols(progpath, config);
+                  VisualMarker.RegisterExternSymbols(garminMarkerSymbols);
+               } catch (Exception ex) {
+                  UIHelper.ShowExceptionMessage(this, "Fehler beim Lesen der Garmin-Symbole", ex, null, false);
+               }
+
+               appendStartInfo(nameof(initWorkbench) + "() ...");
+               gpxWorkbench = initWorkbench(config, appData, Path.Combine(datapath, WORKBENCHGPXFILE), mapControl1.MapCtrl, dem);
+               appendStartInfo("   Tracks: " + gpxWorkbench.TrackCount);
+               appendStartInfo("   Marker: " + gpxWorkbench.MarkerCount);
+
+               Directory.SetCurrentDirectory(currentpath);
+            }
+         } catch (Exception ex) {
+            UIHelper.ShowExceptionMessage(this, "Fehler", ex, null, false);  // Abbruch
+            throw new Exception("Abbruch", ex);
+         }
+
+         //map.Map_MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
+         //mapControl1.Map_MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionWithoutCenter;
+         //map.Map_MouseWheelZoomType = GMap.NET.MouseWheelZoomType.ViewCenter;
+
+      }
+
+      bool initDataPath(string datapath) {
+         if (!Directory.Exists(datapath))
+            try {
+               Directory.CreateDirectory(datapath);
+            } catch {
+               return false;
+            }
+         return true;
+      }
+
+      Config initConfig(string configfile) =>
+         new Config(configfile, null);
+
+      DemData initDEM(Config cfg) => ConfigHelper.ReadDEMDefinition(cfg);
+
+      void initMapProvider(MapCtrl map, Config cfg) {
+         List<MapProviderDefinition> provdefs = ConfigHelper.ReadProviderDefinitions(cfg, out providxpaths, out List<string> providernames);
+         for (int i = 0; i < provdefs.Count; i++)
+            appendStartInfo("   " + provdefs[i].MapName + " (" + provdefs[i].ProviderName + ")");
+         map.SpecMapRegisterProviders(providernames, provdefs);
+      }
+
+      void initAndStartMap(MapCtrl map, Config cfg) {
+         map.OnMapTileLoadStart += map_OnMapTileLoadStartEvent;
+         map.SpecMapTileLoadCompleteEvent += map_MapTileLoadCompleteEvent;
+         map.SpecMapTrackSearch4PolygonEvent += map_MapTrackSearch4PolygonEvent;
+         map.OnMapZoomChanged += map_OnZoomChanged;
+         map.OnMapExceptionThrown += (Exception ex) =>
+           UIHelper.ShowExceptionMessage(this, "Fehler bei " + nameof(map.OnMapExceptionThrown), ex, null, false);
+
+         map.SpecMapMouseEvent += map_SpecMapMouseEvent;
+         map.SpecMapMarkerEvent += map_SpecMapMarkerEvent;
+         map.SpecMapTrackEvent += map_SpecMapTrackEvent;
+         map.SpecMapDrawOnTop += map_SpecMapDrawOnTopEvent;
+
+         //map.ShowTileGridLines = true;                 // mit EmptyTileBorders gezeichnet
+         //map.ShowCenter = true;                        // shows a little red cross on the map to show you exactly where the center is
+         map.Map_EmptyMapBackgroundColor = Color.LightYellow;   // Tile (noch) ohne Daten
+         map.Map_EmptyTileText = "keine Daten";            // Hinweistext für "Tile ohne Daten"
+         map.Map_EmptyTileColor = Color.LightGray;        // Tile (endgültig) ohne Daten
+
+         MapCtrl.SpecMapCacheIsActiv = !cfg.ServerOnly;
+         MapCtrl.SpecMapSetProxy(cfg.WebProxyName,
+                                 cfg.WebProxyPort,
+                                 cfg.WebProxyUser,
+                                 cfg.WebProxyPassword);
+
+         map.Map_ClickTolerance4Tracks = (float)cfg.ClickTolerance4Tracks;
+
+         List<MapProviderDefinition> provdefs = map.SpecMapProviderDefinitions;
+         int startprovider = config.StartProvider;       // EmptyProvider.Instance, GoogleMapProvider.Instance
+         if (!appData.IsCreated) {     // wurde noch nie verwendet
+            appData.LastLatitude = config.StartLatitude;
+            appData.LastLongitude = config.StartLongitude;
+            appData.LastZoom = config.StartZoom;
+            appData.IsCreated = true;
+         } else {
+            string mapname = appData.LastMapname;
+            for (int i = 0; i < provdefs.Count; i++) {
+               if (provdefs[i].MapName == mapname) {
+                  startprovider = i;
+                  break;
+               }
+            }
+         }
+         if (startprovider >= provdefs.Count)
+            startprovider = -1;
+
+         //map.MapServiceStart(appData.LastLongitude,
+         //                    appData.LastLatitude,
+         //                    IOHelper.GetFullPath(config.CacheLocation),
+         //                    (int)appData.LastZoom,
+         //                    GMapControl.ScaleModes.Fractional);
+
+         map.Map_ShowTileGridLines = false; // auch bei DEBUG
+         map.Map_DragButton = MouseButtons.Left;
+
+         if (startprovider >= 0)
+            setProviderZoomPosition(startprovider, appData.LastZoom, appData.LastLongitude, appData.LastLatitude);
+      }
+
+      void initVisualTrackData(Config cfg) => ConfigHelper.ReadVisualTrackDefinitions(cfg);
+
+      List<GarminSymbol> initGarminMarkerSymbols(string datapath, Config cfg) => ConfigHelper.ReadGarminMarkerSymbols(cfg, datapath);
+
+      GpxWorkbench initWorkbench(Config config, AppData appData, string gpxworkbenchfile, MapCtrl map, DemData dem) {
+         GpxWorkbench wb = new GpxWorkbench(map,
+                                            dem,
+                                            gpxworkbenchfile,
+                                            config.HelperLineColor,
+                                            config.HelperLineWidth,
+                                            config.EditableTrackColor,
+                                            config.EditableTrackWidth,
+                                            config.SymbolZoomfactor,
+                                            appData.GpxDataChanged);
+         if (map != null) {
+            // Nach dem Einlesen sind alle Tracks "unsichtbar".
+            List<bool> tmp = appData.VisibleStatusTrackList;
+            for (int i = 0; i < tmp.Count && i < wb.TrackCount; i++)
+               if (tmp[i])
+                  showTrack(wb.GetTrack(i));
+
+            tmp = appData.VisibleStatusMarkerList;
+            for (int i = 0; i < tmp.Count && i < wb.MarkerCount; i++)
+               if (tmp[i])
+                  showMarker(wb.GetMarker(i));
+         }
+
+         wb.Gpx.ChangeIsSet += gpxWorkbench_ChangeIsSet;
+         wb.Gpx.TracklistChanged += gpx_TracklistChanged;
+         wb.Gpx.MarkerlistlistChanged += gpx_MarkerlistlistChanged;
+
+         wb.MarkerShouldInsertEvent += gpxWorkbench_MarkerShouldInsertEvent;
+         wb.RefreshProgramStateEvent += (sender, e) => refreshProgramState();
+         wb.TrackEditShowEvent += (sender, e) => showMiniEditableTrackInfo(e.Track);
+
+         workbenchListChanged(wb.Gpx);
+
+         return wb;
+      }
+
+      /// <summary>
+      /// setzt die gewünschte Karte, den Zoom und die Position
+      /// </summary>
+      /// <param name="mapidx">Index für die <see cref="SpecialMapCtrl.SpecialMapCtrl.SpecMapProviderDefinitions"/></param>
+      /// <param name="zoom"></param>
+      /// <param name="lon"></param>
+      /// <param name="lat"></param>
+      void setProviderZoomPosition(int mapidx, double zoom, double lon, double lat) {
+         try {
+            // Zoom und Pos. einstellen
+            if (zoom != mapControl1.MapZoom ||
+                lon != mapControl1.MapCenterLon ||
+                lat != mapControl1.MapCenterLat)
+               mapControl1.MapSetLocationAndZoom(zoom, lon, lat);
+
+            if (0 <= mapidx &&
+                mapidx < providxpaths.Count &&
+                mapidx != mapControl1.MapActualMapIdx) {     // andere Karte anzeigen
+               bool hillshade = false;
+               byte hillshadealpha = 0;
+               bool hillshadeisactiv = mapControl1.MapZoom >= dem.MinimalZoom;
+
+               if (0 <= mapidx) {
+                  mapControl1.MapClearWaitingTaskList();
+
+                  MapProviderDefinition mapProviderDefinition = mapControl1.MapProviderDefinitions[mapidx];
+                  if (mapProviderDefinition.ProviderName == "Garmin") {
+                     mapControl1.MapCancelTileBuilds();
+                     hillshadealpha = (mapProviderDefinition as GarminProvider.GarminMapDefinitionData).HillShadingAlpha;
+                     hillshade = (mapProviderDefinition as GarminProvider.GarminMapDefinitionData).HillShading;
+                  } else if (mapProviderDefinition.ProviderName == "GarminKMZ") {
+                     mapControl1.MapCancelTileBuilds();
+                     hillshadealpha = (mapProviderDefinition as GarminKmzProvider.KmzMapDefinition).HillShadingAlpha;
+                     hillshade = (mapProviderDefinition as GarminKmzProvider.KmzMapDefinition).HillShading;
+                  }
+               }
+               dem.WithHillshade = hillshade;
+               dem.IsActiv = hillshadeisactiv;
+               mapControl1.MapSetActivProvider(mapidx, hillshadealpha, dem);
+            }
+         } catch (Exception ex) {
+            UIHelper.ShowExceptionMessage(null, "Fehler bei " + nameof(setProviderZoomPosition), ex, null, false);
+         }
+      }
+
+      #endregion
+
+      #region Events der GpxWorkbench
+
+      private void gpx_MarkerlistlistChanged(object sender, GpxAllExt.MarkerlistChangedEventArgs e) => workbenchListChanged(sender as GpxAllExt);
+
+      private void gpx_TracklistChanged(object sender, GpxAllExt.TracklistChangedEventArgs e) => workbenchListChanged(sender as GpxAllExt);
+
+      void workbenchListChanged(GpxAllExt gpx) {
+         toolStripButton_ClearEditable.Enabled =
+         toolStripButton_SaveGpxFiles.Enabled =
+         toolStripButton_SaveGpxFileExt.Enabled = (gpx.TrackList.Count > 0 || gpx.Waypoints.Count > 0);     // "speichern unter" ist immer aktiv, wenn min. 1 Track oder 1 Marker vorhanden ist
+      }
+
+      /// <summary>
+      /// die Eigenschaft <see cref="GpxAllExt.GpxDataChanged"/> wurde gesetzt (aber nicht notwendigerweise geändert!)
+      /// </summary>
+      /// <param name="sender"></param>
+      /// <param name="e"></param>
+      private void gpxWorkbench_ChangeIsSet(object sender, EventArgs e) {
+         GpxAllExt gpx = sender as GpxAllExt;
+         if (gpx.GpxDataChanged) // es wurde (noch etwas) verändert
+            gpxWorkbench.Save();
+         workbenchListChanged(gpx);
+      }
+
+      private async void gpxWorkbench_MarkerShouldInsertEvent(object sender, EditHelper.MarkerEventArgs e) {
+         Cursor orgCursor = Cursor;
+         Cursor = Cursors.WaitCursor;
+         string[] names = await gpxWorkbench.GetNamesForGeoPointAsync(e.Marker.Longitude, e.Marker.Latitude);
+         Cursor = orgCursor;
+
+         FormMarkerEditing form = new FormMarkerEditing() {
+            Marker = e.Marker,
+            GarminMarkerSymbols = garminMarkerSymbols,
+            Proposals = names,
+         };
+
+         if (form.ShowDialog() == DialogResult.OK) {
+            if (string.IsNullOrEmpty(e.Marker.Waypoint.Name)) {
+               e.Marker.Waypoint.Name = string.Format("M Lon={0:F6}°/Lat={1:F6}°", e.Marker.Waypoint.Lon, e.Marker.Waypoint.Lat);    // autom. Name
+            }
+            gpxWorkbench.MarkerInsertCopy(e.Marker, 0);
+            showEditableMarker(0);
+         }
+      }
+
+      //private void gpxWorkbench_TrackEditShowEvent(object sender, EditHelper.TrackEventArgs e) {
+      //   showMiniEditableTrackInfo(e.Track);
+      //}
+
+      #endregion
+
+      #region Events der Form
+
+      private void FormMain_BindingContextChanged(object sender, EventArgs e) {
+         Close();
       }
 
       private void FormMain_Load(object sender, EventArgs e) {
@@ -348,16 +756,12 @@ namespace GpxViewer {
 
          Text = Progname + " " + Progversion;
 
-         startSplashScreen();
-         formSplashScreen.AppendTextLine(Text + " startet ...");
+         initAllWithInfo();
 
-         try {
-            ReadConfigData();
-         } catch (Exception ex) {
-            ShowExceptionError(ex);
-            Close();
-            return;
-         }
+         // Größe des Quadrates festgelegt
+         rectLastMouseMovePosition = new Rectangle(int.MinValue, int.MinValue, config.MinimalTrackpointDistanceX, config.MinimalTrackpointDistanceY);
+
+         map_OnZoomChanged(null, EventArgs.Empty);
 
          // Test: new FSofTUtils.Geography.KmlReader().Read("../../gpx/gx.kmz", out List<Color> cols);
 
@@ -367,86 +771,58 @@ namespace GpxViewer {
          return;
 #endif
 
-         EditableGpx = new GpxAllExt {
-            GpxFileEditable = true,
-            TrackColor = VisualTrack.EditableColor,
-            TrackWidth = VisualTrack.EditableWidth,
-         };
-         EditableGpx.ChangeIsSet += EditableGpx_ChangeIsSet;
-         EditableGpx.ChangeIsChanged += EditableGpx_ChangeIsChanged;
+         creatMapMenuManager();
 
-         editTrackHelper = mapControl1.MapCreateEditTrackHelper(EditableGpx, config.HelperLineColor, config.HelperLineWidth);
-         editTrackHelper.TrackEditShowEvent += editTrackHelper_TrackEditShowEvent;
-
-         editMarkerHelper = mapControl1.MapCreateEditMarkerHelper(EditableGpx, config.HelperLineColor, config.HelperLineWidth);
-         editMarkerHelper.RefreshProgramStateEvent += editMarkerHelper_RefreshProgramStateEvent;
-         editMarkerHelper.MarkerShouldInsertEvent += editMarkerHelper_MarkerShouldInsertEvent;
-
-
-         mapMenuManager = new MapMenuManager(config, ToolStripMenuItemMaps, mapControl1.MapProviderDefinitions);
-         mapMenuManager.ActivateIdx += (s, ea) => {
-            try {
-               dem.WithHillshade = config.Hillshading(ea.ProviderIdx);
-               mapControl1.MapSetActivProvider(ea.ProviderIdx, config.HillshadingAlpha(ea.ProviderIdx), dem);
-            } catch (Exception ex) {
-               ShowExceptionError(ex);
-            }
-         };
-
-         string lastmapname = appData.LastMapname;
-         int lastmapnameidx = -1;
-         for (int i = 0; i < mapControl1.MapProviderDefinitions.Count; i++) {
-            if (lastmapname == mapControl1.MapProviderDefinitions[i].MapName)
-               lastmapnameidx = i;
-         }
-         if (lastmapnameidx >= 0)
-            mapMenuManager.ActualProviderIdx = lastmapnameidx;
-         else {
-            if (mapControl1.MapProviderDefinitions.Count > 0)
-               mapMenuManager.ActualProviderIdx = Math.Max(0, Math.Min(config.StartProvider, mapControl1.MapProviderDefinitions.Count - 1));
-         }
-
-         mapControl1.MapZoomChangedEvent += mapControl1_MapZoomChangedEvent;
-         mapControl1.MapMouseEvent += mapControl1_MapMouseEvent;
-         mapControl1.MapMarkerEvent += mapControl1_MapMarkerEvent;
-         mapControl1.MapTrackEvent += mapControl1_MapTrackEvent;
-         mapControl1.MapDrawOnTopEvent += mapControl1_MapDrawOnTopEvent;
-         mapControl1.MapTileLoadCompleteEvent += mapControl1_MapTileLoadCompleteEvent;
-         mapControl1.MapTrackSearch4PolygonEvent += mapControl1_MapTrackSearch4PolygonEvent;
+         //mapControl1.MapZoomChangedEvent += map_OnZoomChanged;
+         //mapControl1.MapMouseEvent += map_SpecMapMouseEvent;
+         //mapControl1.MapMarkerEvent += map_SpecMapMarkerEvent;
+         //mapControl1.MapTrackEvent += map_SpecMapTrackEvent;
+         //mapControl1.MapDrawOnTopEvent += map_SpecMapDrawOnTopEvent;
+         //mapControl1.MapTileLoadCompleteEvent += map_MapTileLoadCompleteEvent;
+         //mapControl1.MapTrackSearch4PolygonEvent += map_MapTrackSearch4PolygonEvent;
 
          cursors4Map = new Cursors4Map(mapControl1.MapCursor);
 
-         mapControl1.MapDragButton = MouseButtons.Left;
+         //mapControl1.MapDragButton = MouseButtons.Left;
 
          // Argumente der Kommandozeile jeweils als GPX-Liste einlesen
          string[] args = Environment.GetCommandLineArgs();
          for (int i = 1; i < args.Length; i++) {
-            formSplashScreen.AppendTextLine("lese Datei " + args[i]);
+            appendStartInfo("lese Datei " + args[i]);
             readOnlyTracklistControl1.AddFile(args[i]);
          }
 
-         editableTracklistControl1.Gpx = EditableGpx;
-         editableTracklistControl1.TrackOrderChangedEvent += EditableTracklistControl1_TrackOrderChangedEvent;
-         editableTracklistControl1.MarkerOrderChangedEvent += EditableTracklistControl1_MarkerOrderChangedEvent;
-         editableTracklistControl1.UpdateVisualTrackEvent += EditableTracklistControl1_UpdateVisualTrackEvent;
-         editableTracklistControl1.UpdateVisualMarkerEvent += EditableTracklistControl1_UpdateVisualMarkerEvent;
-         editableTracklistControl1.ShowTrackEvent += EditableTracklistControl1_ShowTrackEvent;
-         editableTracklistControl1.ShowMarkerEvent += EditableTracklistControl1_ShowMarkerEvent;
-         editableTracklistControl1.ChooseTrackEvent += EditableTracklistControl1_ChooseTrackEvent;
-         editableTracklistControl1.ChooseMarkerEvent += EditableTracklistControl1_ChooseMarkerEvent;
-         editableTracklistControl1.ShowContextmenu4TrackEvent += EditableTracklistControl1_ShowContextmenu4TrackEvent;
-         editableTracklistControl1.ShowContextmenu4MarkerEvent += EditableTracklistControl1_ShowContextmenu4MarkerEvent;
+         editableTracklistControl1.TrackOrderChangedEvent += (s, ea) => gpxWorkbench.TrackChangePositionInList(ea.OldIdx, ea.NewIdx);
+         editableTracklistControl1.MarkerOrderChangedEvent += (s, ea) => gpxWorkbench.MarkerChangePositionInList(ea.OldIdx, ea.NewIdx);
+         editableTracklistControl1.UpdateVisualTrackEvent += (s, ea) => mapControl1.UpdateVisualTrack(ea.Track);
+         editableTracklistControl1.UpdateVisualMarkerEvent += (s, ea) => mapControl1.UpdateVisualMarker(ea.Marker);
+         editableTracklistControl1.ShowTrackEvent += (s, ea) => showTrack(ea.Track, ea.Visible);
+         editableTracklistControl1.ShowMarkerEvent += (s, ea) => showEditableMarker(ea.Marker, ea.Visible);
+         editableTracklistControl1.ChooseTrackEvent += (s, ea) => infoAndEditTrackProps(gpxWorkbench.GetTrack(ea.Idx),
+                                                                                        gpxWorkbench.Gpx,
+                                                                                        gpxWorkbench.GetTrack(ea.Idx).VisualName,
+                                                                                        true);
+         editableTracklistControl1.ChooseMarkerEvent += (s, ea) => infoAndEditMarkerProps(gpxWorkbench.GetMarker(ea.Idx),
+                                                                                          true);
+         editableTracklistControl1.ShowContextmenu4TrackEvent += (s, ea) =>
+                  contextMenuStripEditableTracks.Show(editableTracklistControl1,
+                                                      editableTracklistControl1.PointToClient(MousePosition));
+         editableTracklistControl1.ShowContextmenu4MarkerEvent += (s, ea) =>
+                  contextMenuStripMarker.Show(editableTracklistControl1,
+                                              editableTracklistControl1.PointToClient(MousePosition));
+         editableTracklistControl1.SelectTrackEvent += (s, ea) => showMiniEditableTrackInfo(editableTracklistControl1.SelectedTrack);
+         editableTracklistControl1.Gpx = gpxWorkbench?.Gpx;
 
          setGpxLoadInfo("");
 
          toolStripButton_ViewerMode_Click(null, null);
 
-         if (File.Exists(editablegpxbackupfile)) {
-            saveGpxBackupIsActiv = false;
-            EditableGpx.Load(editablegpxbackupfile, true);
-            saveGpxBackupIsActiv = true;
-            EditableGpx.GpxFilename = "";
-         }
+         //if (File.Exists(editablegpxbackupfile)) {
+         //   saveGpxBackupIsActiv = false;
+         //   EditableGpx.Load(editablegpxbackupfile, true);
+         //   saveGpxBackupIsActiv = true;
+         //   EditableGpx.GpxFilename = "";
+         //}
       }
 
       private void FormMain_Shown(object sender, EventArgs e) {
@@ -458,53 +834,109 @@ namespace GpxViewer {
             appData.LastZoom = mapControl1.MapZoom;
             appData.LastLongitude = mapControl1.MapCenterLon;
             appData.LastLatitude = mapControl1.MapCenterLat;
-            appData.LastMapname = mapControl1.MapProviderDefinitions[mapControl1.MapGetActiveProviderIdx()].MapName;
+            appData.LastMapname = mapControl1.MapProviderDefinitions[mapControl1.MapActualMapIdx].MapName;
+
+            appData.GpxDataChanged = gpxWorkbench != null ? gpxWorkbench.DataChanged : false;
+            appData.VisibleStatusMarkerList = gpxWorkbench.VisibleStatusMarkerList;
+            appData.VisibleStatusTrackList = gpxWorkbench.VisibleStatusTrackList;
+
             appData.Save();
          } catch { }
 
-         saveGpxBackup();
-
-         if (EditableGpx != null &&
-             EditableGpx.GpxDataChanged &&
-             (EditableGpx.TrackList.Count > 0 ||
-              EditableGpx.Waypoints.Count > 0)) {
-            if (MessageBox.Show("Geänderte Daten zusätzlich in einer Datei speichern?", "Speichern", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes) {
-               if (!SaveEditableGpx()) {
-                  e.Cancel = true;
-                  return;
-               }
-            }
-         }
+         gpxWorkbench?.Save();
 
          if (readOnlyTracklistControl1.LoadGpxfilesIsRunning) {
-            FormIsOnClosing = true;
+            formIsOnClosing = true;
             readOnlyTracklistControl1.LoadGpxfilesCancel = true;
             e.Cancel = true;
          }
 
-         mapControl1.MapZoomChangedEvent -= mapControl1_MapZoomChangedEvent;
-         mapControl1.MapMouseEvent -= mapControl1_MapMouseEvent;
-         mapControl1.MapMarkerEvent -= mapControl1_MapMarkerEvent;
-         mapControl1.MapTrackEvent -= mapControl1_MapTrackEvent;
-         mapControl1.MapDrawOnTopEvent -= mapControl1_MapDrawOnTopEvent;
-         mapControl1.MapTileLoadCompleteEvent -= mapControl1_MapTileLoadCompleteEvent;
-         mapControl1.MapTrackSearch4PolygonEvent -= mapControl1_MapTrackSearch4PolygonEvent;
+         mapControl1.MapZoomChangedEvent -= map_OnZoomChanged;
+         mapControl1.MapMouseEvent -= map_SpecMapMouseEvent;
+         mapControl1.MapMarkerEvent -= map_SpecMapMarkerEvent;
+         mapControl1.MapTrackEvent -= map_SpecMapTrackEvent;
+         mapControl1.MapDrawOnTopEvent -= map_SpecMapDrawOnTopEvent;
+         mapControl1.MapTileLoadCompleteEvent -= map_MapTileLoadCompleteEvent;
+         mapControl1.MapTrackSearch4PolygonEvent -= map_MapTrackSearch4PolygonEvent;
       }
 
       private void FormMain_KeyDown(object sender, KeyEventArgs e) {
-         switch (e.KeyCode) {
+         Debug.WriteLine(">>> KeyValue=" + e.KeyValue + ", KeyData=" + e.KeyData + ", KeyCode=" + e.KeyCode);
+         switch (e.KeyData) {
             case Keys.Escape:
-               switch (ProgramState) {
+               switch (programState) {
                   case ProgState.Edit_SetMarker:
                   case ProgState.Set_PicturePosition:
                   case ProgState.Edit_DrawTrack:
                   case ProgState.Edit_ConcatTracks:
                   case ProgState.Edit_SplitTracks:
-                     ProgramState = ProgState.Viewer;
+                     programState = ProgState.Viewer;
                      break;
                }
                break;
+
+            case Keys.Control | Keys.O:
+               toolStripButton_OpenGpxfile_Click(null, EventArgs.Empty);
+               break;
+
+            case Keys.Control | Keys.S:
+               toolStripButton_GeoSearch_Click(null, EventArgs.Empty);
+               break;
+
+            case Keys.Control | Keys.Add:
+            case Keys.Control | Keys.Oemplus:
+               toolStripButton_ZoomIn_Click(null, EventArgs.Empty);
+               break;
+
+            case Keys.Control | Keys.Subtract:
+            case Keys.Control | Keys.OemMinus:
+               toolStripButton_ZoomOut_Click(null, EventArgs.Empty);
+               break;
+
+            case Keys.Control | Keys.Left:
+               mapControl1.MapMoveView(-.3, 0);
+               break;
+
+            case Keys.Control | Keys.Right:
+               mapControl1.MapMoveView(.3, 0);
+               break;
+
+            case Keys.Control | Keys.Up:
+               mapControl1.MapMoveView(0, .3);
+               break;
+
+            case Keys.Control | Keys.Down:
+               mapControl1.MapMoveView(0, -.3);
+               break;
+
+            case Keys.Control | Keys.Shift | Keys.O:
+               toolStripButton_LocationForm_Click(null, EventArgs.Empty);
+               break;
+
+            case Keys.Control | Keys.Shift | Keys.K:
+               toolStripButton_GoToPos_Click(null, EventArgs.Empty);
+               break;
+
          }
+      }
+
+      private void Form_GoToEvent(object sender, FormSearch.GoToPointEventArgs e) {
+         SetMapLocationAndZoom(mapControl1.MapZoom, e.Longitude, e.Latitude);
+         if (!string.IsNullOrEmpty(e.Name))
+            mapControl1.MapShowMarker(gpxWorkbench.MarkerInsertCopy(new Marker(new Gpx.GpxWaypoint(e.Longitude, e.Latitude) { Name = e.Name },
+                                                                             Marker.MarkerType.EditableStandard,
+                                                                             "")),
+                                      true);
+      }
+
+      private void Form_GoToAreaEvent(object sender, FormSearch.GoToAreaEventArgs e) {
+         mapControl1.MapZoomToRange(new PointD(e.Left, e.Top),
+                                    new PointD(e.Right, e.Bottom));
+         if (!string.IsNullOrEmpty(e.Name))
+            mapControl1.MapShowMarker(gpxWorkbench.MarkerInsertCopy(new Marker(new Gpx.GpxWaypoint(e.Longitude, e.Latitude) { Name = e.Name },
+                                                                             Marker.MarkerType.EditableStandard,
+                                                                             "")),
+                                      true);
       }
 
       #region Dra&Drop für Prog
@@ -530,28 +962,28 @@ namespace GpxViewer {
       /// <param name="msg"></param>
       /// <param name="keyData"></param>
       /// <returns></returns>
-      protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-         if (keyData.HasFlag(Keys.Control)) {
-            switch (keyData) {
-               case (Keys.Left | Keys.Control):
-                  mapControl1.MapMoveView(-.3, 0);
-                  break;
+      //protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+      //   if (keyData.HasFlag(Keys.Control)) {
+      //      switch (keyData) {
+      //         case (Keys.Left | Keys.Control):
+      //            mapControl1.MapMoveView(-.3, 0);
+      //            break;
 
-               case (Keys.Right | Keys.Control):
-                  mapControl1.MapMoveView(.3, 0);
-                  break;
+      //         case (Keys.Right | Keys.Control):
+      //            mapControl1.MapMoveView(.3, 0);
+      //            break;
 
-               case (Keys.Up | Keys.Control):
-                  mapControl1.MapMoveView(0, .3);
-                  break;
+      //         case (Keys.Up | Keys.Control):
+      //            mapControl1.MapMoveView(0, .3);
+      //            break;
 
-               case (Keys.Down | Keys.Control):
-                  mapControl1.MapMoveView(0, -.3);
-                  break;
-            }
-         }
-         return base.ProcessCmdKey(ref msg, keyData);
-      }
+      //         case (Keys.Down | Keys.Control):
+      //            mapControl1.MapMoveView(0, -.3);
+      //            break;
+      //      }
+      //   }
+      //   return base.ProcessCmdKey(ref msg, keyData);
+      //}
 
       private void FormMain_SelectedPoints(object sender, FormTrackInfoAndEdit.SelectedPointsEventArgs e) {
          mapControl1.MapShowSelectedParts(e.Track, null);
@@ -563,7 +995,8 @@ namespace GpxViewer {
       #region Events der Toolbar-Buttons des Programms
 
       private void toolStripButton_CancelMapLoading_Click(object sender, EventArgs e) {
-         mapControl1.MapCancelLoad();
+         mapControl1.MapClearWaitingTaskList();
+         mapControl1.MapCancelTileBuilds();
       }
 
       private void toolStripButton_OpenGpxfile_Click(object sender, EventArgs e) {
@@ -572,15 +1005,15 @@ namespace GpxViewer {
       }
 
       private void toolStripButton_SaveGpxFile_Click(object sender, EventArgs e) {
-         SaveEditableGpx();
+         saveWorkbench();
       }
 
       private void toolStripButton_SaveGpxFileExt_Click(object sender, EventArgs e) {
-         SaveEditableGpx(true);
+         saveWorkbench(true);
       }
 
       private void toolStripButton_SaveGpxFiles_Click(object sender, EventArgs e) {
-         SaveEditableGpx(true, true);
+         saveWorkbench(true, true);
       }
 
       private void toolStripButton_CopyMap_Click(object sender, EventArgs e) {
@@ -615,7 +1048,7 @@ namespace GpxViewer {
                PrinterSettings = printerSettings,
                DocumentName = "Karte"
             };
-            pdoc.PrintPage += (doc, args) => DocumentPrintPage(args, img);
+            pdoc.PrintPage += (doc, args) => documentPrintPage(args, img);
 
             PageSetupDialog psd = new PageSetupDialog() {
                AllowMargins = true,
@@ -685,7 +1118,7 @@ namespace GpxViewer {
             }
 
          } catch (Exception ex) {
-            ShowExceptionError(ex);
+            UIHelper.ShowExceptionError(ex);
          }
 
       }
@@ -705,18 +1138,19 @@ namespace GpxViewer {
       }
 
       private void toolStripButton_ClearCache_Click(object sender, EventArgs e) {
-         new FormClearCache() {
+         FormClearCache form = new FormClearCache() {
             Map = mapControl1,
             ProviderIndex = mapMenuManager.ActualProviderIdx,
-         }.ShowDialog();
+         };
+         form.ShowDialog();
+         if (form.Clear > 0)
+            mapControl1.MapRefresh(true, true, false);
       }
 
       private void toolStripButton_TrackZoom_Click(object sender, EventArgs e) {
          List<Track> lst = new List<Track>(readOnlyTracklistControl1.GetVisibleTracks());
-         foreach (var t in EditableGpx.TrackList)
-            if (t.IsVisible)
-               lst.Add(t);
-         ZoomToTracks(lst);
+         lst.AddRange(gpxWorkbench.VisibleTracks());
+         zoomToTracks(lst);
       }
 
       private void toolStripButton_TrackSearch_Click(object sender, EventArgs e) {
@@ -792,7 +1226,7 @@ namespace GpxViewer {
             toolStripButton_SetMarker.Checked =
             toolStripButton_TrackDraw.Checked = false;
             toolStripButton_TrackDrawEnd.Enabled = false;
-            ProgramState = ProgState.Viewer;
+            programState = ProgState.Viewer;
          } else
             toolStripButton_ViewerMode.Checked = true;
       }
@@ -802,7 +1236,7 @@ namespace GpxViewer {
             toolStripButton_ViewerMode.Checked =
             toolStripButton_TrackDraw.Checked = false;
             toolStripButton_TrackDrawEnd.Enabled = false;
-            ProgramState = ProgState.Edit_SetMarker;
+            programState = ProgState.Edit_SetMarker;
          } else
             toolStripButton_SetMarker.Checked = true;
       }
@@ -812,42 +1246,42 @@ namespace GpxViewer {
             toolStripButton_SetMarker.Checked =
             toolStripButton_ViewerMode.Checked = false;
             toolStripButton_TrackDrawEnd.Enabled = true;
-            ProgramState = ProgState.Edit_DrawTrack;
+            programState = ProgState.Edit_DrawTrack;
          } else
             toolStripButton_TrackDraw.Checked = true;
       }
 
       private void toolStripButton_TrackDrawEnd_Click(object sender, EventArgs e) {
-         if (ProgramState == ProgState.Edit_DrawTrack) {
-            editTrackHelper.EditEndDraw();
-            editTrackHelper.EditStart();
+         if (programState == ProgState.Edit_DrawTrack) {
+            gpxWorkbench.TrackEndDraw();
+            gpxWorkbench.TrackStartEdit();
          }
       }
 
       private void toolStripButton_ClearEditable_Click(object sender, EventArgs e) {
-         if (EditableGpx.Tracks.Count > 0 || EditableGpx.Waypoints.Count > 0) {
+         if (gpxWorkbench.TrackCount > 0 || gpxWorkbench.MarkerCount > 0) {
 
             StringBuilder sb = new StringBuilder();
-            if (EditableGpx.Tracks.Count > 1)
-               sb.AppendFormat("Sollen die {0} Tracks", EditableGpx.Tracks.Count);
-            else if (EditableGpx.Tracks.Count == 1)
+            if (gpxWorkbench.TrackCount > 1)
+               sb.AppendFormat("Sollen die {0} Tracks", gpxWorkbench.TrackCount);
+            else if (gpxWorkbench.TrackCount == 1)
                sb.Append("Soll der Tracks");
 
-            if (EditableGpx.Waypoints.Count > 1)
+            if (gpxWorkbench.MarkerCount > 1)
                sb.AppendFormat("{0}die {1} Markierungen",
-                               EditableGpx.Tracks.Count > 0 ? " und " : "Sollen ",
-                               EditableGpx.Waypoints.Count);
-            else if (EditableGpx.Waypoints.Count == 1)
+                               gpxWorkbench.TrackCount > 0 ? " und " : "Sollen ",
+                               gpxWorkbench.MarkerCount);
+            else if (gpxWorkbench.MarkerCount == 1)
                sb.AppendFormat("{0}die Markierung",
-                               EditableGpx.Tracks.Count > 0 ? " und " : "Soll ");
+                               gpxWorkbench.TrackCount > 0 ? " und " : "Soll ");
 
             sb.Append(" wirklich entfernt werden?");
             sb.AppendLine();
 
-            if (EditableGpx.GpxDataChanged) {
+            if (gpxWorkbench.DataChanged) {
                sb.AppendLine("Die Daten wurden noch nicht gespeichert!");
             } else {
-               sb.AppendLine("Die Daten wurden schon in der Datei '" + EditableGpx.GpxFilename + "' gespeichert.");
+               sb.AppendLine("Die Daten wurden schon in der Datei '" + gpxWorkbench.InternalFilename + "' gespeichert.");
             }
 
             if (MyMessageBox.Show(sb.ToString(),
@@ -855,16 +1289,20 @@ namespace GpxViewer {
                                   MessageBoxButtons.YesNo,
                                   MessageBoxIcon.Exclamation,
                                   MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
-               for (int i = EditableGpx.TrackList.Count - 1; i >= 0; i--) {
-                  Track track = EditableGpx.TrackList[i];
-                  ShowTrack(track, false);
-                  editTrackHelper.Remove(track);
+               for (int i = gpxWorkbench.TrackCount - 1; i >= 0; i--) {
+                  Track track = gpxWorkbench.GetTrack(i);
+                  showTrack(track, false);
+                  gpxWorkbench.TrackRemove(track);
                }
 
-               for (int i = EditableGpx.MarkerList.Count - 1; i >= 0; i--)
-                  editMarkerHelper.Remove(EditableGpx.MarkerList[i]);
+               for (int i = gpxWorkbench.MarkerCount - 1; i >= 0; i--) {
+                  Marker marker = gpxWorkbench.GetMarker(i);
+                  showMarker(marker, false);
+                  gpxWorkbench.MarkerRemove(marker);
+               }
 
-               EditableGpx.GpxDataChanged = false;
+
+               gpxWorkbench.DataChanged = false;
             }
          }
       }
@@ -875,39 +1313,15 @@ namespace GpxViewer {
       /// <param name="sender"></param>
       /// <param name="e"></param>
       private void toolStripButton_UniqueNames_Click(object sender, EventArgs e) {
-         SortedSet<string> testnames = new SortedSet<string>();
-
-         for (int i = 0; i < EditableGpx.Waypoints.Count; i++) {
-            string name = EditableGpx.Waypoints[i].Name;
-            int no = 2;
-            while (testnames.Contains(name)) {
-               name = EditableGpx.Waypoints[i].Name + " (" + no++ + ")";
+         if (gpxWorkbench.SetUniqueNames4TracksAndMarkers(out List<int> markerlst, out List<int> tracklst)) {
+            foreach (int idx in markerlst) {
+               Marker marker = gpxWorkbench.GetMarker(idx);
+               editableTracklistControl1.SetMarkerName(marker, marker.Text);
             }
-            if (EditableGpx.Waypoints[i].Name != name) {
-               Marker marker = EditableGpx.MarkerList[i];
-               marker.Text = name;
-               editableTracklistControl1.SetMarkerName(marker, name);
-               editMarkerHelper.RefreshOnMap(marker);
-               EditableGpx.GpxDataChanged = true;
+            foreach (int idx in tracklst) {
+               Track track = gpxWorkbench.GetTrack(idx);
+               editableTracklistControl1.SetTrackName(track, track.Trackname);
             }
-            testnames.Add(name);
-         }
-
-         testnames.Clear();
-         for (int i = 0; i < EditableGpx.TrackList.Count; i++) {
-            Track track = EditableGpx.TrackList[i];
-            string name = track.Trackname;
-            int no = 2;
-            while (testnames.Contains(name)) {
-               name = track.Trackname + " (" + no++ + ")";
-            }
-            if (track.Trackname != name) {
-               track.Trackname = name;
-               editableTracklistControl1.SetTrackName(track, name);
-               editTrackHelper.Refresh();
-               EditableGpx.GpxDataChanged = true;
-            }
-            testnames.Add(name);
          }
       }
 
@@ -967,7 +1381,7 @@ im 'Track zeichnen'-Modus:
 
       #region Events vom MapControl (auch Maus-Events !)
 
-      private void mapControl1_MapZoomChangedEvent(object sender, EventArgs e) {
+      private void map_OnZoomChanged(object sender, EventArgs e) {
          toolStripStatusLabel_Zoom.Text = "Zoomstufe " + mapControl1.MapZoom.ToString();
          dem.IsActiv = mapControl1.MapZoom >= dem.MinimalZoom;
       }
@@ -977,10 +1391,10 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       Rectangle rectLastMouseMovePosition = new Rectangle(int.MinValue, int.MinValue, 0, 0);
 
-      private void mapControl1_MapMouseEvent(object sender, SpecialMapCtrl.SpecialMapCtrl.MapMouseEventArgs e) {
+      private void map_SpecMapMouseEvent(object sender, MapCtrl.MapMouseEventArgs e) {
          Track markedtrack;
          switch (e.Eventtype) {
-            case SpecialMapCtrl.SpecialMapCtrl.MapMouseEventArgs.EventType.Move:
+            case MapCtrl.MapMouseEventArgs.EventType.Move:
                if (e.Button == MouseButtons.Left) {
                   rectLastMouseMovePosition.X = e.Location.X - rectLastMouseMovePosition.Width / 2;
                   rectLastMouseMovePosition.Y = e.Location.Y - rectLastMouseMovePosition.Height / 2;
@@ -988,39 +1402,39 @@ im 'Track zeichnen'-Modus:
 
                double ele = Gpx.BaseElement.NOTVALID_DOUBLE;
                if (mapControl1.MapZoom >= 9) // bei kleinerem Zoom nicht ermitteln/anzeigen
-                  ele = editMarkerHelper.GetHeight(e.Location, dem);
+                  ele = gpxWorkbench.GetHeight(e.Location);
 
                if (ele != Gpx.BaseElement.NOTVALID_DOUBLE)
-                  toolStripStatusLabel_Pos.Text = string.Format("Lng {0:F6}°, Lat {1:F6}°, {2:F0}m", e.Lon, e.Lat, editMarkerHelper.GetHeight(e.Location, dem));
+                  toolStripStatusLabel_Pos.Text = string.Format("Lng {0:F6}°, Lat {1:F6}°, {2:F0}m", e.Lon, e.Lat, gpxWorkbench.GetHeight(e.Location));
                else
                   toolStripStatusLabel_Pos.Text = string.Format("Lng {0:F6}°, Lat {1:F6}°", e.Lon, e.Lat);
 
-               if (ProgInEditState) {
-                  switch (ProgramState) {
+               if (progIsInEditState) {
+                  switch (programState) {
                      case ProgState.Edit_DrawTrack:
                      case ProgState.Edit_SplitTracks:
                      case ProgState.Edit_ConcatTracks:
-                        editTrackHelper.Refresh(); // löst Paint() aus
+                        gpxWorkbench.InEditRefresh();  // löst Paint() aus
                         break;
 
                      case ProgState.Edit_SetMarker:
-                        editMarkerHelper.Refresh(); // löst Paint() aus
+                        gpxWorkbench.InEditRefresh();  // löst Paint() aus
                         break;
                   }
                }
                break;
 
-            case SpecialMapCtrl.SpecialMapCtrl.MapMouseEventArgs.EventType.Leave:       // die Maus verläßt den Bereich der Karte
+            case MapCtrl.MapMouseEventArgs.EventType.Leave:       // die Maus verläßt den Bereich der Karte
                foreach (Track track in highlightedTrackSegments)
                   track.IsMarked = false;
                highlightedTrackSegments.Clear();
-               ShowToolTip4MarkedTracks();
+               showToolTip4MarkedTracks();
                rectLastMouseMovePosition.X = rectLastMouseMovePosition.Y = int.MinValue;
                break;
 
             // Mausklicks in die Karte (DANACH erfolgt die Trackevent-Behandlung)
-            case SpecialMapCtrl.SpecialMapCtrl.MapMouseEventArgs.EventType.Click:
-               if (ProgInEditState) {
+            case MapCtrl.MapMouseEventArgs.EventType.Click:
+               if (progIsInEditState) {
                   switch (e.Button) {
                      case MouseButtons.Left:
                         switch (ModifierKeys) {
@@ -1033,60 +1447,59 @@ im 'Track zeichnen'-Modus:
                                  break;
                               }
 
-                              switch (ProgramState) {
+                              switch (programState) {
                                  case ProgState.Edit_SetMarker:         // beim Marker setzen
-                                    editMarkerHelper.EditSetNewPos(e.Location, dem);
-                                    editMarkerHelper.EditEnd();
+                                    gpxWorkbench.MarkerEndEdit(e.Location);
                                     e.IsHandled = true;
                                     break;
 
                                  case ProgState.Edit_DrawTrack:         // beim Trackzeichnen
-                                    editTrackHelper.EditDraw_AppendPoint(e.Location, dem);
+                                    gpxWorkbench.TrackAddPoint(e.Location);
                                     e.IsHandled = true;
                                     break;
 
                                  case ProgState.Edit_SplitTracks:       // beim Tracksplitten
-                                    editTrackHelper.EndSplit(e.Location);
+                                    gpxWorkbench.TrackEndSplit(e.Location);
                                     e.IsHandled = true;
-                                    ProgramState = ProgState.Edit_DrawTrack;
+                                    programState = ProgState.Edit_DrawTrack;
                                     break;
 
                                  case ProgState.Edit_ConcatTracks:      // beim Trackverbinden
-                                    markedtrack = GetFirstMarkedTrack(editTrackHelper.TrackInEdit, true);
+                                    markedtrack = getFirstMarkedTrack(gpxWorkbench.TrackInEdit, true);
                                     if (markedtrack != null) {
-                                       editTrackHelper.EndConcat(markedtrack);
+                                       gpxWorkbench.TrackEndConcat(markedtrack);
                                        e.IsHandled = true;
                                     }
-                                    ProgramState = ProgState.Edit_DrawTrack;
+                                    programState = ProgState.Edit_DrawTrack;
                                     break;
 
                                  case ProgState.Set_PicturePosition:
                                     setFotoPosition(e.Lon, e.Lat);
-                                    ProgramState = ProgState.Viewer;
+                                    programState = ProgState.Viewer;
                                     break;
                               }
                               break;
 
                            case Keys.Shift:                          // Links-Klick + Shift im Edit-Modus
-                              switch (ProgramState) {
+                              switch (programState) {
                                  case ProgState.Edit_DrawTrack:            // beim Trackzeichnen
-                                    editTrackHelper.EditDraw_RemoveLastPoint();
+                                    gpxWorkbench.TrackRemovePoint();
                                     e.IsHandled = true;
                                     break;
                               }
                               break;
 
                            case Keys.Control:                        // Links-Klick + Ctrl im Edit-Modus
-                              switch (ProgramState) {
+                              switch (programState) {
                                  case ProgState.Edit_DrawTrack:            // beim Trackzeichnen
-                                    editTrackHelper.EditEndDraw();
+                                    gpxWorkbench.TrackEndDraw();
                                     e.IsHandled = true;
                                     break;
                               }
                               break;
 
                            case Keys.Alt:                            // Links-Klick + Alt im Edit-Modus
-                              ShowObjectinfo(e.Location);
+                              showObjectinfo(e.Location);
                               break;
                         }
                         break;
@@ -1115,7 +1528,7 @@ im 'Track zeichnen'-Modus:
                               break;
 
                            case Keys.Alt:                           // Links-Klick + Alt im Normal-Modus
-                              ShowObjectinfo(e.Location);
+                              showObjectinfo(e.Location);
                               break;
                         }
                         break;
@@ -1125,12 +1538,12 @@ im 'Track zeichnen'-Modus:
          }
       }
 
-      private void mapControl1_MapMarkerEvent(object sender, SpecialMapCtrl.SpecialMapCtrl.MarkerEventArgs e) {
+      private void map_SpecMapMarkerEvent(object sender, MapCtrl.MarkerEventArgs e) {
          switch (e.Eventtype) {
             case SpecialMapCtrl.SpecialMapCtrl.MapMouseEventArgs.EventType.Leave:
-               switch (ProgramState) {
+               switch (programState) {
                   case ProgState.Edit_SetMarker:
-                     editMarkerHelper.RefreshCursor();
+                     gpxWorkbench.RefreshCursor();
                      break;
                }
                break;
@@ -1144,7 +1557,7 @@ im 'Track zeichnen'-Modus:
                            case Marker.MarkerType.EditableStandard:
                               if (e.Marker.IsEditable) // Marker in der Liste markieren
                                  editableTracklistControl1.SelectMarker(e.Marker);
-                              ShowStdMarkerInfo(e.Marker.Waypoint);
+                              showStdMarkerInfo(e.Marker.Waypoint);
                               e.IsHandled = true;
                               break;
 
@@ -1166,7 +1579,7 @@ im 'Track zeichnen'-Modus:
                      if (ModifierKeys == Keys.None)
                         switch (e.Marker.Markertype) {
                            case Marker.MarkerType.Foto:
-                              ShowPictureMarkerList(e.Location, 1.5F);
+                              showPictureMarkerList(e.Location, 1.5F);
                               e.IsHandled = true;
                               break;
 
@@ -1201,7 +1614,7 @@ im 'Track zeichnen'-Modus:
          }
       }
 
-      private void mapControl1_MapTrackEvent(object sender, SpecialMapCtrl.SpecialMapCtrl.TrackEventArgs e) {
+      private void map_SpecMapTrackEvent(object sender, MapCtrl.TrackEventArgs e) {
          switch (e.Eventtype) {
             case SpecialMapCtrl.SpecialMapCtrl.MapMouseEventArgs.EventType.Click:
                switch (e.Button) {
@@ -1209,7 +1622,7 @@ im 'Track zeichnen'-Modus:
                      trackMarking(e.Track);
                      if (ModifierKeys == Keys.Control) {
                         if (e.Track != null)
-                           ShowTrackPointInfo(e.Track, e.Location);
+                           showTrackPointInfo(e.Track, e.Location);
                      }
                      e.IsHandled = true;
                      break;
@@ -1237,55 +1650,56 @@ im 'Track zeichnen'-Modus:
                   highlightedTrackSegments.Add(e.Track);
                   e.Track.IsMarked = true;
                }
-               ShowToolTip4MarkedTracks();
+               showToolTip4MarkedTracks();
                break;
 
             case SpecialMapCtrl.SpecialMapCtrl.MapMouseEventArgs.EventType.Leave:
                e.Track.IsMarked = false;
                highlightedTrackSegments.Remove(e.Track);
-               ShowToolTip4MarkedTracks();
+               showToolTip4MarkedTracks();
                break;
          }
       }
 
-      private void mapControl1_MapDrawOnTopEvent(object sender, GMapControl.DrawExtendedEventArgs e) {
-         if (ProgInEditState) {  // beim Editieren
-            switch (ProgramState) {
+      private void map_SpecMapDrawOnTopEvent(object sender, GMapControl.DrawExtendedEventArgs e) {
+         if (progIsInEditState) {  // beim Editieren
+            switch (programState) {
                case ProgState.Edit_SetMarker:
-                  editMarkerHelper.EditDrawDestinationLine(e.Graphics, mapControl1.MapLastMouseLocation);
+                  gpxWorkbench.MarkerDrawDestinationLine(e.Graphics, mapControl1.MapLastMouseLocation);
                   break;
 
                case ProgState.Edit_DrawTrack:
-                  editTrackHelper.DrawDestinationLine(e.Graphics, mapControl1.MapLastMouseLocation);
+                  gpxWorkbench.TrackDrawDestinationLine(e.Graphics, mapControl1.MapLastMouseLocation);
                   break;
 
                case ProgState.Edit_SplitTracks:
-                  editTrackHelper.DrawSplitPoint(e.Graphics, mapControl1.MapLastMouseLocation);
+                  gpxWorkbench.TrackDrawSplitPoint(e.Graphics, mapControl1.MapLastMouseLocation);
                   break;
 
                case ProgState.Edit_ConcatTracks:
-                  Track trackappend = GetFirstMarkedTrack(editTrackHelper.TrackInEdit, true);
+                  Track trackappend = getFirstMarkedTrack(gpxWorkbench.TrackInEdit, true);
                   if (trackappend != null)
-                     editTrackHelper.DrawConcatLine(e.Graphics, trackappend);
+                     gpxWorkbench.TrackDrawConcatLine(e.Graphics, trackappend);
                   break;
 
             }
          }
+
+         showTileLoadInfo(mapControl1.MapCtrl.SpecMapWaitingTasks());
       }
 
-      private void mapControl1_MapTileLoadCompleteEvent(object sender, SpecialMapCtrl.SpecialMapCtrl.TileLoadEventArgs e) {
-         toolStripStatusLabel_MapLoad.Text = e.Complete ? "OK" : "load";
-         toolStripStatusLabel_MapLoad.BackColor = e.Complete ? Color.LightGreen : Color.LightSalmon;
-#if DEBUG
-         if (e.Complete) {
-            Debug.WriteLine(":::: Map-LoadTime: " + (DateTime.Now.Subtract(dtLoadTime).TotalSeconds.ToString("F1") + "s ::::"));
-         } else {
-            dtLoadTime = DateTime.Now;
-         }
-#endif
+      private void map_OnMapTileLoadStartEvent(object sender, EventArgs e) {
+         Interlocked.Exchange(ref tileLoadIsRunning, 1);
+         showTileLoadInfo(mapControl1.MapCtrl.SpecMapWaitingTasks());
       }
 
-      private void mapControl1_MapTrackSearch4PolygonEvent(object sender, MouseEventArgs e) {
+      private void map_MapTileLoadCompleteEvent(object sender, MapCtrl.TileLoadEventArgs e) {
+         showTileLoadInfo(0);
+         if (e.Complete)
+            Interlocked.Exchange(ref tileLoadIsRunning, 0);
+      }
+
+      private void map_MapTrackSearch4PolygonEvent(object sender, MouseEventArgs e) {
          toolStripButton_TrackSearch_Click(null, null);  // Ende der Eingabe simulieren
       }
 
@@ -1295,22 +1709,22 @@ im 'Track zeichnen'-Modus:
 
       private void readOnlyTracklistControl1_SelectGpxEvent(object sender, ReadOnlyTracklistControl.ChooseEventArgs e) {
          if (e != null)
-            ShowMiniTrackInfo(e.Gpx.TrackList);
+            showMiniTrackInfo(e.Gpx.TrackList);
       }
 
       private void readOnlyTracklistControl1_SelectTrackEvent(object sender, ReadOnlyTracklistControl.ChooseEventArgs e) {
-         ShowMiniTrackInfo(e != null ? e.Track : null);
+         showMiniTrackInfo(e != null ? e.Track : null);
       }
 
       private void readOnlyTracklistControl1_ChooseGpxEvent(object sender, ReadOnlyTracklistControl.ChooseEventArgs e) {
-         InfoAndEditTrackProps(e.Track,
+         infoAndEditTrackProps(e.Track,
                                e.Gpx,
                                e.Name,
                                false);
       }
 
       private void readOnlyTracklistControl1_ChooseTrackEvent(object sender, ReadOnlyTracklistControl.ChooseEventArgs e) {
-         InfoAndEditTrackProps(e.Track,
+         infoAndEditTrackProps(e.Track,
                                e.Gpx,
                                e.Name,
                                false);
@@ -1330,10 +1744,10 @@ im 'Track zeichnen'-Modus:
       }
 
       private void readOnlyTracklistControl1_RefreshProgramStateEvent(object sender, EventArgs e) {
-         var de = new SafeCallDelegate4Void2Void(RefreshProgramState);
+         var de = new SafeCallDelegate4Void2Void(refreshProgramState);
          Invoke(de);
 
-         if (FormIsOnClosing) {     // Close() gewünscht
+         if (formIsOnClosing) {     // Close() gewünscht
             var d = new SafeCallDelegate4Void2Void(Close);
             if (!IsDisposed)
                Invoke(d);
@@ -1341,69 +1755,19 @@ im 'Track zeichnen'-Modus:
       }
 
       private void readOnlyTracklistControl1_ShowAllFotoMarkerEvent(object sender, ReadOnlyTracklistControl.ShowMarkerEventArgs e) {
-         ShowAllFotoMarker4GpxObject(e.Gpx, e.On);
+         showAllFotoMarker4GpxObject(e.Gpx, e.On);
       }
 
       private void readOnlyTracklistControl1_ShowAllMarkerEvent(object sender, ReadOnlyTracklistControl.ShowMarkerEventArgs e) {
-         ShowAllMarker4GpxObject(e.Gpx, e.On);
+         showAllMarker4GpxObject(e.Gpx, e.On);
       }
 
       private void readOnlyTracklistControl1_ShowExceptionEvent(object sender, ReadOnlyTracklistControl.SendExceptionEventArgs e) {
-         ShowExceptionError(e.Exception);
+         UIHelper.ShowExceptionError(e.Exception);
       }
 
       private void readOnlyTracklistControl1_ShowTrackEvent(object sender, ReadOnlyTracklistControl.ShowTrackEventArgs e) {
-         ShowTrack(e.Track, e.On);
-      }
-
-      #endregion
-
-      #region Events des EditableTracklistControl
-      private void EditableTracklistControl1_ChooseMarkerEvent(object sender, EditableTracklistControl.IdxEventArgs e) {
-         InfoAndEditMarkerProps(EditableGpx.MarkerList[e.Idx], true);
-      }
-
-      private void EditableTracklistControl1_ChooseTrackEvent(object sender, EditableTracklistControl.IdxEventArgs e) {
-         InfoAndEditTrackProps(EditableGpx.TrackList[e.Idx],
-                               EditableGpx,
-                               EditableGpx.TrackList[e.Idx].VisualName,
-                               true);
-      }
-
-      private void EditableTracklistControl1_ShowMarkerEvent(object sender, EditableTracklistControl.MarkerEventArgs e) {
-         ShowEditableMarker(e.Marker, e.Visible);
-      }
-
-      private void EditableTracklistControl1_ShowTrackEvent(object sender, EditableTracklistControl.TrackEventArgs e) {
-         ShowTrack(e.Track, e.Visible);
-      }
-
-      private void EditableTracklistControl1_UpdateVisualMarkerEvent(object sender, EditableTracklistControl.MarkerEventArgs e) {
-         mapControl1.UpdateVisualMarker(e.Marker);
-      }
-
-      private void EditableTracklistControl1_UpdateVisualTrackEvent(object sender, EditableTracklistControl.TrackEventArgs e) {
-         mapControl1.UpdateVisualTrack(e.Track);
-      }
-
-      private void EditableTracklistControl1_MarkerOrderChangedEvent(object sender, EditableTracklistControl.OrderChangedEventArgs e) {
-         editMarkerHelper.ChangeOrder(e.OldIdx, e.NewIdx);
-      }
-
-      private void EditableTracklistControl1_TrackOrderChangedEvent(object sender, EditableTracklistControl.OrderChangedEventArgs e) {
-         editTrackHelper.ChangeOrder(e.OldIdx, e.NewIdx);
-      }
-
-      private void EditableTracklistControl1_ShowContextmenu4MarkerEvent(object sender, EditableTracklistControl.MarkerEventArgs e) {
-         contextMenuStripMarker.Show(editableTracklistControl1, editableTracklistControl1.PointToClient(MousePosition));
-      }
-
-      private void EditableTracklistControl1_ShowContextmenu4TrackEvent(object sender, EditableTracklistControl.TrackEventArgs e) {
-         contextMenuStripEditableTracks.Show(editableTracklistControl1, editableTracklistControl1.PointToClient(MousePosition));
-      }
-
-      private void editableTracklistControl1_SelectTrackEvent(object sender, EditableTracklistControl.IdxEventArgs e) {
-         ShowMiniEditableTrackInfo(editableTracklistControl1.SelectedTrack);
+         showTrack(e.Track, e.On);
       }
 
       #endregion
@@ -1490,7 +1854,7 @@ im 'Track zeichnen'-Modus:
 
             } else if (track != null) {
 
-               if (!editTrackHelper.TrackIsInWork(track)) {
+               if (!gpxWorkbench.IsThisTrackInWork(track)) {
 
                   gr.Clear(track.LineColor);
                   gr.Flush();
@@ -1558,11 +1922,11 @@ im 'Track zeichnen'-Modus:
       private void toolStripMenuItem_ReadOnlyTrackShow_Click(object sender, EventArgs e) {
          if (getObjectFromTrackContextMenu(sender, out Track track, out GpxAllExt gpx)) {
             if (track != null)
-               ShowTrack(track, !toolStripMenuItem_ReadOnlyTrackShow.Checked);   // noch nicht geändert
+               showTrack(track, !toolStripMenuItem_ReadOnlyTrackShow.Checked);   // noch nicht geändert
             else if (gpx != null) {
                // alle Tracks der GPX-Datei
                foreach (Track t in gpx.TrackList)
-                  ShowTrack(t, !toolStripMenuItem_ReadOnlyTrackShow.Checked);
+                  showTrack(t, !toolStripMenuItem_ReadOnlyTrackShow.Checked);
             }
          }
       }
@@ -1587,9 +1951,9 @@ im 'Track zeichnen'-Modus:
       private void toolStripMenuItem_ReadOnlyTrackZoom_Click(object sender, EventArgs e) {
          if (getObjectFromTrackContextMenu(sender, out Track track, out GpxAllExt gpx)) {
             if (track != null) {
-               ZoomToTracks(new List<Track>() { track });
+               zoomToTracks(new List<Track>() { track });
             } else if (gpx != null) {
-               ZoomToTracks(gpx.TrackList);
+               zoomToTracks(gpx.TrackList);
                //} else if (tn != null) {
                //   ZoomToTracks(readOnlyTracklistControl1.GetAllTracksFromSubnodes(tn));
             }
@@ -1609,7 +1973,7 @@ im 'Track zeichnen'-Modus:
                foreach (GpxAllExt item in gpxlst) {
                   item.Markers4StandardAreVisible = ischecked;
                   if (item.Waypoints.Count > 0)
-                     ShowAllMarker4GpxObject(item, item.Markers4StandardAreVisible);
+                     showAllMarker4GpxObject(item, item.Markers4StandardAreVisible);
                }
             }
          }
@@ -1628,7 +1992,7 @@ im 'Track zeichnen'-Modus:
                foreach (GpxAllExt item in gpxlst) {
                   item.Markers4PicturesAreVisible = ischecked;
                   if (item.MarkerListPictures.Count > 0)
-                     ShowAllFotoMarker4GpxObject(item, item.Markers4PicturesAreVisible);
+                     showAllFotoMarker4GpxObject(item, item.Markers4PicturesAreVisible);
                }
             }
          }
@@ -1652,10 +2016,10 @@ im 'Track zeichnen'-Modus:
                   }
                   msg += t.GetSimpleStatsText();
                }
-               ShowInfoMessage(msg,
-                               gpx != null ?
-                                 gpx.GpxFilename :
-                                 tracklst[0].VisualName);
+               UIHelper.ShowInfoMessage(msg,
+                                        gpx != null ?
+                                          gpx.GpxFilename :
+                                          tracklst[0].VisualName);
             }
          }
       }
@@ -1685,9 +2049,7 @@ im 'Track zeichnen'-Modus:
                      orgcol = gpxlst[0].TrackColor;
                }
 
-               Color newcol = GetColor(orgcol, SaveWithGarminExtensions);
-
-               if (newcol != Color.Empty) {
+               if (getColor(orgcol, saveWithGarminExtensions, out Color newcol)) {
                   if (track != null) {
                      track.LineColor = newcol;
                      mapControl1.UpdateVisualTrack(track);
@@ -1711,11 +2073,11 @@ im 'Track zeichnen'-Modus:
          if (getObjectFromTrackContextMenu(sender, out Track track, out GpxAllExt gpx)) {
             if (gpx != null) {      // alle klonen
                for (int i = 0; i < gpx.TrackList.Count; i++)
-                  CloneTrack2EditableGpx(gpx.TrackList[i]);
+                  cloneTrack2GpxWorkbench(gpx.TrackList[i]);
                for (int i = 0; i < gpx.MarkerList.Count; i++)
-                  CloneMarker2EditableGpx(gpx.MarkerList[i]);
+                  cloneMarker2GpxWorkbench(gpx.MarkerList[i]);
             } else
-               CloneTrack2EditableGpx(track);
+               cloneTrack2GpxWorkbench(track);
          }
       }
 
@@ -1756,14 +2118,14 @@ im 'Track zeichnen'-Modus:
          e.Cancel = true;
 
          if (track != null &&
-             !editTrackHelper.TrackIsInWork(track)) {
+             !gpxWorkbench.IsThisTrackInWork(track)) {
 
             toolStripMenuItem_EditableTrackDraw.Enabled = track.GpxSegment.Points.Count > 0;
             toolStripMenuItem_EditableTrackSplit.Enabled = track.GpxSegment.Points.Count > 2;
-            toolStripMenuItem_EditableTrackAppend.Enabled = EditableGpx.TrackList.Count > 1;
+            toolStripMenuItem_EditableTrackAppend.Enabled = gpxWorkbench.TrackCount > 1;
             toolStripMenuItem_EditableTrackReverse.Enabled = track.GpxSegment.Points.Count > 1;
             toolStripMenuItem_EditableTrackClone.Enabled = track.GpxSegment.Points.Count > 1;
-            toolStripMenuItem_EditableTrackDelete.Enabled = EditableGpx.TrackList.Count > 0;
+            toolStripMenuItem_EditableTrackDelete.Enabled = gpxWorkbench.TrackCount > 0;
             toolStripMenuItem_EditableTrackShow.Enabled = true;
             toolStripMenuItem_EditableTrackShowSlope.Enabled = true;
             toolStripMenuItem_EditableTrackZoom.Enabled = track.IsVisible;
@@ -1772,7 +2134,7 @@ im 'Track zeichnen'-Modus:
             toolStripMenuItem_EditableTrackColor.Enabled = true;
             numericUpDownMenuItem_EditableLineThickness.Enabled = true;
             ToolStripMenuItem_EditableTrackSimplify.Enabled = true;
-            ToolStripMenuItem_RemoveVisibleEditableTracks.Enabled = !editTrackHelper.InWork;
+            ToolStripMenuItem_RemoveVisibleEditableTracks.Enabled = !gpxWorkbench.TrackIsInWork;
 
             toolStripMenuItem_EditableTrackShow.Checked = track.IsVisible;
             toolStripMenuItem_EditableTrackShowSlope.Checked = track.IsSlopeVisible;
@@ -1790,7 +2152,7 @@ im 'Track zeichnen'-Modus:
             e.Cancel = false;
 
          } else if (track == null &&
-                    !editTrackHelper.InWork &&
+                    !gpxWorkbench.TrackIsInWork &&
                     editableTracklistControl1.Tracks > 0) {    // sonst gibt es nicht zu löschen
 
             foreach (var item in cms.Items) {
@@ -1816,7 +2178,7 @@ im 'Track zeichnen'-Modus:
             if (Convert.ToDecimal(nud.Tag) != nud.NumUpDown.Value) { // speichern der neu eingestellten Linienbreite
                if (track != null) {
                   track.LineWidth = Convert.ToSingle(nud.NumUpDown.Value);
-                  EditableGpx.GpxDataChanged = true;
+                  gpxWorkbench.DataChanged = true;
                }
             }
          }
@@ -1826,8 +2188,8 @@ im 'Track zeichnen'-Modus:
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null) {
             toolStripButton_TrackDraw.PerformClick(); // falls gerade nicht aktiv
-            ProgramState = ProgState.Edit_DrawTrack;
-            editTrackHelper.EditStart(track);
+            programState = ProgState.Edit_DrawTrack;
+            gpxWorkbench.TrackStartEdit(track);
          }
       }
 
@@ -1835,8 +2197,8 @@ im 'Track zeichnen'-Modus:
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null) {
             toolStripButton_TrackDraw.PerformClick(); // falls gerade nicht aktiv
-            ProgramState = ProgState.Edit_SplitTracks;
-            editTrackHelper.EditStart(track);
+            programState = ProgState.Edit_SplitTracks;
+            gpxWorkbench.TrackStartEdit(track);
          }
       }
 
@@ -1844,8 +2206,8 @@ im 'Track zeichnen'-Modus:
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null) {
             toolStripButton_TrackDraw.PerformClick(); // falls gerade nicht aktiv
-            ProgramState = ProgState.Edit_ConcatTracks;
-            editTrackHelper.EditStart(track);
+            programState = ProgState.Edit_ConcatTracks;
+            gpxWorkbench.TrackStartEdit(track);
          }
       }
 
@@ -1862,19 +2224,19 @@ im 'Track zeichnen'-Modus:
       private void toolStripMenuItem_EditableTrackClone_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null)
-            CloneTrack2EditableGpx(track);
+            cloneTrack2GpxWorkbench(track);
       }
 
       private void toolStripMenuItem_EditableTrackDelete_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null) {
-            if (MessageBox.Show("Sollen der Track '" + track.VisualName + "' wirklich gelöscht werden?",
-                                "Achtung",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question,
-                                MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
+            if (MyMessageBox.Show("Sollen der Track '" + track.VisualName + "' wirklich gelöscht werden?",
+                                  "Achtung",
+                                  MessageBoxButtons.YesNo,
+                                  MessageBoxIcon.Question,
+                                  MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
                toolStripButton_TrackDraw.PerformClick();
-               editTrackHelper.Remove(track);
+               gpxWorkbench.TrackRemove(track);
             }
          }
       }
@@ -1882,7 +2244,7 @@ im 'Track zeichnen'-Modus:
       private void toolStripMenuItem_EditableTrackShow_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null)
-            ShowTrack(track, !track.IsVisible);
+            showTrack(track, !track.IsVisible);
       }
 
       private void toolStripMenuItem_EditableTrackShowSlope_Click(object sender, EventArgs e) {
@@ -1894,19 +2256,19 @@ im 'Track zeichnen'-Modus:
       private void toolStripMenuItem_EditableTrackZoom_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null)
-            ZoomToTracks(new List<Track>() { track });
+            zoomToTracks(new List<Track>() { track });
       }
 
       private void toolStripMenuItem_EditableTrackInfo_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null)
-            ShowInfoMessage(track.GetSimpleStatsText(), track.VisualName);
+            UIHelper.ShowInfoMessage(track.GetSimpleStatsText(), track.VisualName);
       }
 
       private void toolStripMenuItem_EditableTrackExtInfo_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null)
-            InfoAndEditTrackProps(track,
+            infoAndEditTrackProps(track,
                                   track.GpxDataContainer,
                                   track.Trackname,
                                   true);
@@ -1915,48 +2277,39 @@ im 'Track zeichnen'-Modus:
       private void toolStripMenuItem_EditableTrackColor_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null) {
-            Color orgcol = track.LineColor;
-            Color newcol = GetColor(orgcol, SaveWithGarminExtensions);
-            if (newcol != Color.Empty) {
-               track.LineColor = newcol;
-               EditableGpx.GpxDataChanged = true;
-            }
+            if (getColor(track.LineColor, saveWithGarminExtensions, out Color newcol))
+               gpxWorkbench.SetTrackColor(track, newcol);
          }
       }
 
       private void ToolStripMenuItem_EditableTrackSimplify_Click(object sender, EventArgs e) {
          Track track = getTrackFromContextMenuStrip(GetContextMenuStrip4ContextMenu(sender));
          if (track != null)
-            SimplifyTrack(track);
+            simplifyTrack(track);
       }
 
       private void ToolStripMenuItem_ShowAllEditableTracks_Click(object sender, EventArgs e) {
-         foreach (Track track in EditableGpx.TrackList)
-            ShowTrack(track, true);
+         foreach (Track track in gpxWorkbench.TrackList)
+            showTrack(track, true);
       }
 
       private void ToolStripMenuItem_HideAllEditableTracks_Click(object sender, EventArgs e) {
-         foreach (Track track in EditableGpx.TrackList)
-            ShowTrack(track, false);
+         foreach (Track track in gpxWorkbench.TrackList)
+            showTrack(track, false);
       }
 
       private void ToolStripMenuItem_RemoveVisibleEditableTracks_Click(object sender, EventArgs e) {
-         int visibletracks = 0;
-         for (int i = 0; i < EditableGpx.TrackList.Count; i++)
-            if (EditableGpx.TrackList[i].IsVisible)
-               visibletracks++;
+         int visibletracks = gpxWorkbench.VisibleTracks().Count;
          if (visibletracks > 0) {
-            if (MessageBox.Show(visibletracks > 1 ?
+            if (MyMessageBox.Show(visibletracks > 1 ?
                                        "Sollen wirklich ALLE " + visibletracks + " angezeigten Tracks gelöscht werden?" :
                                        "Soll der angezeigte Track gelöscht werden?",
-                                "Achtung",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question,
-                                MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
+                                  "Achtung",
+                                  MessageBoxButtons.YesNo,
+                                  MessageBoxIcon.Question,
+                                  MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
                toolStripButton_TrackDraw.PerformClick();
-               for (int i = EditableGpx.TrackList.Count - 1; 0 <= i; i--)
-                  if (EditableGpx.TrackList[i].IsVisible)
-                     editTrackHelper.Remove(EditableGpx.TrackList[i]);
+               gpxWorkbench.RemoveVisibleTracks();
             }
          }
       }
@@ -1998,10 +2351,10 @@ im 'Track zeichnen'-Modus:
             return;
 
          if (marker != null &&
-             !editMarkerHelper.InWork) {  // Ein editierbarer Marker soll während eines Move-Vorgangs nicht verändert/gelöscht werden können.
-                                          // damit der akt. Marker nicht per Menü bearbeitet werden kann
+             !gpxWorkbench.MarkerIsInWork()) {  // Ein editierbarer Marker soll während eines Move-Vorgangs nicht verändert/gelöscht werden können.
+                                                // damit der akt. Marker nicht per Menü bearbeitet werden kann
 
-            ToolStripMenuItem_WaypointClone.Enabled = ProgInEditState;
+            ToolStripMenuItem_WaypointClone.Enabled = progIsInEditState;
 
             ToolStripMenuItem_WaypointEdit.Enabled = true;  // nichteditierbare Marker nur im readonly-Modus
             ToolStripMenuItem_WaypointSet.Enabled =
@@ -2009,12 +2362,12 @@ im 'Track zeichnen'-Modus:
 
             ToolStripMenuItem_WaypointShow.Enabled = true;
             ToolStripMenuItem_WaypointShow.Checked = marker.IsVisible;
-            ToolStripMenuItem_RemoveVisibleEditableMarkers.Enabled = !editMarkerHelper.InWork;
+            ToolStripMenuItem_RemoveVisibleEditableMarkers.Enabled = !gpxWorkbench.MarkerIsInWork();
 
             e.Cancel = false;
 
          } else if (marker == null &&
-                    !editMarkerHelper.InWork &&
+                    !gpxWorkbench.MarkerIsInWork() &&
                     editableTracklistControl1.Markers > 0) {    // sonst gibt es nicht zu löschen
 
             foreach (var item in cms.Items) {
@@ -2031,29 +2384,29 @@ im 'Track zeichnen'-Modus:
 
       private void ToolStripMenuItem_WaypointClone_Click(object sender, EventArgs e) {
          ContextMenuStrip cms = GetContextMenuStrip4ContextMenu(sender);
-         CloneMarker2EditableGpx(getMarkerFromContextMenuStrip(cms));
+         cloneMarker2GpxWorkbench(getMarkerFromContextMenuStrip(cms));
       }
 
       private void ToolStripMenuItem_WaypointShow_Click(object sender, EventArgs e) {
          ContextMenuStrip cms = GetContextMenuStrip4ContextMenu(sender);
          Marker marker = getMarkerFromContextMenuStrip(cms);
          if (marker != null)
-            ShowEditableMarker(marker, !marker.IsVisible);
+            showEditableMarker(marker, !marker.IsVisible);
       }
 
       private void ToolStripMenuItem_WaypointEdit_Click(object sender, EventArgs e) {
          ContextMenuStrip cms = GetContextMenuStrip4ContextMenu(sender);
          Marker marker = getMarkerFromContextMenuStrip(cms);
          if (marker != null)
-            InfoAndEditMarkerProps(marker, marker.IsEditable);
+            infoAndEditMarkerProps(marker, marker.IsEditable);
       }
 
       private void ToolStripMenuItem_WaypointSet_Click(object sender, EventArgs e) {
          ContextMenuStrip cms = GetContextMenuStrip4ContextMenu(sender);
          Marker marker = getMarkerFromContextMenuStrip(cms);
          if (marker != null && marker.IsEditable) {
-            ProgramState = ProgState.Edit_SetMarker;     // u.a. "MarkerInEdit = null"
-            editMarkerHelper.EditStart(marker);
+            programState = ProgState.Edit_SetMarker;     // u.a. "MarkerInEdit = null"
+            gpxWorkbench.MarkerStartEdit(marker);
          }
       }
 
@@ -2062,47 +2415,42 @@ im 'Track zeichnen'-Modus:
          Marker marker = getMarkerFromContextMenuStrip(cms);
          if (marker != null &&
              marker.IsEditable &&
-             MessageBox.Show("Sollen der Marker '" + marker.Text + "' wirklich gelöscht werden?",
-                             "Achtung",
-                             MessageBoxButtons.YesNo,
-                             MessageBoxIcon.Question,
-                             MessageBoxDefaultButton.Button2) == DialogResult.Yes)
-            editMarkerHelper.Remove(marker);
+             MyMessageBox.Show("Sollen der Marker '" + marker.Text + "' wirklich gelöscht werden?",
+                               "Achtung",
+                               MessageBoxButtons.YesNo,
+                               MessageBoxIcon.Question,
+                               MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+            gpxWorkbench.MarkerRemove(marker);
       }
 
       private void ToolStripMenuItem_WaypointZoom_Click(object sender, EventArgs e) {
          ContextMenuStrip cms = GetContextMenuStrip4ContextMenu(sender);
          Marker marker = getMarkerFromContextMenuStrip(cms);
          if (marker != null && marker.IsEditable)
-            ZoomToMarkers(new List<Marker>() { marker });
+            zoomToMarkers(new List<Marker>() { marker });
       }
 
       private void ToolStripMenuItem_ShowAllEditableMarkers_Click(object sender, EventArgs e) {
-         foreach (Marker marker in EditableGpx.MarkerList)
-            ShowEditableMarker(marker, true);
+         foreach (Marker marker in gpxWorkbench.MarkerList)
+            showEditableMarker(marker, true);
       }
 
       private void ToolStripMenuItem_HideAllEditableMarkers_Click(object sender, EventArgs e) {
-         foreach (Marker marker in EditableGpx.MarkerList)
-            ShowEditableMarker(marker, false);
+         foreach (Marker marker in gpxWorkbench.MarkerList)
+            showEditableMarker(marker, false);
       }
 
       private void ToolStripMenuItem_RemoveVisibleEditableMarkers_Click(object sender, EventArgs e) {
-         int visiblemarker = 0;
-         for (int i = 0; i < EditableGpx.MarkerList.Count; i++)
-            if (EditableGpx.MarkerList[i].IsVisible)
-               visiblemarker++;
+         int visiblemarker = gpxWorkbench.VisibleMarkers().Count;
          if (visiblemarker > 0) {
-            if (MessageBox.Show(visiblemarker > 1 ?
+            if (MyMessageBox.Show(visiblemarker > 1 ?
                                        "Sollen wirklich ALLE " + visiblemarker + " angezeigten Marker gelöscht werden?" :
                                        "Sollen der angezeigte Marker gelöscht werden?",
-                                "Achtung",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question,
-                                MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
-               for (int i = EditableGpx.MarkerList.Count - 1; 0 <= i; i--)
-                  if (EditableGpx.MarkerList[i].IsVisible)
-                     editMarkerHelper.Remove(EditableGpx.MarkerList[i]);
+                                  "Achtung",
+                                  MessageBoxButtons.YesNo,
+                                  MessageBoxIcon.Question,
+                                  MessageBoxDefaultButton.Button2) == DialogResult.Yes) {
+               gpxWorkbench.RemoveVisibleMarkers();
             }
          }
       }
@@ -2154,239 +2502,9 @@ im 'Track zeichnen'-Modus:
 
       #endregion
 
-      #region Events von EditTrackHelper
-
-      private void editTrackHelper_TrackEditShowEvent(object sender, EditTrackHelper.TrackEventArgs e) {
-         ShowMiniEditableTrackInfo(e.Track);
-      }
-
-      #endregion
-
-      #region Events von EditMarkerHelper
-
-      private void editMarkerHelper_RefreshProgramStateEvent(object sender, EventArgs e) {
-         RefreshProgramState();
-      }
-
-      private void editMarkerHelper_MarkerShouldInsertEvent(object sender, EditMarkerHelper.MarkerEventArgs e) {
-         string[] names = null;
-         int providx = mapMenuManager.ActualProviderIdx;
-         if (0 <= providx && providx < mapControl1.MapProviderDefinitions.Count) {
-            if (mapControl1.MapProviderDefinitions[providx].Provider is GarminProvider) { // falls Garminkarte, dann Textvorschläge holen
-               int delta = (Math.Min(mapControl1.ClientSize.Height, mapControl1.ClientSize.Width) * config.DeltaPercent4Search) / 100;
-               List<GarminImageCreator.SearchObject> info = mapControl1.MapGetGarminObjectInfos(mapControl1.MapLonLat2Client(e.Marker.Longitude, e.Marker.Latitude), delta, delta);
-               if (info.Count > 0) {
-                  names = new string[info.Count];
-                  for (int i = 0; i < info.Count; i++)
-                     names[i] = !string.IsNullOrEmpty(info[i].Name) ? info[i].Name : info[i].TypeName;
-               }
-            } else {
-               GeoCodingReverseResultOsm[] geoCodingReverseResultOsms = GeoCodingReverseResultOsm.Get(e.Marker.Longitude, e.Marker.Latitude);
-               if (geoCodingReverseResultOsms.Length > 0) {
-                  names = new string[geoCodingReverseResultOsms.Length];
-                  for (int i = 0; i < geoCodingReverseResultOsms.Length; i++)
-                     names[i] = geoCodingReverseResultOsms[i].Name;
-               }
-            }
-         }
-
-         FormMarkerEditing form = new FormMarkerEditing() {
-            Marker = e.Marker,
-            GarminMarkerSymbols = GarminMarkerSymbols,
-            Proposals = names,
-         };
-
-         if (form.ShowDialog() == DialogResult.OK) {
-            if (string.IsNullOrEmpty(e.Marker.Waypoint.Name)) {
-               e.Marker.Waypoint.Name = string.Format("M Lon={0:F6}°/Lat={1:F6}°", e.Marker.Waypoint.Lon, e.Marker.Waypoint.Lat);    // autom. Name
-            }
-            editMarkerHelper.InsertCopy(e.Marker, 0);
-            ShowEditableMarker(0);
-         }
-      }
-
-      #endregion
-
-      /// <summary>
-      /// die Eigenschaft <see cref="GpxAllExt.GpxDataChanged"/> wurde gesetzt (aber nicht notwendigerweise geändert!)
-      /// </summary>
-      /// <param name="sender"></param>
-      /// <param name="e"></param>
-      private void EditableGpx_ChangeIsSet(object sender, EventArgs e) {
-         GpxAllExt gpx = sender as GpxAllExt;
-         if (gpx.GpxDataChanged) // es wurde (noch etwas) verändert
-            saveGpxBackup();
-      }
-
-      /// <summary>
-      /// die Eigenschaft <see cref="GpxAllExt.GpxDataChanged"/> des <see cref="EditableGpx"/> wurde geändert
-      /// </summary>
-      /// <param name="sender"></param>
-      /// <param name="e"></param>
-      private void EditableGpx_ChangeIsChanged(object sender, EventArgs e) {
-         GpxAllExt gpx = sender as GpxAllExt;
-
-         toolStripButton_ClearEditable.Enabled =
-         toolStripButton_SaveGpxFiles.Enabled =
-         toolStripButton_SaveGpxFileExt.Enabled = (gpx.TrackList.Count > 0 || gpx.Waypoints.Count > 0);     // "speichern unter" ist immer aktiv, wenn min. 1 Track oder 1 Marker vorhanden ist
-
-         //toolStripButton_SaveGpxFile.Enabled = gpx.GpxFileChanged &&                                               // "speichern" ist aktiv wenn Veränderung und 
-         //                                      (gpx.TrackList.Count > 0 || gpx.Waypoints.Count > 0) &&      //       min. 1 Track oder 1 Marker vorhanden ist und
-         //                                      !string.IsNullOrEmpty(EditableGpx.GpxFilename);              //       ein Dateiname geg. ist
-      }
-
-      /// <summary>
-      /// liest die Datei gpxviewer.xml (im Arbeitsverzeichnis) ein
-      /// </summary>
-      void ReadConfigData() {
-         string progpath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-
-         config = new Config(Path.Combine(progpath, "gpxviewer.xml"), null);
-
-         try {
-            appData = new AppData(PrivateApplicationDataPath);
-            formSplashScreen.AppendTextLine("lese Garminsymbole ein ...");
-            GarminMarkerSymbols = new List<GarminSymbol>();
-            string[] garmingroups = config.GetGarminMarkerSymbolGroupnames();
-            if (garmingroups != null)
-               for (int g = 0; g < garmingroups.Length; g++) {
-                  string[] garminnames = config.GetGarminMarkerSymbolnames(g);
-                  if (garminnames != null)
-                     for (int i = 0; i < garminnames.Length; i++) {
-                        bool withoffset = config.GetGarminMarkerSymboloffset(g, i, out int offsetx, out int offsety);
-                        GarminMarkerSymbols.Add(new GarminSymbol(garminnames[i],
-                                                                 garmingroups[g],
-                                                                 config.GetGarminMarkerSymboltext(g, i),
-                                                                 Path.Combine(progpath, config.GetGarminMarkerSymbolfile(g, i)),
-                                                                 withoffset ? offsetx : int.MinValue,
-                                                                 withoffset ? offsety : int.MinValue));
-                     }
-               }
-            formSplashScreen.AppendTextLine("   " + GarminMarkerSymbols.Count + " Garminsymbole");
-         } catch (Exception ex) {
-            throw new Exception("Fehler beim Einlesen der Garminsymbole: " + ex.Message);
-         }
-
-         editablegpxbackupfile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), // Environment.SpecialFolder.ApplicationData bei Roaming
-                                              PrivateApplicationDataPath,
-                                              "editable.gpx");
-         formSplashScreen.AppendTextLine("Datei für veränderbare Tracks: " + editablegpxbackupfile);
-
-         VisualMarker.RegisterExternSymbols(GarminMarkerSymbols);
-
-         // Größe des Quadrates festgelegt
-         rectLastMouseMovePosition = new Rectangle(int.MinValue, int.MinValue, config.MinimalTrackpointDistanceX, config.MinimalTrackpointDistanceY);
-
-         MapControl.MapCacheIsActiv = !config.ServerOnly;
-         MapControl.MapSetProxy(config.WebProxyName,
-                                config.WebProxyPort,
-                                config.WebProxyUser,
-                                config.WebProxyPassword);
-
-         SetMapLocationAndZoom(appData.LastZoom,
-                               appData.LastLongitude,
-                               appData.LastLatitude);
-         if (!string.IsNullOrEmpty(config.CacheLocation))
-            mapControl1.MapCacheLocation = PathHelper.ReplaceEnvironmentVars(config.CacheLocation);
-
-         string[] providernames = config.Provider;
-
-         List<MapProviderDefinition> provdefs = new List<MapProviderDefinition>();
-
-         formSplashScreen.AppendTextLine("lese " + providernames.Length + " Mapprovider-Definitionen ein ...");
-         for (int providx = 0; providx < providernames.Length; providx++) {
-            if (providernames[providx] == GarminProvider.Instance.Name)
-               provdefs.Add(new GarminProvider.GarminMapDefinitionData(config.MapName(providx),
-                                                                       config.DbIdDelta(providx),
-                                                                       config.GetZoom4Display(providx),
-                                                                       config.MinZoom(providx),
-                                                                       config.MaxZoom(providx),
-                                                                       new string[] {
-                                                                             PathHelper.ReplaceEnvironmentVars(config.GarminTdb(providx)),
-                                                                       },
-                                                                       new string[] {
-                                                                             PathHelper.ReplaceEnvironmentVars(config.GarminTyp(providx)),
-                                                                       },
-                                                                       config.GarminTextFactor(providx),
-                                                                       config.GarminLineFactor(providx),
-                                                                       config.GarminSymbolFactor(providx)));
-
-            else if (providernames[providx] == GarminKmzProvider.Instance.Name)
-               provdefs.Add(new GarminKmzProvider.KmzMapDefinition(config.MapName(providx),
-                                                                   config.DbIdDelta(providx),
-                                                                   config.GetZoom4Display(providx),
-                                                                   config.MinZoom(providx),
-                                                                   config.MaxZoom(providx),
-                                                                   PathHelper.ReplaceEnvironmentVars(config.GarminKmzFile(providx))));
-
-            else if (providernames[providx] == WMSProvider.Instance.Name)
-               provdefs.Add(new WMSProvider.WMSMapDefinition(config.MapName(providx),
-                                                             config.DbIdDelta(providx),
-                                                             config.GetZoom4Display(providx),
-                                                             config.MinZoom(providx),
-                                                             config.MaxZoom(providx),
-                                                             config.WmsLayers(providx),
-                                                             config.WmsUrl(providx),
-                                                             config.WmsSrs(providx),
-                                                             config.WmsVersion(providx),
-                                                             config.WmsPictFormat(providx),
-                                                             config.WmsExtend(providx)));
-
-            else
-               provdefs.Add(new MapProviderDefinition(config.MapName(providx),
-                                                      providernames[providx],
-                                                      config.GetZoom4Display(providx),
-                                                      config.MinZoom(providx),
-                                                      config.MaxZoom(providx)));
-         }
-
-         mapControl1.MapRegisterProviders(providernames, provdefs);
-         foreach (MapProviderDefinition pd in mapControl1.MapProviderDefinitions)
-            formSplashScreen.AppendTextLine("   " + pd.MapName + " [" + pd.ProviderName + "]");
-
-         formSplashScreen.AppendTextLine("init. DEM-Behandlung ...");
-         dem = new DemData(string.IsNullOrEmpty(config.DemPath) ?
-                                       "" :
-                                       PathHelper.ReplaceEnvironmentVars(config.DemPath),
-                           config.DemCachesize,
-                           string.IsNullOrEmpty(config.DemCachePath) ?
-                                       "" :
-                                       PathHelper.ReplaceEnvironmentVars(config.DemCachePath),
-                           config.DemMinZoom);
-         formSplashScreen.AppendTextLine("   DemPath " + config.DemPath);
-         formSplashScreen.AppendTextLine("   DemCachesize " + config.DemCachesize);
-         formSplashScreen.AppendTextLine("   DemCachePath " + config.DemCachePath);
-         dem.WithHillshade = !string.IsNullOrEmpty(config.DemPath);
-         dem.SetNewHillshadingData(config.DemHillshadingAzimut,
-                                   config.DemHillshadingAltitude,
-                                   config.DemHillshadingScale);
-
-         VisualTrack.StandardColor = config.StandardTrackColor;
-         VisualTrack.StandardColor2 = config.StandardTrackColor2;
-         VisualTrack.StandardColor3 = config.StandardTrackColor3;
-         VisualTrack.StandardColor4 = config.StandardTrackColor4;
-         VisualTrack.StandardColor5 = config.StandardTrackColor5;
-         VisualTrack.StandardWidth = config.StandardTrackWidth;
-         VisualTrack.MarkedColor = config.MarkedTrackColor;
-         VisualTrack.MarkedWidth = config.MarkedTrackWidth;
-         VisualTrack.EditableColor = config.EditableTrackColor;
-         VisualTrack.EditableWidth = config.EditableTrackWidth;
-         VisualTrack.InEditableColor = config.InEditTrackColor;
-         VisualTrack.InEditableWidth = config.InEditTrackWidth;
-         VisualTrack.SelectedPartColor = config.SelectedPartTrackColor;
-         VisualTrack.SelectedPartWidth = config.SelectedPartTrackWidth;
-
-         Color[] slopecols = config.SlopeColors(out int[] slopepercent);
-         VisualTrack.SetSlopeValues(slopecols, slopepercent);
-
-         mapControl1_MapZoomChangedEvent(null, EventArgs.Empty);
-      }
-
-      void setGpxLoadInfo(string text) {
-         toolStripStatusLabel_GpxLoad.Text = !string.IsNullOrEmpty(text) ?
-                                                   text :
-                                                   "";
-      }
+      void setGpxLoadInfo(string text) => toolStripStatusLabel_GpxLoad.Text = !string.IsNullOrEmpty(text) ?
+                                                                                 text :
+                                                                                 "";
 
       #region Tracks anzeigen oder verbergen
 
@@ -2396,7 +2514,7 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="track"></param>
       /// <param name="visible"></param>
-      void ShowTrack(Track track, bool visible = true) {
+      void showTrack(Track track, bool visible = true) {
          if (track.IsVisible != visible) {
             mapControl1.MapShowTrack(track,
                                      visible,
@@ -2405,7 +2523,8 @@ im 'Track zeichnen'-Modus:
             // Control-Status anpassen
             if (track.IsEditable) {
                editableTracklistControl1.ShowTrack(track, visible);
-               EditableGpx.GpxDataChanged = true;
+               if (track.GpxDataContainer != null)
+                  track.GpxDataContainer.GpxDataChanged = true;
             } else {
                mapControl1.MapShowTrack(track, visible, visible ? nextVisibleTrack(track) : null);
                readOnlyTracklistControl1.ShowTrack(track, visible);
@@ -2420,7 +2539,7 @@ im 'Track zeichnen'-Modus:
       /// <returns></returns>
       Track nextVisibleTrack(Track track) {
          if (track.IsEditable)
-            return EditableGpx.NextVisibleTrack(track);
+            return track.GpxDataContainer?.NextVisibleTrack(track);
          else {
             List<Track> tracks = readOnlyTracklistControl1.GetAllTracks();
             for (int i = 0; i < tracks.Count; i++) {
@@ -2435,14 +2554,18 @@ im 'Track zeichnen'-Modus:
          }
       }
 
+      #endregion
+
+      #region Marker anzeigen oder verbergen
+
       /// <summary>
       /// editierbaren Marker anzeigen oder verbergen
       /// </summary>
       /// <param name="idx"></param>
       /// <param name="visible"></param>
-      void ShowEditableMarker(int idx, bool visible = true) {
-         if (0 <= idx && idx < EditableGpx.MarkerList.Count)
-            ShowEditableMarker(EditableGpx.MarkerList[idx], visible);
+      void showEditableMarker(int idx, bool visible = true) {
+         if (0 <= idx && idx < gpxWorkbench.MarkerCount)
+            showEditableMarker(gpxWorkbench.GetMarker(idx), visible);
       }
 
       /// <summary>
@@ -2451,34 +2574,37 @@ im 'Track zeichnen'-Modus:
       /// <param name="editablemarker"></param>
       /// <param name="visible"></param>
       /// <returns></returns>
-      public int ShowEditableMarker(Marker editablemarker, bool visible) {
+      int showEditableMarker(Marker editablemarker, bool visible) {
          if (editablemarker.IsVisible == visible)
             return -1;
          mapControl1.MapShowMarker(editablemarker,
                                    visible,
                                    visible ? nextVisibleMarker(editablemarker) : null);
          editableTracklistControl1.ShowMarker(editablemarker, visible);
-         EditableGpx.GpxDataChanged = true;
-         return EditableGpx.MarkerIndex(editablemarker);
+         GpxAllExt gpx = editablemarker.GpxDataContainer;
+         if (gpx != null) {
+            gpx.GpxDataChanged = true;
+            return gpx.MarkerIndex(editablemarker);
+         }
+         return -1;
       }
 
-      #endregion
-
-      #region Marker anzeigen oder verbergen
+      void showMarker(Marker marker, bool visible = true) {
+         if (marker.IsVisible != visible)
+            mapControl1.MapShowMarker(marker,
+                                      visible,
+                                      visible ? nextVisibleMarker(marker) : null);
+      }
 
       /// <summary>
       /// aller Markers des <see cref="GpxAllExt"/>-Objektes anzeigen oder verbergen entsprechend <see cref="MarkersVisible"/> aus <see cref="GpxAllExt"/>
       /// </summary>
       /// <param name="gpx"></param>
       /// <param name="visible"></param>
-      void ShowAllMarker4GpxObject(GpxAllExt gpx, bool visible) {
+      void showAllMarker4GpxObject(GpxAllExt gpx, bool visible) {
          if (gpx != null) {
-            for (int i = 0; i < gpx.MarkerList.Count; i++) {
-               Marker marker = gpx.MarkerList[i];
-               mapControl1.MapShowMarker(marker,
-                                         visible,
-                                         visible ? nextVisibleMarker(marker) : null);
-            }
+            for (int i = 0; i < gpx.MarkerList.Count; i++)
+               showMarker(gpx.MarkerList[i], visible);
          }
       }
 
@@ -2487,20 +2613,16 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="gpx"></param>
       /// <param name="visible"></param>
-      void ShowAllFotoMarker4GpxObject(GpxAllExt gpx, bool visible) {
+      void showAllFotoMarker4GpxObject(GpxAllExt gpx, bool visible) {
          if (gpx != null) {
-            for (int i = 0; i < gpx.MarkerListPictures.Count; i++) {
-               Marker marker = gpx.MarkerListPictures[i];
-               mapControl1.MapShowMarker(marker,
-                                         visible,
-                                         visible ? nextVisibleMarker(marker) : null);
-            }
+            for (int i = 0; i < gpx.MarkerListPictures.Count; i++)
+               showMarker(gpx.MarkerListPictures[i], visible);
          }
       }
 
       Marker nextVisibleMarker(Marker marker) {
          if (marker.IsEditable)
-            return EditableGpx.NextVisibleMarker(marker);
+            return gpxWorkbench?.Gpx.NextVisibleMarker(marker);
          else {
             List<Marker> markers = readOnlyTracklistControl1.GetAllMarkers();
             for (int i = 0; i < markers.Count; i++) {
@@ -2524,7 +2646,7 @@ im 'Track zeichnen'-Modus:
       /// zoomt auf die Tracks der Liste
       /// </summary>
       /// <param name="tracklst"></param>
-      void ZoomToTracks(List<Track> tracklst) {
+      void zoomToTracks(IList<Track> tracklst) {
          if (tracklst != null &&
              tracklst.Count > 0) {
             Gpx.GpxBounds bounds = tracklst[0].Bounds;
@@ -2538,7 +2660,7 @@ im 'Track zeichnen'-Modus:
       /// zoomt auf die Marker der Liste
       /// </summary>
       /// <param name="markerlst"></param>
-      void ZoomToMarkers(List<Marker> markerlst) {
+      void zoomToMarkers(List<Marker> markerlst) {
          if (markerlst != null &&
              markerlst.Count > 0) {
             Gpx.GpxBounds bounds = new Gpx.GpxBounds();
@@ -2554,11 +2676,11 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="tnc"></param>
       /// <returns></returns>
-      List<TreeNode> GetMarkedNodesFromTreeView(TreeNodeCollection tnc) {
+      List<TreeNode> getMarkedNodesFromTreeView(TreeNodeCollection tnc) {
          List<TreeNode> nodelst = new List<TreeNode>();
          foreach (TreeNode tn in tnc) {
             if (tn.Nodes.Count > 0)
-               nodelst.AddRange(GetMarkedNodesFromTreeView(tn.Nodes));
+               nodelst.AddRange(getMarkedNodesFromTreeView(tn.Nodes));
             if (tn.Checked)
                nodelst.Add(tn);
          }
@@ -2570,10 +2692,10 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="orgtrack"></param>
       /// <returns></returns>
-      Track CloneTrack2EditableGpx(Track orgtrack) {
+      Track cloneTrack2GpxWorkbench(Track orgtrack) {
          if (orgtrack != null) {
-            Track newtrack = editTrackHelper.InsertCopy(orgtrack, 0, true);
-            ShowTrack(newtrack); // sichtbar!
+            Track newtrack = gpxWorkbench.TrackInsertCopy(orgtrack);
+            showTrack(newtrack); // sichtbar!
             return newtrack;
          }
          return null;
@@ -2587,16 +2709,16 @@ im 'Track zeichnen'-Modus:
       /// <param name="gpx">GPX-Datei-(Objekt)</param>
       /// <param name="formcaption">Überschrift für das Formular</param>
       /// <param name="editable4track">true wenn der Track editiert werden kann</param>
-      void InfoAndEditTrackProps(Track track, GpxAllExt gpx, string formcaption, bool editable4track) {
+      void infoAndEditTrackProps(Track track, GpxAllExt gpx, string formcaption, bool editable4track) {
          FormTrackInfoAndEdit form = null;
          if (editable4track &&
              track != null &&
              track.IsEditable) {       // dann modale Form, damit immer nur 1 Track im Editiermodus ist
 
             Track trackcopy = Track.CreateCopy(track);
-            ShowTrack(trackcopy, false);
+            showTrack(trackcopy, false);
             trackcopy.IsOnEdit = true;
-            ShowTrack(trackcopy);
+            showTrack(trackcopy);
 
             form = new FormTrackInfoAndEdit(trackcopy, formcaption) {
                TrackIsReadOnly = false,
@@ -2605,20 +2727,20 @@ im 'Track zeichnen'-Modus:
             if (form.ShowDialog() == DialogResult.OK &&
                 form.TrackChanged) {      // dann Originaltrack gegen Kopie austauschen
 
-               ShowTrack(trackcopy, false);     // aus der Ansicht wieder entfernen
+               showTrack(trackcopy, false);     // aus der Ansicht wieder entfernen
 
                trackcopy.LineColor = track.LineColor;
                trackcopy.LineWidth = track.LineWidth;
                trackcopy.IsOnEdit = false;
 
-               int pos = EditableGpx.TrackIndex(track);
-               editTrackHelper.Remove(track);                                 // Originaltrack entfernen und ...
-               Track newtrack = editTrackHelper.InsertCopy(trackcopy, pos);   // ... neuen Track einfügen und ...
-               ShowTrack(newtrack);                                           // ... anzeigen
+               int pos = gpxWorkbench.TrackIndex(track);
+               gpxWorkbench.TrackRemove(track);                                 // Originaltrack entfernen und ...
+               Track newtrack = gpxWorkbench.TrackInsertCopy(trackcopy, pos);   // ... neuen Track einfügen und ...
+               showTrack(newtrack);                                           // ... anzeigen
 
             } else {
 
-               ShowTrack(trackcopy, false);     // aus der Ansicht wieder entfernen
+               showTrack(trackcopy, false);     // aus der Ansicht wieder entfernen
 
             }
 
@@ -2676,7 +2798,7 @@ im 'Track zeichnen'-Modus:
       /// <param name="thisnot">wenn ungleich null, dann wird NICHT dieser Track geliefert</param>
       /// <param name="onlyeditable">wenn true, dann nur editierbare Tracks berücksichtigen</param>
       /// <returns></returns>
-      Track GetFirstMarkedTrack(Track thisnot = null, bool onlyeditable = false) {
+      Track getFirstMarkedTrack(Track thisnot = null, bool onlyeditable = false) {
          Track track = null;
          for (int i = 0; i < highlightedTrackSegments.Count; i++) {
             if ((thisnot == null ||
@@ -2695,7 +2817,7 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="track"></param>
       /// <param name="ptclient"></param>
-      void ShowTrackPointInfo(Track track, Point ptclient) {
+      void showTrackPointInfo(Track track, Point ptclient) {
          int idx = track.GetNearestPtIdx(mapControl1.MapClient2LonLat(ptclient));
          if (idx >= 0) {
             Gpx.GpxTrackPoint pt = track.GetGpxPoint(idx);
@@ -2729,19 +2851,20 @@ im 'Track zeichnen'-Modus:
                sb.AppendLine();
             }
 
-            ShowInfoMessage(sb.ToString(), track.VisualName);
+            UIHelper.ShowInfoMessage(sb.ToString(), track.VisualName);
          }
       }
 
       /// <summary>
       /// zeigt einen Tooltip für die akt. markierten Tracks an
       /// </summary>
-      void ShowToolTip4MarkedTracks() {
+      void showToolTip4MarkedTracks() {
          if (highlightedTrackSegments.Count > 0) {
             string txt = "";
             for (int i = 0; i < highlightedTrackSegments.Count; i++) {
                if (i > 0)
                   txt += Environment.NewLine;
+               highlightedTrackSegments[i].CalculateStats();
                txt += string.Format("{0} [{1:F1} km / {2:F0} m]",
                                     highlightedTrackSegments[i].VisualName,
                                     highlightedTrackSegments[i].StatLength / 1000,
@@ -2759,7 +2882,7 @@ im 'Track zeichnen'-Modus:
       /// erzeugt einen "vereinfachten" Track zum vorgegebenen Track
       /// </summary>
       /// <param name="track"></param>
-      void SimplifyTrack(Track track) {
+      void simplifyTrack(Track track) {
          FormTrackSimplificationcs dlg = new FormTrackSimplificationcs() {
             SrcTrack = track,
          };
@@ -2770,8 +2893,8 @@ im 'Track zeichnen'-Modus:
              dlg.DestTrack != null &&
              dlg.DestTrack.GpxSegment.Points.Count > 1) {
 
-            int orgidx = EditableGpx.TrackIndex(track);
-            EditableGpx.TrackInsertCopy(dlg.DestTrack, orgidx + 1);
+            int orgidx = gpxWorkbench.TrackIndex(track);
+            gpxWorkbench.TrackInsertCopy(dlg.DestTrack, orgidx + 1);
          }
 
          appData.SimplifyDatasetList = FormTrackSimplificationcs.SimplificationDataList;
@@ -2786,29 +2909,24 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="marker"></param>
       /// <param name="editable">veränderbar oder nur lesbar</param>
-      void InfoAndEditMarkerProps(Marker marker, bool editable) {
+      void infoAndEditMarkerProps(Marker marker, bool editable) {
          if (marker != null)
             if (marker.IsEditable &&
                 editable) {
                FormMarkerEditing form = new FormMarkerEditing() {
                   Marker = marker,
-                  GarminMarkerSymbols = GarminMarkerSymbols,
+                  GarminMarkerSymbols = garminMarkerSymbols,
                };
                if (form.ShowDialog() == DialogResult.OK &&
                    form.WaypointChanged) {
-                  int idx = marker.GpxDataContainerIndex;
-                  if (idx >= 0) {
-                     EditableGpx.Waypoints[idx] = marker.Waypoint;
-                     editableTracklistControl1.SetMarkerName(marker, marker.Waypoint.Name);  // falls sich der Name geändert hat
-                     EditableGpx.GpxDataChanged = true;
-                     editMarkerHelper.RefreshOnMap(marker);
-                  }
+                  if (gpxWorkbench.MarkerReplaceWaypoint(marker, marker))
+                     editableTracklistControl1.SetMarkerName(marker, marker.Text);  // falls sich der Name geändert hat
                }
             } else {                   // nicht-modale Form
                FormMarkerEditing form = new FormMarkerEditing() {
                   Marker = marker,
                   MarkerIsReadOnly = true,
-                  GarminMarkerSymbols = GarminMarkerSymbols,
+                  GarminMarkerSymbols = garminMarkerSymbols,
                };
                AddOwnedForm(form);
                form.Show(this);
@@ -2819,10 +2937,10 @@ im 'Track zeichnen'-Modus:
       /// erzeugt eine bearbeitbare Kopie des <see cref="Marker"/> und fügt sie in die Liste ein
       /// </summary>
       /// <param name="orgmarker"></param>
-      void CloneMarker2EditableGpx(Marker orgmarker) {
+      void cloneMarker2GpxWorkbench(Marker orgmarker) {
          if (orgmarker != null) {
-            editMarkerHelper.InsertCopy(orgmarker, 0);
-            ShowEditableMarker(0);
+            gpxWorkbench.MarkerInsertCopy(orgmarker, 0);
+            showEditableMarker(0);
          }
       }
 
@@ -2830,7 +2948,7 @@ im 'Track zeichnen'-Modus:
       /// zeigt die Infos zu einem Standard-Waypoint an
       /// </summary>
       /// <param name="wp"></param>
-      void ShowStdMarkerInfo(Gpx.GpxWaypoint wp) {
+      void showStdMarkerInfo(Gpx.GpxWaypoint wp) {
          StringBuilder sb = new StringBuilder();
          sb.AppendFormat("Lng {0:F6}°, Lat {1:F6}°", wp.Lon, wp.Lat);
          sb.AppendLine();
@@ -2841,7 +2959,7 @@ im 'Track zeichnen'-Modus:
          if (wp.Time != Gpx.BaseElement.NOTVALID_TIME) {
             sb.AppendLine(wp.Time.ToString(@"ddd, d. MMMM yyyy, H:mm:ss U\hr (UTC)"));
          }
-         ShowInfoMessage(sb.ToString(), wp.Name);
+         UIHelper.ShowInfoMessage(sb.ToString(), wp.Name);
       }
 
       #endregion
@@ -2853,7 +2971,7 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="localcenter">Punkt in dessen Umgebung gesucht wird</param>
       /// <param name="deltafactor">Faktor für die Größe des Bereiches (bezogen auf die Markergröße)</param>
-      void ShowPictureMarkerList(Point localcenter, float deltafactor) {
+      void showPictureMarkerList(Point localcenter, float deltafactor) {
          List<Marker> markerlst = mapControl1.MapGetPictureMarkersAround(localcenter,
                                                                             (int)Math.Round(deltafactor * VisualMarker.FotoMarker.Picture.Width),
                                                                             (int)Math.Round(deltafactor * VisualMarker.FotoMarker.Picture.Height));
@@ -2894,7 +3012,6 @@ im 'Track zeichnen'-Modus:
 
       #endregion
 
-
       #region drucken
 
       PageSettings pageSettings = null;
@@ -2915,7 +3032,7 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="e"></param>
       /// <param name="pd"></param>
-      void DocumentPrintPage(PrintPageEventArgs e, Image img) {
+      void documentPrintPage(PrintPageEventArgs e, Image img) {
          e.HasMorePages = false;                         // sicherheitshalber erstmal die Druckerei beenden
          try {
 
@@ -2926,7 +3043,7 @@ im 'Track zeichnen'-Modus:
             e.HasMorePages = false;
 
          } catch (Exception ex) {
-            MessageBox.Show(ex.Message, "Fehler beim Drucken", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MyMessageBox.Show(ex.Message, "Fehler beim Drucken", MessageBoxButtons.OK, MessageBoxIcon.Error);
          }
       }
 
@@ -2939,8 +3056,9 @@ im 'Track zeichnen'-Modus:
       /// </summary>
       /// <param name="orgcol">beim Start ausgewählte Farbe</param>
       /// <param name="withgarmincolors">wenn true, dann 16 Garminfarben als vordefinierte anzeigen</param>
+      /// <param name="newcol">gewählte Farbe wenn true</param>
       /// <returns></returns>
-      Color GetColor(Color orgcol, bool withgarmincolors) {
+      bool getColor(Color orgcol, bool withgarmincolors, out Color newcol) {
          Unclassified.UI.SpecColorSelectorDialog dlg = new Unclassified.UI.SpecColorSelectorDialog() {
             SelectedColor = orgcol,
          };
@@ -2970,13 +3088,16 @@ im 'Track zeichnen'-Modus:
             for (int i = cols.Length; i < dlg.ArrayColorsCount; i++)
                dlg.EnableArrayColor(i, false);
          } else {
-            for (int i = 0; i < predefColors.Length && i < dlg.ArrayColorsCount; i++)
-               dlg.SetArrayColor(i, predefColors[i]);
+            for (int i = 0; i < PredefColors.Length && i < dlg.ArrayColorsCount; i++)
+               dlg.SetArrayColor(i, PredefColors[i]);
          }
 
-         if (dlg.ShowDialog() == DialogResult.OK)
-            return dlg.SelectedColor;
-         return Color.Empty;
+         newcol = Color.Empty;
+         if (dlg.ShowDialog() == DialogResult.OK) {
+            newcol = dlg.SelectedColor;
+            return true;
+         }
+         return false;
       }
 
       #endregion
@@ -2986,17 +3107,8 @@ im 'Track zeichnen'-Modus:
       /// <summary>
       /// der akt. Status wird noch einmal gesetzt um bestimmte Korrekturen zu erzwingen
       /// </summary>
-      void RefreshProgramState() {
-         ProgramState = ProgramState;
-      }
-
-      /// <summary>
-      /// Ist das Program in irgendeinem Editier-Status?
-      /// </summary>
-      bool ProgInEditState {
-         get {
-            return ProgramState != ProgState.Viewer;
-         }
+      void refreshProgramState() {
+         programState = programState;
       }
 
       enum ProgState {
@@ -3031,29 +3143,27 @@ im 'Track zeichnen'-Modus:
       /// <summary>
       /// akt. Programm-Status
       /// </summary>
-      ProgState ProgramState {
-         get {
-            return _programState;
-         }
+      ProgState programState {
+         get => _programState;
          set {
             // KEIN Abbruch der Auswertung bei "_programState == value", weil sonst kein Refresh möglich wäre.
 
             // ev. noch "Aufräumarbeiten" für den bisherigen Status
             switch (_programState) {               // alter Status
                case ProgState.Edit_SetMarker:
-                  editMarkerHelper.EditEnd();
+                  gpxWorkbench.MarkerEndEdit();
                   break;
 
                case ProgState.Edit_DrawTrack:
-                  editTrackHelper.EditEndDraw();
+                  gpxWorkbench.TrackEndDraw();
                   break;
 
                case ProgState.Edit_SplitTracks:
-                  editTrackHelper.EndSplit(Point.Empty); // notfalls Abbruch
+                  gpxWorkbench.TrackEndSplit(Point.Empty); // notfalls Abbruch
                   break;
 
                case ProgState.Edit_ConcatTracks:
-                  editTrackHelper.EndConcat(null); // notfalls Abbruch
+                  gpxWorkbench.TrackEndConcat(null); // notfalls Abbruch
                   break;
             }
             mapControl1.Refresh();
@@ -3061,8 +3171,6 @@ im 'Track zeichnen'-Modus:
 
             toolStripButton_OpenGpxfile.Enabled =
             toolStripButton_TrackSearch.Enabled = !readOnlyTracklistControl1.LoadGpxfilesIsRunning;
-
-            toolStripStatusLabel_EditInfo.Text = "";
 
             switch (value) {
                case ProgState.Viewer:
@@ -3075,8 +3183,8 @@ im 'Track zeichnen'-Modus:
 
                case ProgState.Edit_DrawTrack:
                   mapControl1.MapCursor = cursors4Map.DrawTrack;
-                  if (!editTrackHelper.InWork)
-                     editTrackHelper.EditStart();
+                  if (!gpxWorkbench.TrackIsInWork)
+                     gpxWorkbench.TrackStartEdit(null);
                   toolStripButton_TrackDrawEnd.Enabled = true;    // beim Fortsetzen eines Tracks nötigs
                   break;
 
@@ -3100,15 +3208,39 @@ im 'Track zeichnen'-Modus:
 
       #endregion
 
+      void creatMapMenuManager() {
+         mapMenuManager = new MapMenuManager(config, appData, ToolStripMenuItemMaps, mapControl1.MapProviderDefinitions, providxpaths);
+         mapMenuManager.ActivateIdx += (s, ea) => {
+            try {
+               dem.WithHillshade = config.Hillshading(providxpaths[ea.ProviderIdx]);
+               mapControl1.MapSetActivProvider(ea.ProviderIdx, config.HillshadingAlpha(providxpaths[ea.ProviderIdx]), dem);
+            } catch (Exception ex) {
+               UIHelper.ShowExceptionError(ex);
+            }
+         };
+
+         string lastmapname = appData.LastMapname;
+         int lastmapnameidx = -1;
+         for (int i = 0; i < mapControl1.MapProviderDefinitions.Count; i++) {
+            if (lastmapname == mapControl1.MapProviderDefinitions[i].MapName)
+               lastmapnameidx = i;
+         }
+         if (lastmapnameidx >= 0)
+            mapMenuManager.ActualProviderIdx = lastmapnameidx;
+         else {
+            if (mapControl1.MapProviderDefinitions.Count > 0)
+               mapMenuManager.ActualProviderIdx = Math.Max(0, Math.Min(config.StartProvider, mapControl1.MapProviderDefinitions.Count - 1));
+         }
+      }
+
       /// <summary>
       /// den Zoom und den Mittelpunkt der Karte setzen
       /// </summary>
       /// <param name="zoom"></param>
       /// <param name="lon"></param>
       /// <param name="lat"></param>
-      public void SetMapLocationAndZoom(double zoom, double lon, double lat) {
+      public void SetMapLocationAndZoom(double zoom, double lon, double lat) =>
          mapControl1.MapSetLocationAndZoom(zoom, lon, lat);
-      }
 
       /// <summary>
       /// liefert den aktuellen Zoom und Mittelpunkt der Karte
@@ -3122,186 +3254,43 @@ im 'Track zeichnen'-Modus:
          return mapControl1.MapZoom;
       }
 
-      #region speichern
-
       /// <summary>
-      /// editierbare Daten speichern
+      /// <see cref="GpxWorkbench"/> "normal" speichern
       /// </summary>
       /// <param name="withdlg"></param>
       /// <param name="multifiles"></param>
       /// <returns>false, wenn speichern fehlerhaft</returns>
-      bool SaveEditableGpx(bool withdlg = false, bool multifiles = false) {
-         saveGpxBackup();
+      bool saveWorkbench(bool withdlg = false, bool multifiles = false) {
+         gpxWorkbench.Save();
 
          // Dateiname vorhanden?
          if (withdlg ||
-             string.IsNullOrEmpty(EditableGpx.GpxFilename)) {
-            saveFileDialogGpx.FileName = string.IsNullOrEmpty(EditableGpx.GpxFilename) ?
+             string.IsNullOrEmpty(lastSaveFilename)) {
+            saveFileDialogGpx.FileName = string.IsNullOrEmpty(lastSaveFilename) ?
                                                       "neu.gpx" :
-                                                      EditableGpx.GpxFilename;
+                                                      lastSaveFilename;
             saveFileDialogGpx.DefaultExt = "gpx";
             saveFileDialogGpx.Title = !multifiles ?
                                           "speichern als Datei ..." :
-                                          "speichern als Datei ... (Basisdateiname)";
+                                          "speichern als Einzeldateien ... (Basisdateiname)";
             if (saveFileDialogGpx.ShowDialog() == DialogResult.OK)
-               EditableGpx.GpxFilename = saveFileDialogGpx.FileName;
+               lastSaveFilename = saveFileDialogGpx.FileName;
             else
                return false;
          }
 
-         // zunächst Gültigkeit testen (z.B. Markernamen/Tracknamen)
-         SortedSet<string> testnames = new SortedSet<string>();
-         foreach (var item in EditableGpx.Waypoints) {
-            if (!testnames.Add(item.Name)) {
-               MessageBox.Show("Eine Markierung mit dem Namen \"" + item.Name + "\" existiert mehrfach.", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
-               return false;
-            }
-         }
-         testnames.Clear();
-         foreach (var item in EditableGpx.Tracks) {
-            if (!testnames.Add(item.Name)) {
-               MessageBox.Show("Ein Track mit dem Namen \"" + item.Name + "\" existiert mehrfach.", "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
-               return false;
-            }
-         }
-
-         bool ok = true;
-         try {
-            if (!multifiles)
-               savegpxfile(EditableGpx.GpxFilename, true, SaveWithGarminExtensions);
-            else
-               savegpxfiles(EditableGpx.GpxFilename, true, SaveWithGarminExtensions);
-            Text = Progname + " " + Progversion + " - " + Path.GetFileName(EditableGpx.GpxFilename);
-         } catch (Exception ex) {
-            MessageBox.Show(ex.Message, "Fehler", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            ok = false;
-         }
+         string creator = Progname + " " + Progversion;
+         bool ok = IOHelper.SaveGpx(gpxWorkbench.Gpx, lastSaveFilename, multifiles, creator, saveWithGarminExtensions);
+         if (ok)
+            Text = creator + " - " + Path.GetFileName(lastSaveFilename);
          return ok;
       }
-
-      /// <summary>
-      /// alle angezeigten <see cref="Track"/> und <see cref="Marker"/> werden als Datei gespeichert
-      /// </summary>
-      /// <param name="filename"></param>
-      /// <param name="overwrite"></param>
-      /// <param name="withgarminextensions"></param>
-      void savegpxfile(string filename, bool overwrite, bool withgarminextensions) {
-         if (overwrite ||
-             !File.Exists(filename)) {
-            GpxAllExt tmp = new GpxAllExt(EditableGpx.AsXml(int.MaxValue));
-
-            // akt. "unsichtbare" Tracks und Marker entfernen
-            for (int i = EditableGpx.TrackList.Count - 1; i >= 0; i--)
-               if (!EditableGpx.TrackList[i].IsVisible)
-                  tmp.RemoveTrack(i);
-            for (int i = EditableGpx.MarkerList.Count - 1; i >= 0; i--)
-               if (!EditableGpx.MarkerList[i].IsVisible)
-                  tmp.RemoveWaypoint(i);
-
-            tmp.Save(filename, Progname + " " + Progversion, withgarminextensions);
-         } else
-            ShowErrorMessage("Die Datei '" + filename + "' existiert schon.", "Abbruch des Speicherns");
-      }
-
-      /// <summary>
-      /// alle angezeigten <see cref="Track"/> werden jeweils in 1 Datei gespeichert und alle angezeigten <see cref="Marker"/> werden gemeinsam in einer Datei gespeichert
-      /// </summary>
-      /// <param name="basefilename"></param>
-      /// <param name="overwrite"></param>
-      /// <param name="withgarminextensions"></param>
-      void savegpxfiles(string basefilename, bool overwrite, bool withgarminextensions) {
-         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(basefilename);
-         string fileNameExtension = Path.GetExtension(basefilename);
-         string path = Path.GetDirectoryName(basefilename);
-
-         int count = 0;
-         foreach (var track in EditableGpx.TrackList)
-            if (track.IsVisible)
-               if (!savegpxfile4Track(Path.Combine(path, fileNameWithoutExtension + "_track" + (++count).ToString() + fileNameExtension),
-                                      track,
-                                      overwrite,
-                                      withgarminextensions))
-                  return;
-
-         GpxAllExt tmp = new GpxAllExt();
-         foreach (var marker in EditableGpx.MarkerList)
-            if (marker.IsVisible)
-               tmp.MarkerInsertCopy(marker);
-         savegpxfile4Marker(Path.Combine(path, fileNameWithoutExtension + "_marker" + fileNameExtension),
-                            tmp.MarkerList,
-                            overwrite,
-                            withgarminextensions);
-      }
-
-      /// <summary>
-      /// ein einzelner <see cref="Track"/> wird als Datei gespeichert
-      /// </summary>
-      /// <param name="filename"></param>
-      /// <param name="track"></param>
-      /// <param name="overwrite"></param>
-      /// <param name="withgarminextensions"></param>
-      /// <returns>true, wenn gespeichert</returns>
-      bool savegpxfile4Track(string filename, Track track, bool overwrite, bool withgarminextensions) {
-         if (overwrite ||
-             !File.Exists(filename)) {
-            GpxAllExt tmp = new GpxAllExt();
-            tmp.TrackInsertCopy(track, -1, true);
-            tmp.Save(filename, Progname + " " + Progversion, withgarminextensions);
-            return true;
-         }
-         ShowErrorMessage("Die Datei '" + filename + "' existiert schon.", "Abbruch des Speicherns");
-         return false;
-      }
-
-      /// <summary>
-      /// alle <see cref="Marker"/> der Liste werden als Datei gespeichert
-      /// </summary>
-      /// <param name="filename"></param>
-      /// <param name="markerlst"></param>
-      /// <param name="overwrite"></param>
-      /// <param name="withgarminextensions"></param>
-      /// <returns>true, wenn gespeichert</returns>
-      bool savegpxfile4Marker(string filename, IList<Marker> markerlst, bool overwrite, bool withgarminextensions) {
-         if (overwrite ||
-             !File.Exists(filename)) {
-            GpxAllExt tmp = new GpxAllExt();
-            foreach (var item in markerlst)
-               tmp.MarkerInsertCopy(item);
-            tmp.Save(filename, Progname + " " + Progversion, withgarminextensions);
-            return true;
-         }
-         ShowErrorMessage("Die Datei '" + filename + "' existiert schon.", "Abbruch des Speicherns");
-         return false;
-      }
-
-      /// <summary>
-      /// zum temp. Sperren des Backupspeicherns
-      /// </summary>
-      bool saveGpxBackupIsActiv = true;
-
-      void saveGpxBackup() {
-         if (saveGpxBackupIsActiv &&
-             EditableGpx != null &&
-             EditableGpx.GpxDataChanged) {
-            try {
-               if (!Directory.Exists(Path.GetDirectoryName(editablegpxbackupfile)))
-                  Directory.CreateDirectory(Path.GetDirectoryName(editablegpxbackupfile));
-               EditableGpx.Save(editablegpxbackupfile, Progname + " " + Progversion, true);
-               EditableGpx.GpxDataChanged = false;
-            } catch (Exception ex) {
-               ShowExceptionError(ex);
-               ShowErrorMessage("Fehler beim Speichern des Backups: " + System.Environment.NewLine + ex.Message);
-            }
-         }
-      }
-
-      #endregion
 
       /// <summary>
       /// falls eine Garmin-Karte angezeigt wird, werden Infos für Objekte im Bereich des Client-Punktes ermittelt
       /// </summary>
       /// <param name="ptclient"></param>
-      void ShowObjectinfo(Point ptclient) {
+      void showObjectinfo(Point ptclient) {
          bool isGarmin = mapControl1.MapProviderDefinitions[mapControl1.MapGetActiveProviderIdx()].Provider is GarminProvider;
 
          Cursor orgCursor = Cursor;
@@ -3389,61 +3378,13 @@ im 'Track zeichnen'-Modus:
          }
       }
 
-      /// <summary>
-      /// zeigt einen Info-Text an
-      /// </summary>
-      /// <param name="txt"></param>
-      /// <param name="caption"></param>
-      void ShowInfoMessage(string txt, string caption) {
-         MyMessageBox.Show(txt, caption, MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, null, false, true, false);
-      }
-
-      /// <summary>
-      /// zeigt einen Fehlertext an (z.B. aus einer Exception)
-      /// </summary>
-      /// <param name="txt"></param>
-      /// <param name="caption"></param>
-      void ShowErrorMessage(string txt, string caption = "Fehler") {
-         MyMessageBox.Show(txt, caption, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Color.FromArgb(255, 220, 220));
-      }
-
-      /// <summary>
-      /// nach Möglichkeit "ausführliche" Anzeige einer Exception
-      /// </summary>
-      /// <param name="ex"></param>
-      void ShowExceptionError(Exception ex) {
-         StringBuilder sb = new StringBuilder();
-
-         do {
-
-            sb.AppendLine(ex.Message);
-            sb.AppendLine();
-
-            if (!string.IsNullOrEmpty(ex.StackTrace)) {
-               sb.AppendLine();
-               sb.AppendLine("StackTrace:");
-               sb.AppendLine(ex.StackTrace);
-            }
-
-            if (!string.IsNullOrEmpty(ex.Source)) {
-               sb.AppendLine();
-               sb.AppendLine("Source:");
-               sb.AppendLine(ex.Source);
-            }
-
-            ex = ex.InnerException;
-         } while (ex != null);
-
-         ShowErrorMessage(sb.ToString());
-      }
-
-      void ShowMiniTrackInfo(Track track) {
-         ShowMiniTrackInfo(track != null ?
+      void showMiniTrackInfo(Track track) {
+         showMiniTrackInfo(track != null ?
                               new Track[] { track } :
                               new Track[] { });
       }
 
-      void ShowMiniTrackInfo(IList<Track> tracks) {
+      void showMiniTrackInfo(IList<Track> tracks) {
          string info = "";
          if (tracks != null && tracks.Count > 0) {
             double len = 0;
@@ -3461,7 +3402,7 @@ im 'Track zeichnen'-Modus:
          toolStripStatusLabel_TrackMiniInfo.Text = info;
       }
 
-      void ShowMiniEditableTrackInfo(Track track) {
+      void showMiniEditableTrackInfo(Track track) {
          string info = "";
          if (track != null) {
             double len = track.Length();
@@ -3470,26 +3411,7 @@ im 'Track zeichnen'-Modus:
                                  len / 1000,
                                  len);
          }
-         toolStripStatusLabel_EditInfo.Text = info;
-      }
-
-      private void Form_GoToEvent(object sender, FormSearch.GoToPointEventArgs e) {
-         SetMapLocationAndZoom(mapControl1.MapZoom, e.Longitude, e.Latitude);
-         if (!string.IsNullOrEmpty(e.Name))
-            mapControl1.MapShowMarker(editMarkerHelper.InsertCopy(new Marker(new Gpx.GpxWaypoint(e.Longitude, e.Latitude) { Name = e.Name },
-                                                                             Marker.MarkerType.EditableStandard,
-                                                                             "")),
-                                                                  true);
-      }
-
-      private void Form_GoToAreaEvent(object sender, FormSearch.GoToAreaEventArgs e) {
-         mapControl1.MapZoomToRange(new PointD(e.Left, e.Top),
-                                    new PointD(e.Right, e.Bottom));
-         if (!string.IsNullOrEmpty(e.Name))
-            mapControl1.MapShowMarker(editMarkerHelper.InsertCopy(new Marker(new Gpx.GpxWaypoint(e.Longitude, e.Latitude) { Name = e.Name },
-                                                                             Marker.MarkerType.EditableStandard,
-                                                                             "")),
-                                                                  true);
+         toolStripStatusLabel_TrackInfo.Text = info;
       }
 
       #region Setting Geodata for Picture
@@ -3506,19 +3428,92 @@ im 'Track zeichnen'-Modus:
          }
 
          if (form == null) {
-            form = new FormGeoTagger();
-            form.OnShowExtern += Form_OnShowExtern;
-            form.OnHideExtern += Form_OnHideExtern;
-            form.OnNeedNewData += Form_OnNeedNewData;
+            form = new FormGeoTagger() {
+               PicturePath = appData.LastPicturePath,
+            };
+            form.OnShowExtern += FormGeoTagger_OnShowExtern;
+
+            form.OnHideExtern += (s, ea) => removeGeoTaggingMarker(ea.Filename);
+
+            form.OnNeedNewData += (s, ea) => {
+               if (ea.Latitude != double.MinValue &&
+                   ea.Latitude != double.MinValue)
+                  programState = ProgState.Set_PicturePosition;
+               else {
+                  if (getGpxLocation4Timestamp(ea.Timestamp, out double lat, out double lon))
+                     form.SetExtern(ea.Filename, lon, lat);
+               }
+            };
+
+            form.FormClosed += (s, ea) => appData.LastPicturePath = (s as FormGeoTagger).PicturePath;
+
             AddOwnedForm(form);
             form.Show(this);
          }
          form.Activate();
       }
 
-      private void Form_OnNeedNewData(object sender, PictureManager.PictureDataEventArgs e) {
-         //Debug.WriteLine("!!! OnNeedNewData: " + e);
-         ProgramState = ProgState.Set_PicturePosition;
+      TimeSpan offsetPictureTime2GpxTime = new TimeSpan(0);
+
+      bool getGpxLocation4Timestamp(DateTime timestamp, out double lat, out double lon) {
+         lat = lon = double.MinValue;
+
+         List<Track> tracks = new List<Track>();
+         tracks.AddRange(readOnlyTracklistControl1.GetVisibleTracks());
+         tracks.AddRange(gpxWorkbench.VisibleTracks());
+
+         if (tracks.Count == 0) {
+            MessageBox.Show("Es sind keine (sichtbaren) Tracks für die Suche vorhanden.",
+                            "Achtung",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Stop);
+            return false;
+         }
+
+         // Offset ermitteln (GPX i.A. in UTC, Bilddatum aus EXIF in lokaler Zeit)
+         FormOffsetPictureGpx formOffsetPictureGpx = new FormOffsetPictureGpx() { Offset = offsetPictureTime2GpxTime };
+         formOffsetPictureGpx.ShowDialog();
+         offsetPictureTime2GpxTime = formOffsetPictureGpx.Offset;
+         timestamp = timestamp.Subtract(offsetPictureTime2GpxTime);
+
+         Track srctrack = null;
+         foreach (var track in tracks) {
+            if (track.IsVisible) {
+               Gpx.GpxTrackPoint p1 = track.GpxSegment.Points[0];
+               for (int i = 1; i < track.GpxSegment.Points.Count; i++) {
+                  Gpx.GpxTrackPoint p2 = track.GpxSegment.Points[i];
+                  if (Gpx.BaseElement.ValueIsValid(p1.Time) &&
+                      Gpx.BaseElement.ValueIsValid(p2.Time) &&
+                      p1.Time <= timestamp && timestamp <= p2.Time) {
+                     TimeSpan ts1 = timestamp.Subtract(p1.Time);
+                     TimeSpan ts2 = p2.Time.Subtract(p1.Time);
+                     double f = ts1.TotalMilliseconds / ts2.TotalMilliseconds;
+                     lat = p1.Lat + f * (p2.Lat - p1.Lat);
+                     lon = p1.Lon + f * (p2.Lon - p1.Lon);
+                     srctrack = track;
+                     break;
+                  } else
+                     p1 = p2;
+               }
+            }
+            if (lat != double.MinValue)
+               break;
+         }
+         if (lat != double.MinValue) {
+            if (MessageBox.Show("Sollen die gefundenen Koordinaten aus dem Track \"" + srctrack.VisualName + "\" übernommen werden?",
+                                "Koordinaten übernehmen",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question,
+                                MessageBoxDefaultButton.Button2) == DialogResult.Yes)
+               return true;
+            return false;
+         }
+
+         MessageBox.Show("Für den Zeitpunkt " + timestamp.ToString("G") + " UTC" + Environment.NewLine + "wurden keine passenden GPX-Daten gefunden.",
+                         "Achtung",
+                         MessageBoxButtons.OK,
+                         MessageBoxIcon.Information);
+         return false;
       }
 
       void setFotoPosition(double lon, double lat) {
@@ -3533,34 +3528,74 @@ im 'Track zeichnen'-Modus:
             form.SetExtern(geoTaggingMarker.Text, lon, lat);
       }
 
-      private void Form_OnHideExtern(object sender, PictureManager.PictureDataEventArgs e) {
-         //Debug.WriteLine("!!! OnHideExtern: " + e);
+      void removeGeoTaggingMarker(string filename) {
          if (geoTaggingMarker != null) {
-            // &&
-            // geoTaggingMarker.Text==e.Filename &&
-            // geoTaggingMarker.Longitude == e.Longitude &&
-            // geoTaggingMarker.Latitude == e.Latitude) {
-            mapControl1.MapShowVisualMarker(geoTaggingMarker.VisualMarker, false, true);
+            //ev. über geoTaggingMarker.Text==filename filtern
+
+            mapControl1.MapShowMarker(geoTaggingMarker, false);
             geoTaggingMarker = null;
          }
       }
 
-      private void Form_OnShowExtern(object sender, PictureManager.PictureDataEventArgs e) {
+      private void FormGeoTagger_OnShowExtern(object sender, PictureManager.PictureDataEventArgs e) {
          //Debug.WriteLine("!!! OnShowExtern: " + e);
+         removeGeoTaggingMarker(e.Filename);    // falls noch einer angezeigt wird
          geoTaggingMarker = new Marker(new Gpx.GpxWaypoint(double.IsNaN(e.Longitude) ? mapControl1.MapCenterLon : e.Longitude,
                                                            double.IsNaN(e.Latitude) ? mapControl1.MapCenterLat : e.Latitude),
                                        Marker.MarkerType.GeoTagging,
                                        null);
          geoTaggingMarker.Text = e.Filename;
-         geoTaggingMarker.UpdateVisualMarker();
-         mapControl1.MapShowVisualMarker(geoTaggingMarker.VisualMarker, true, true);
+         showMarker(geoTaggingMarker);
          if (geoTaggingMarker.Longitude != mapControl1.MapCenterLon ||
              geoTaggingMarker.Latitude != mapControl1.MapCenterLat)
             mapControl1.MapSetLocationAndZoom(mapControl1.MapZoom, geoTaggingMarker.Longitude, geoTaggingMarker.Latitude);
-
       }
 
       #endregion
+
+      void showTileLoadInfo(int tilesinwork) {
+         bool complete = /*tilesinwork <= 0 ||*/ Interlocked.Read(ref tileLoadIsRunning) == 0;
+         //Debug.WriteLine(">>> tilesinwork=" + tilesinwork + ", tileLoadIsRunning=" + Interlocked.Read(ref tileLoadIsRunning) + ", complete=" + complete);
+         toolStripStatusLabel_MapLoad.Text = complete ? "OK" : ("load " + tilesinwork);
+         toolStripStatusLabel_MapLoad.BackColor = complete ?
+                                                      Color.LightGreen :
+                                                      Color.LightSalmon;
+         toolStripButton_CancelMapLoading.Enabled = !complete;
+#if DEBUG
+         if (tilesinwork <= 0) {
+            Debug.WriteLine(":::: Map-LoadTime: " + (DateTime.Now.Subtract(dtLoadTime).TotalSeconds.ToString("F1") + "s ::::"));
+         } else {
+            dtLoadTime = DateTime.Now;
+         }
+#endif
+      }
+
+      private void ToolStripMenuIemConfig_Click(object sender, EventArgs e) {
+         try {
+            if (new FormConfig() {
+               Configuration = config,
+               ActualCachePath = mapControl1.MapCacheLocation,
+               ProviderDefs = mapControl1.MapProviderDefinitions,
+               ProvIdxPaths = providxpaths
+            }.ShowDialog() == DialogResult.OK) { // neue Konfigurationsdatei geschrieben
+               appData.Save();
+               gpxWorkbench.Save();
+
+               initAllWithInfo();
+               creatMapMenuManager();
+
+               MyMessageBox.Show(@"Je nach veränderten Daten der Konfiguration muss ev. der Kartencache für eine oder alle Karten gelöscht werden!
+                                   
+Sonst werden die Änderungen ev. nicht wirksam.",
+                                 "Achtung",
+                                 MessageBoxButtons.OK,
+                                 MessageBoxIcon.Exclamation);
+            }
+         } catch (Exception ex) {
+            UIHelper.ShowExceptionError(ex);
+         }
+      }
+
 
 #if GARMINDRAWTEST
 
@@ -3731,8 +3766,6 @@ im 'Track zeichnen'-Modus:
       }
 
 #endif
-
-
 
       //Sqlite4Dem.DemDatabase d = new Sqlite4Dem.DemDatabase("dem.sqlite");
 

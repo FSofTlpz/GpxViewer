@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Gpx = FSofTUtils.Geography.PoorGpx;
@@ -268,7 +269,7 @@ namespace SpecialMapCtrl {
 
       public SpecialMapCtrl() {
          Map_RetryLoadTile = 0;
-         Map_FillEmptyTiles= false;
+         Map_FillEmptyTiles = false;
          //RetryLoadTile
 
 
@@ -331,7 +332,7 @@ namespace SpecialMapCtrl {
          Map_ScaleMode = ScaleModes.Fractional;
          Map_SelectedAreaFillColor = Color.FromArgb(33, 65, 105, 225);
 
-         Map_RenderZoom2RealDevice = 1F;
+         Map_DeviceZoom = 1F;
 
          evGMapControl_OnLoad();
       }
@@ -379,7 +380,7 @@ namespace SpecialMapCtrl {
       }
 
       protected override void OnMapDrawScale(DrawExtendedEventArgs e) {
-         scale?.Draw(e.Graphics, map_RenderTransform * Map_RenderZoom2RealDevice);
+         scale?.Draw(e.Graphics, (float)scale4device);
       }
 
       protected override void OnMapDrawCenter(DrawExtendedEventArgs e) {
@@ -822,6 +823,7 @@ namespace SpecialMapCtrl {
       public void SpecMapRegisterProviders(IList<string> providernames,
                                            List<MapProviderDefinition> provdefs) {
          SpecMapProviderDefinitions.Clear();
+         Map_Provider = GMapProviders.EmptyProvider;
 
          if (providernames != null)
             for (int i = 0; i < providernames.Count; i++) {
@@ -932,9 +934,9 @@ namespace SpecialMapCtrl {
          }
 
          // jetzt wird der neue Provider und ev. auch der Zoom gesetzt
-         Map_RenderZoom2RealDevice = 1;
+         Map_DeviceZoom = 1;
          if (def.Zoom4Display != 1)
-            Map_RenderZoom2RealDevice = (float)def.Zoom4Display;
+            Map_DeviceZoom = (float)def.Zoom4Display;
 
          Map_Provider = newprov;
          if (newzoom >= 0)
@@ -991,7 +993,28 @@ namespace SpecialMapCtrl {
          Map_Refresh();
       }
 
-      public Task SpecMapCancelUnnecessaryLoadings() => Task.Run(() => { Map_CancelUnnecessaryThreads(); });
+
+      /// <summary>
+      /// Anzahl der Tiles die noch in der Warteschlange stehen
+      /// </summary>
+      /// <returns></returns>
+      public int SpecMapWaitingTasks() => Map_WaitingTasks();
+
+      /// <summary>
+      /// Warteschlange der Tiles wird geleert
+      /// </summary>
+      public void SpecMapClearWaitingTaskList() => Map_ClearWaitingTaskList();
+
+      /// <summary>
+      /// es wird versucht, die Tile-Erzeugung abzubrechen (kann nur für "lokale" Provider fkt.)
+      /// <para>(d.h., die überschriebene Methode <see cref="GMapProvider.GetTileImage(GPoint, int)"/> wird nach Möglichkeit abgebrochen)</para>
+      /// </summary>
+      public void SpecMapCancelTileBuilds() {
+         GarminProvider.CancelGetTileImage();
+
+
+      }
+
 
       /// <summary>
       /// setzt die Kartenpos. (Mittelpunkt) und den Zoom
@@ -1026,7 +1049,7 @@ namespace SpecialMapCtrl {
                                             Math.Abs(topleft.X - bottomright.X),
                                             Math.Abs(topleft.Y - bottomright.Y))); // Ecke links-oben, Breite, Höhe
          if (fractionalzoom &&
-             (Map_RenderZoom2RealDevice != 1 || map_RenderTransform % 1F != 0)) {
+             scale4device != 1) {
             Point ptTopLeft = SpecMapLonLat2Client(topleft);
             PointD ptEdgeTopLeft = SpecMapClient2LonLat(0, 0);
 
@@ -1155,11 +1178,15 @@ namespace SpecialMapCtrl {
             PointLatLng ptlatlon = Map_FromLocalToLatLng(ptclient.X, ptclient.Y);
             PointLatLng ptdelta = Map_FromLocalToLatLng(ptclient.X + deltax, ptclient.Y + deltay);
             double groundresolution = Map_Provider.Projection.GetGroundResolution((int)Map_Zoom, ptlatlon.Lat);  // Meter je Pixel
+
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
             info = garminImageCreator.GetObjectInfo(ptlatlon.Lng,
                                                     ptlatlon.Lat,
                                                     ptdelta.Lng - ptlatlon.Lng,
                                                     ptlatlon.Lat - ptdelta.Lat,
-                                                    groundresolution);
+                                                    groundresolution,
+                                                    cancellationTokenSource.Token);
 
          }
          return info;

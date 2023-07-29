@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using GMap.NET.MapProviders;
 
@@ -101,6 +102,8 @@ namespace GMap.NET.CoreExt.MapProviders {
       /// </summary>
       public class GarminMapDefinitionData : MapProviderDefinition {
 
+         static UniqueIDDelta uniqueIDDelta = null;
+
          /// <summary>
          /// Liste der TDB-Dateien (i.A. nur 1)
          /// </summary>
@@ -114,29 +117,38 @@ namespace GMap.NET.CoreExt.MapProviders {
          /// <summary>
          /// Anpassungsfaktor der Textgröße (0 bedeutet: ohne Textausgabe)
          /// </summary>
-         public double TextFactor { get; protected set; }
+         public double TextFactor { get; set; }
 
          /// <summary>
          /// Anpassungsfaktor der Linienbreite
          /// </summary>
-         public double LineFactor { get; protected set; }
+         public double LineFactor { get; set; }
 
          /// <summary>
          /// Anpassungsfaktor der Symbolgröße
          /// </summary>
-         public double SymbolFactor { get; protected set; }
+         public double SymbolFactor { get; set; }
 
          /// <summary>
          /// spez. Delta für die DbId für diese Karte
          /// </summary>
          public int DbIdDelta { get; protected set; }
 
+         /// <summary>
+         /// Mit Hillshading ?
+         /// </summary>
+         public bool HillShading { get; set; }
+
+         /// <summary>
+         /// Transparenz für Hillshading
+         /// </summary>
+         public byte HillShadingAlpha { get; set; }
+
 
          /// <summary>
          /// 
          /// </summary>
          /// <param name="mapname">Name der Gesamtkarte</param>
-         /// <param name="dbiddelta">Delta zur Standard-DbId des Providers</param>
          /// <param name="zoom4display">zusätzlicher Vergrößerungsfaktor falls das Display eine zu hohe DPI hat (null oder 1.0 ...)</param>
          /// <param name="minzoom">kleinster zulässiger Zoom</param>
          /// <param name="maxzoom">größter zulässiger Zoom</param>
@@ -148,7 +160,6 @@ namespace GMap.NET.CoreExt.MapProviders {
          /// <param name="linefactor">Anpassungsfaktor der Linienbreite</param>
          /// <param name="symbolfactor">Anpassungsfaktor der Symbolgröße</param>
          public GarminMapDefinitionData(string mapname,
-                                        int dbiddelta,
                                         double zoom4display,
                                         int minzoom,
                                         int maxzoom,
@@ -156,7 +167,9 @@ namespace GMap.NET.CoreExt.MapProviders {
                                         string[] typfile,
                                         double textfactor = 1.0,
                                         double linefactor = 1.0,
-                                        double symbolfactor = 1.0) :
+                                        double symbolfactor = 1.0,
+                                        bool hillshading = false,
+                                        byte hillshadingalpha = 100) :
             base(mapname, Instance.Name, zoom4display, minzoom, maxzoom) {
 
             TDBfile = new List<string>();
@@ -171,11 +184,20 @@ namespace GMap.NET.CoreExt.MapProviders {
             LineFactor = linefactor;
             SymbolFactor = symbolfactor;
 
-            DbIdDelta = dbiddelta;
+            HillShading = hillshading;
+            HillShadingAlpha = hillshadingalpha;
+
+            string hash4delta = UniqueIDDelta.GetHashString(mapname + File.GetLastWriteTime(tdbfile[0]).Ticks + File.GetLastWriteTime(typfile[0]).Ticks,
+                                                            GetBytesFromFile(tdbfile[0], 0, 1024));
+            if (uniqueIDDelta == null)
+               uniqueIDDelta = new UniqueIDDelta(Path.Combine(PublicCore.MapCacheLocation, "iddelta.garmin"));
+            DbIdDelta = uniqueIDDelta.GetDelta(hash4delta);
          }
 
          public GarminMapDefinitionData(GarminMapDefinitionData def) :
             base(def.MapName, def.ProviderName, def.Zoom4Display, def.MinZoom, def.MaxZoom) {
+
+            DbIdDelta = def.DbIdDelta;
 
             TDBfile = new List<string>();
             for (int i = 0; i < def.TDBfile.Count; i++)
@@ -188,6 +210,9 @@ namespace GMap.NET.CoreExt.MapProviders {
             TextFactor = def.TextFactor;
             LineFactor = def.LineFactor;
             SymbolFactor = def.SymbolFactor;
+
+            HillShading = def.HillShading;
+            HillShadingAlpha = def.HillShadingAlpha;
          }
 
          public override string ToString() {
@@ -195,6 +220,56 @@ namespace GMap.NET.CoreExt.MapProviders {
          }
       }
 
+      class GMapTileId {
+         static uint id = 0;
+
+         static object locker = new object();
+
+         /// <summary>
+         /// Zeitpunkt der Erzeugung
+         /// </summary>
+         public readonly DateTime CreationTime;
+
+         public readonly PointLatLng Point;
+
+         public readonly int Zoom;
+
+         /// <summary>
+         /// threadsicher erzeugte ID
+         /// </summary>
+         public readonly uint ID;
+
+         public readonly CancellationTokenSource cancellationTokenSource;
+
+         public CancellationToken CancellationToken =>
+            cancellationTokenSource.Token;
+
+         public bool IsCancellationRequested =>
+            CancellationToken.IsCancellationRequested;
+
+
+         public GMapTileId(PointLatLng point, int zoom) {
+            lock (locker) {
+               ID = id < uint.MaxValue ? ++id : 0;
+            }
+            CreationTime = DateTime.Now;
+            Point = point;
+            Zoom = zoom;
+            //IsCancel = false;
+
+            cancellationTokenSource = new CancellationTokenSource();
+         }
+
+         public void RequestCancellation() =>
+            cancellationTokenSource.Cancel();
+
+         public override string ToString() {
+            return ID + ": " + Point + ", " + Zoom + ", " + CreationTime.ToString("O");
+         }
+
+      }
+
+      static ConcurrentDictionary<uint, GMapTileId> jobs = new ConcurrentDictionary<uint, GMapTileId>();
 
       /// <summary>
       /// zum eigentlichen Zeichnen der Garmin-Tiles
@@ -227,6 +302,9 @@ namespace GMap.NET.CoreExt.MapProviders {
 
          bool withHillshade = DEM != null && DEM.WithHillshade;
 
+         Debug.WriteLine(">>> GetBitmap 1 (" + gMapTileId + ") (DEM!=null)=" + (DEM != null) + ", DEM.WithHillshade=" + DEM?.WithHillshade);
+
+
          bool result = false;
          // den gewünschten Bereich auf das Bitmap zeichnen
          if (GarminImageCreator.DrawImage(bm,
@@ -238,14 +316,26 @@ namespace GMap.NET.CoreExt.MapProviders {
                                               global::GarminImageCreator.ImageCreator.PictureDrawing.beforehillshade :
                                               global::GarminImageCreator.ImageCreator.PictureDrawing.all,
                                           ref extdata,
-                                          ref gMapTileId.Cancel)) {
+                                          gMapTileId.CancellationToken)) {
+
+            //Debug.WriteLine(">>> GetBitmap 1 (" + gMapTileId + ") withHillshade=" + withHillshade);
+
+
             // Das Hillshading wird ev. über die eigentliche Karte darübergelegt.
             if (withHillshade &&
                 bm != null) {
-               //DrawHillshade(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha);
-               DrawHillshadeAsync(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha).Wait(); // blockiert wahrscheinlich nicht ganz so stark wie die synchrone Methode
 
-               if (!gMapTileId.IsCancel)
+               Debug.WriteLine(">>> DrawHillshade 1 (" + gMapTileId + ")");
+
+
+               DrawHillshade(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha, gMapTileId.CancellationToken);
+               // blockiert wahrscheinlich nicht ganz so stark wie die synchrone Methode ABER manchmal fehlt das Hillshading im Ergebnis
+               //DrawHillshadeAsync(DEM, bm, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Alpha, gMapTileId.CancellationToken).Wait();
+
+               Debug.WriteLine(">>> DrawHillshade 2 (" + gMapTileId + "), IsCancellationRequested=" + gMapTileId.IsCancellationRequested);
+
+
+               if (!gMapTileId.IsCancellationRequested)
                   // den gewünschten Bereich auf das Bitmap zeichnen
                   if (GarminImageCreator.DrawImage(bm,
                                                    p1.Lng, p1.Lat,
@@ -254,8 +344,11 @@ namespace GMap.NET.CoreExt.MapProviders {
                                                    groundresolution,
                                                    global::GarminImageCreator.ImageCreator.PictureDrawing.afterhillshade,
                                                    ref extdata,
-                                                   ref gMapTileId.Cancel))
+                                                   gMapTileId.CancellationToken))
                      result = true;
+
+               Debug.WriteLine(">>> DrawHillshade 3 (" + gMapTileId + "), result=" + result);
+
             } else
                result = true;
          }
@@ -279,64 +372,18 @@ namespace GMap.NET.CoreExt.MapProviders {
             if ((kv.Value.CreationTime <= actGMapTileId.CreationTime &&    // Job ist älter und ...
                  kv.Value.Zoom != actGMapTileId.Zoom) ||                   // ... hat einen anderen Zoom ...
                 (actGMapTileId.CreationTime.Subtract(kv.Value.CreationTime).TotalSeconds > 60)) { // ... oder ist schon älter als 1min -> nicht mehr benötigt
-               kv.Value.IsCancel = true;
+               kv.Value.RequestCancellation();
                Debug.WriteLine(nameof(GarminProvider) + "." + nameof(killUnnecessaryJobs) + " für (" +
                                kv.Value.Point + ", zoom=" + kv.Value.Zoom + ") IsCancel = true wegen (" +
                                actGMapTileId.Point + ", zoom=" + actGMapTileId.Zoom + ")");
             }
       }
 
-
-      class GMapTileId {
-         static uint id = 0;
-
-         static object locker = new object();
-
-         /// <summary>
-         /// Zeitpunkt der Erzeugung
-         /// </summary>
-         public readonly DateTime CreationTime;
-
-         public readonly PointLatLng Point;
-
-         public readonly int Zoom;
-
-         /// <summary>
-         /// threadsicher erzeugte ID
-         /// </summary>
-         public readonly uint ID;
-
-         // Um Cancel per ref an andere Funktionen weitergeben zu können kann leider keine Propertie verwendet werden.
-         // Bequemer ist das Lesen/Schreiben mit IsCancel.
-
-         /// <summary>
-         /// wenn true, sollte der Job abgebrochen werden
-         /// </summary>
-         public long Cancel;
-
-         public bool IsCancel {
-            get => Interlocked.Read(ref Cancel) != 0;
-            set => Interlocked.Exchange(ref Cancel, value ? 1 : 0);
+      static public void CancelGetTileImage() {
+         foreach (var kv in jobs) { // alle Jobs auf Cancel setzen
+            kv.Value.RequestCancellation();
          }
-
-
-         public GMapTileId(PointLatLng point, int zoom) {
-            lock (locker) {
-               ID = id < uint.MaxValue ? ++id : 0;
-            }
-            CreationTime = DateTime.Now;
-            Point = point;
-            Zoom = zoom;
-            Cancel = 0;
-         }
-
-         public override string ToString() {
-            return ID + ": " + Point + ", " + Zoom + ", " + CreationTime.ToString("O");
-         }
-
       }
-
-      static ConcurrentDictionary<uint, GMapTileId> jobs = new ConcurrentDictionary<uint, GMapTileId>();
 
    }
 

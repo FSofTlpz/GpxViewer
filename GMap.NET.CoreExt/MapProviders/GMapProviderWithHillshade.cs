@@ -1,12 +1,13 @@
-﻿using System;
+﻿using FSofTUtils.Drawing;
+using GMap.NET.MapProviders;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using FSofTUtils.Drawing;
-using GMap.NET.MapProviders;
 
 namespace GMap.NET.CoreExt.MapProviders {
    abstract public class GMapProviderWithHillshade : GMapProvider {
@@ -85,11 +86,12 @@ namespace GMap.NET.CoreExt.MapProviders {
                                                Bitmap bm,
                                                double left,
                                                double bottom,
-                                               double rigth,
+                                               double right,
                                                double top,
-                                               int alpha = 100) {
+                                               int alpha,
+                                               CancellationToken cancellationToken) {
          Task t = Task.Run(() => {
-            DrawHillshade(dem, bm, left, bottom, rigth, top, alpha);
+            DrawHillshade(dem, bm, left, bottom, right, top, alpha, cancellationToken);
          });
          return t;
       }
@@ -110,8 +112,9 @@ namespace GMap.NET.CoreExt.MapProviders {
                                           double bottom,
                                           double right,
                                           double top,
-                                          int alpha = 100) {
-         byte[] shadings = dem.GetShadingValueArray(left, bottom, right, top, bm.Width, bm.Height);
+                                          int alpha,
+                                          CancellationToken cancellationToken) {
+         byte[] shadings = dem.GetShadingValueArray(left, bottom, right, top, bm.Width, bm.Height, cancellationToken);
          if (shadings != null) {
             uint[] pixel = new uint[bm.Width * bm.Height];
             for (int i = 0; i < shadings.Length; i++)
@@ -137,6 +140,20 @@ namespace GMap.NET.CoreExt.MapProviders {
          registerProvider(this);
          return olddbid;
       }
+
+      public static byte[] GetBytesFromFile(string filename, int from, int length) {
+         byte[] b = null;
+         using (FileStream stream = File.OpenRead(filename)) {
+            if (stream.Length < from + length)
+               length = (int)stream.Length - from;
+            if (length >= 0) {
+               b = new byte[length];
+               stream.Read(b, from, length);
+            }
+         }
+         return b;
+      }
+
 
       #region spez. Zugriff auf Props und Fields über Reflection
 

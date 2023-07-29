@@ -23,7 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <NoWarn>IDE1006</NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
-    <IntermediateOutputPath>C:\Users\puf\AppData\Local\Temp\vs877A.tmp\Debug\</IntermediateOutputPath>
+    <IntermediateOutputPath>C:\Users\PETRAU~1\AppData\Local\Temp\vs2A7A.tmp\Debug\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,7 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <IntermediateOutputPath>C:\Users\puf\AppData\Local\Temp\vs877A.tmp\Release\</IntermediateOutputPath>
+    <IntermediateOutputPath>C:\Users\PETRAU~1\AppData\Local\Temp\vs2A7A.tmp\Release\</IntermediateOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>GarminCore</RootNamespace>

@@ -4,7 +4,6 @@ using GMap.NET;
 using GMap.NET.CoreExt.MapProviders;
 using GMap.NET.MapProviders;
 using SpecialMapCtrl;
-using SpecialMapCtrl.EditHelper;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -37,6 +36,11 @@ namespace GpxViewer {
       public event EventHandler<MapCtrl.MarkerEventArgs> MapMarkerEvent;
 
       #endregion
+
+      /// <summary>
+      /// für den Direktzugriff auf das interne <see cref="SpecialMapCtrl.SpecialMapCtrl"/>
+      /// </summary>
+      public MapCtrl MapCtrl => smc;
 
 
       bool _trackBarZoomInternSet = false;
@@ -118,6 +122,11 @@ namespace GpxViewer {
                trackBarZoom.Visible = _mapZoomHandleVisible;
             }
          }
+      }
+
+      public float MapClickTolerance4Tracks {
+         get => smc.Map_ClickTolerance4Tracks;
+         set => smc.Map_ClickTolerance4Tracks = value;
       }
 
 
@@ -228,17 +237,6 @@ namespace GpxViewer {
          }
       }
 
-
-      public EditTrackHelper MapCreateEditTrackHelper(GpxAllExt editablegpx, Color helperLineColor, float helperLineWidth) =>
-         editablegpx != null ?
-                     new EditTrackHelper(smc, editablegpx, helperLineColor, helperLineWidth) :
-                     null;
-
-      public EditMarkerHelper MapCreateEditMarkerHelper(GpxAllExt editablegpx, Color helperLineColor, float helperLineWidth) =>
-         editablegpx != null ?
-                     new EditMarkerHelper(smc, editablegpx, helperLineColor, helperLineWidth) :
-                     null;
-
       /// <summary>
       /// Ist die Sichtbarkeit aller <see cref="Track"/> im gemeinsamen <see cref="GpxDataContainer"/> dieses <see cref="Track"/> gleich?
       /// </summary>
@@ -323,6 +321,11 @@ namespace GpxViewer {
       /// </summary>
       [Browsable(false)]
       public List<MapProviderDefinition> MapProviderDefinitions => smc.SpecMapProviderDefinitions;
+
+      /// <summary>
+      /// Index der akt. Karte
+      /// </summary>
+      public int MapActualMapIdx => smc.SpecMapActualMapIdx;
 
       /// <summary>
       /// geogr. Länge des Mittelpunktes der Karte
@@ -451,7 +454,23 @@ namespace GpxViewer {
       /// <param name="clearcache">löscht auch den Cache auf HD und/oder Server</param>
       public void MapRefresh(bool reload, bool clearmemcache, bool clearcache) => smc.SpecMapRefresh(reload, clearmemcache, clearcache);
 
-      public void MapCancelLoad() => smc.SpecMapCancelUnnecessaryLoadings();
+
+      /// <summary>
+      /// Anzahl der Tiles die noch in der Warteschlange stehen
+      /// </summary>
+      /// <returns></returns>
+      public int MapWaitingTasks() => smc.SpecMapWaitingTasks();
+
+      /// <summary>
+      /// Warteschlange der Tiles wird geleert
+      /// </summary>
+      public void MapClearWaitingTaskList() => smc.SpecMapClearWaitingTaskList();
+
+      /// <summary>
+      /// es wird versucht, die Tile-Erzeugung abzubrechen (kann nur für "lokale" Provider fkt.)
+      /// </summary>
+      public void MapCancelTileBuilds() => smc.SpecMapCancelTileBuilds();
+
 
       /// <summary>
       /// setzt die Kartenpos. (Mittelpunkt) und den Zoom

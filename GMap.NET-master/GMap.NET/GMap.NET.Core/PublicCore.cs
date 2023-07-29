@@ -3,11 +3,57 @@ using GMap.NET.MapProviders;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+//using System.Net.Http;
 
 namespace GMap.NET {
    public class PublicCore {
 
       Core core;
+
+      #region readonly
+
+      /// <summary>
+      /// Größe der "sichtbaren Karte" im Core
+      /// </summary>
+      public GPoint CoreSize => new GPoint(core.Width, core.Height);
+
+      /// <summary>
+      /// beim Providerwechsel wird zum vorherigen Gebiet gezoomt
+      /// </summary>
+      public bool ZoomToArea => core.ZoomToArea;
+
+      /// <summary>
+      ///     gets current map view top/left coordinate, width in Lng, height in Lat
+      /// </summary>
+      /// <returns></returns>
+      public RectLatLng ViewArea => core.ViewArea;
+
+      public object InvalidationLock => core.InvalidationLock;
+
+      public GPoint RenderOffset => core.RenderOffset;
+
+      public PointLatLng? LastLocationInBounds => core.LastLocationInBounds;
+
+      /// <summary>
+      /// true nach <see cref="Core.OnMapDrag"/>
+      /// </summary>
+      public bool IsStarted => core.IsStarted;
+
+      /// <summary>
+      /// true, wenn Dragging in Aktion ist
+      /// </summary>
+      public bool IsDragging => core.IsDragging;
+
+      /// <summary>
+      /// true wenn in <see cref="Core.UpdateBounds"/>
+      /// </summary>
+      public bool UpdatingBounds => core.UpdatingBounds;
+
+
+      #endregion
+
+
+
 
       /// <summary>
       /// Anzahl der Threads zum Laden der Daten (Standard 4)
@@ -58,7 +104,7 @@ namespace GMap.NET {
       }
 
       /// <summary>
-      /// akt. Zoom
+      /// akt. (ganzzahliger) Zoom
       /// </summary>
       public int Zoom {
          get => core.Zoom;
@@ -72,14 +118,6 @@ namespace GMap.NET {
             }
          }
       }
-
-      public bool ZoomToArea => core.ZoomToArea;
-
-      /// <summary>
-      ///     gets current map view top/left coordinate, width in Lng, height in Lat
-      /// </summary>
-      /// <returns></returns>
-      public RectLatLng ViewArea => core.ViewArea;
 
       /// <summary>
       /// akt. Kartenzentrum in Lat/Lgn
@@ -148,20 +186,6 @@ namespace GMap.NET {
          get => core.LastInvalidation; set => core.LastInvalidation = value;
       }
 
-      public object InvalidationLock => core.InvalidationLock;
-
-      public GPoint RenderOffset => core.RenderOffset;
-
-      public PointLatLng? LastLocationInBounds => core.LastLocationInBounds;
-
-      public bool IsStarted => core.IsStarted;
-
-      /// <summary>
-      /// true, wenn Dragging in Aktion ist
-      /// </summary>
-      public bool IsDragging => core.IsDragging;
-
-      public bool UpdatingBounds => core.UpdatingBounds;
 
       #region Events
 
@@ -269,42 +293,11 @@ namespace GMap.NET {
 
       #endregion
 
-      public PointLatLng FromLocalToLatLng(int x, int y, float scale = 1, bool ondragging = false) {
-         if (ondragging) {
-            x += (int)core.RenderOffset.X;
-            y += (int)core.RenderOffset.Y;
-         }
-         FromScaledLocalToLocal(ref x, ref y, scale);
-         return core.FromLocalToLatLng(x, y);
-      }
-
-      public GPoint FromLatLngToLocal(PointLatLng latlng, float scale = 1, bool ondragging = false) {
-         GPoint p = core.FromLatLngToLocal(latlng);
-         FromLocalToScaledLocal(ref p, scale);
-         if (ondragging)
-            p.OffsetNegative(core.RenderOffset);
-         return p;
-      }
-
-      public void FromLocalToScaledLocal(ref GPoint p, float scale = 1) {
-         if (scale != 1) {
-            p.X = (int)(core.RenderOffset.X + (p.X - core.RenderOffset.X) * scale);
-            p.Y = (int)(core.RenderOffset.Y + (p.Y - core.RenderOffset.Y) * scale);
-         }
-      }
-
-      public void FromScaledLocalToLocal(ref int x, ref int y, float scale = 1) {
-         if (scale != 1) {
-            x = (int)(core.RenderOffset.X + (x - core.RenderOffset.X) / scale);
-            y = (int)(core.RenderOffset.Y + (y - core.RenderOffset.Y) / scale);
-         }
-      }
-
       public BackgroundWorker OnMapOpen() => core.OnMapOpen();
 
       public void OnMapClose() => core.OnMapClose();
 
-      public void OnMapSizeChanged(int width, int height) => core.OnMapSizeChanged(width, height);
+      public void OnMapSizeChanged(int corewidth, int coreheight) => core.OnMapSizeChanged(corewidth, coreheight);
 
       /// <summary>
       ///     initiates map dragging
@@ -327,75 +320,6 @@ namespace GMap.NET {
       ///     reloads map
       /// </summary>
       public void ReloadMap() => core.ReloadMap();
-
-      /// <summary>
-      /// entfernt alle Ladeaufträge oder alle bis auf die für den akt. Zoom aus den Warteschlangen
-      /// </summary>
-      /// <param name="all">alle oder alle außer dem akt. Zoom</param>
-      public void CancelUnnecessaryThreads(bool all) {
-         if (IsStarted) {
-
-            /* MIST
-            Bei der Zoomänderung erfolgt schon
-
-               TileLoadQueue.Clear();
-
-            Bei Core.UpdateBounds() (u.a. bei Zoomänderung) erfolgt
-
-               TileDrawingList.Clear();
-
-            Insofern hätte nur das stoppen von Threads in core._gThreadPool einen Sinn.
-
-            */
-
-            ////core.TileDrawingListLock.AcquireWriterLock();
-            //core.TileDrawingListLock.AcquireReaderLock();
-            //Monitor.Enter(core.TileLoadQueue);
-            //try {
-            //   if (all) {
-            //      core.TileDrawingList.Clear();
-            //      core.TileLoadQueue.Clear();
-
-            //   } else {
-            //      long zf = (long)Math.Pow(2, core.Zoom);
-            //      for (int i = core.TileDrawingList.Count - 1; 0 <= i; i--) {
-            //         long p = core.TileDrawingList[i].PosPixel.X / core.TileDrawingList[i].PosXY.X;
-            //         if (zf != p)
-            //            core.TileDrawingList.RemoveAt(i);
-            //      }
-
-            //      LoadTask[] lt = new LoadTask[core.TileLoadQueue.Count];
-            //      core.TileLoadQueue.CopyTo(lt, 0);
-            //      core.TileLoadQueue.Clear();
-            //      for (int i = 0; i < lt.Length; i++) {
-            //         if (lt[i].Zoom == core.Zoom)
-            //            core.TileLoadQueue.Push(lt[i]);
-            //      }
-
-            //      // Die bereits in Bearbeitung befindlichen LoadTask können nicht mehr gestoppt werden. (core._gThreadPool)
-
-            //   }
-            //} finally {
-            //   Monitor.Exit(core.TileLoadQueue);
-            //   core.TileDrawingListLock.ReleaseReaderLock();
-            //   //core.TileDrawingListLock.ReleaseWriterLock();
-            //}
-         }
-      }
-
-      /// <summary>
-      /// Anzahl der Tiles die noch in der Warteschlange stehen
-      /// </summary>
-      /// <returns></returns>
-      public int MapTilesInQueue() {
-         System.Threading.Monitor.Enter(core.TileLoadQueue);
-         int queuecount = core.TileLoadQueue.Count;
-         System.Threading.Monitor.Exit(core.TileLoadQueue);
-         //lock (core._gThreadPool) {
-         //   core._gThreadPool.Count;
-         //}
-         return queuecount;
-      }
 
       /// <summary>
       ///     gets max zoom level to fit rectangle
@@ -473,31 +397,6 @@ namespace GMap.NET {
          core.Refresh?.Set();
       }
 
-      public GPoint RealClientPoint(int clientx, int clienty) {
-         GPoint p = new GPoint(clientx, clienty);
-         p.OffsetNegative(core.RenderOffset);
-         return p;
-      }
-
-
-      public GPoint FromClientToGlobal(GPoint ptClient) => FromClientToGlobal(ptClient.X, ptClient.Y);
-
-      public GPoint FromClientToGlobal(long xclient, long yclient) {
-         var p = new GPoint(xclient, yclient);  // Client-Koordinaten (bzgl. Ecke link-oben)
-         p.OffsetNegative(core.RenderOffset);   // Client-Koordinaten (bzgl. RenderOffset = Client-Mittelpunkt)
-         p.Offset(core.CompensationOffset);     // globale Koordinaten (CompensationOffset sind die globalen Koordinaten des Client-Mittelpunkt)
-         return p;
-      }
-
-      public GPoint FromGlobalToClient(GPoint ptGlobal) => FromGlobalToClient(ptGlobal.X, ptGlobal.Y);
-
-      public GPoint FromGlobalToClient(long xglobal, long yglobal) {
-         var p = new GPoint(xglobal, yglobal);
-         p.OffsetNegative(core.CompensationOffset);   // Client-Koordinaten (bzgl. RenderOffset = Client-Mittelpunkt)
-         p.Offset(core.RenderOffset);                 // Client-Koordinaten (bzgl. Ecke link-oben)
-         return p;
-      }
-
       #region internals from PureImage and PureImageProxy
 
       public static Int64 GetImageXoff(PureImage img) => img.Xoff;
@@ -519,8 +418,8 @@ namespace GMap.NET {
 
       public static bool IsRunningOnWin7OrLater => Stuff.IsRunningOnWin7OrLater();
 
-      public static bool SetMousePosition(int x, int y) {
-         return Stuff.SetCursorPos(x, y);
+      public static bool SetMousePosition(int corex, int corey) {
+         return Stuff.SetCursorPos(corex, corey);
       }
 
       public static void Shuffle<T>(List<T> deck) {
@@ -542,7 +441,42 @@ namespace GMap.NET {
       #endregion
 
 
+      /// <summary>
+      /// Anzahl der Tiles/Tasks die noch auf ihre Bearbeitung warten
+      /// </summary>
+      /// <returns></returns>
+      public int WaitingTasks() =>
+         core.TileDrawingList.Count + core.TileLoadQueue.Count; // ev. fehlerhaft, da NICHT threadsicher
+
+      /// <summary>
+      /// leert die Liste der wartenden Tiles/Tasks (aber nicht die Liste der bereits in Bearbeitung befindlichen!)
+      /// </summary>
+      public void ClearWaitingTaskList() {
+         core.TileDrawingList.Clear();
+         core.CancelAsyncTasks();         // Aber die bereits in Arbeit befindlichen Tiles werden weiter bearbeitet!
+         //foreach (var t in core._gThreadPool)
+         //   t.Abort();
+      }
+
+      /// <summary>
+      /// liefert Lat/Lon für die core-Koordinaten
+      /// </summary>
+      /// <param name="corex"></param>
+      /// <param name="corey"></param>
+      /// <returns></returns>
+      public PointLatLng FromLocalCoreToLatLng(int corex, int corey) => core.FromLocalToLatLng(corex, corey);
+
+      /// <summary>
+      /// liefert die core-Koordinaten zu Lat/Lon
+      /// </summary>
+      /// <param name="latlng"></param>
+      /// <returns></returns>
+      public GPoint FromLatLngToLocalCore(PointLatLng latlng) => core.FromLatLngToLocal(latlng);
+
+
       public void Dispose() => core.Dispose();
+
+
 
    }
 }

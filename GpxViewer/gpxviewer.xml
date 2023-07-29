@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <gpxview xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="gpxview.xsd">
 
-	<minimaltrackpointdistance x="14" y="14"/>
-	
+   <minimaltrackpointdistance x="25"
+                              y="25"/>
+
 	<!--
 			c:\Users\stinnerfr\daten\Gps>mklink /D Data c:\MyExt\OSMData
 			c:\Users\stinnerfr\daten\Gps>mklink /D Garmin c:\MyExt\Karten
@@ -17,7 +18,7 @@
 	</proxy>
 
 	<map>
-		<cachelocation>.</cachelocation>
+		<cachelocation></cachelocation>
 		<!-- bei false zusätzlich Cache in "%LOCALAPPDATA%\GMap.NET\TileDBv5\en\Data.gmdb" bzw. in cachelocation -->
 		<serveronly>false</serveronly>
 		<!-- Index des Providers beim Start -->
@@ -29,6 +30,8 @@
 		<startzoom>14</startzoom>
 		<deltapercent4search>1</deltapercent4search>
 
+		<clicktolerance4tracks>10</clicktolerance4tracks>
+
 		<dem chachesize="16"
 			 cachepath="./demcachepath"
 			 minzoom="13"
@@ -36,111 +39,143 @@
 			 hillshadingaltitude="45.0"
 			 hillshadingscale="20.0">%USERPROFILE%\daten\Gps\Data\srtm_zip</dem>
 
-		<provider mapname="Garmin: Deutschland, erw. Basis, 12.2.2022"
-				 dbiddelta="0"
-				 zoom4display="1.0"
-				 tdb="%USERPROFILE%\daten\Gps\Garmin\ms7001_Deutschland, Basis, 12.2.2022\osmmap.tdb"
-				 typ="%USERPROFILE%\daten\Gps\Garmin\ms7001_Deutschland, Basis, 12.2.2022\fsoft3b.typ"
-				 textfactor="0.8"
-				 symbolfactor="1.0"
-				 linefactor="1.0"
-				 hillshading="true"
-				 hillshadingalpha="100">Garmin</provider>
-		<provider mapname="Garmin: Deutschland, aio, 12.2.2022 (ohne Shading)"
-				  dbiddelta="1"
-				  zoom4display="1.0"
-				  tdb="%USERPROFILE%\daten\Gps\Garmin\ms7006_Deutschland, aio, 12.2.2022\osmmap.tdb"
-				  typ="%USERPROFILE%\daten\Gps\Garmin\ms7006_Deutschland, aio, 12.2.2022\fsoft3.typ"
-				  textfactor="0.8"
-				  symbolfactor="1.0"
-				  linefactor="1.0">Garmin</provider>
+		<providergroup>
+			
+			<providergroup name="Garmin-Karten">
+				<provider mapname="Garmin: Deutschland, erw. Basis, 15.6.2023"
+						 zoom4display="1.0"
+						 tdb="%USERPROFILE%\daten\Gps\Garmin\ms7001_Deutschland, Basis, 15.6.2023\osmmap.tdb"
+						 typ="%USERPROFILE%\daten\Gps\Garmin\ms7001_Deutschland, Basis, 15.6.2023\fsoft3b.typ"
+						 textfactor="0.8"
+						 symbolfactor="1.0"
+						 linefactor="1.0"
+						 hillshading="true"
+						 hillshadingalpha="100">Garmin</provider>
+				<provider mapname="Garmin: Deutschland, aio, 15.6.2023 (ohne Shading)"
+						  zoom4display="1.0"
+						  tdb="%USERPROFILE%\daten\Gps\Garmin\ms7006_Deutschland, aio, 15.6.2023\osmmap.tdb"
+						  typ="%USERPROFILE%\daten\Gps\Garmin\ms7006_Deutschland, aio, 15.6.2023\fsoft3.typ"
+						  textfactor="0.8"
+						  symbolfactor="1.0"
+						  linefactor="1.0">Garmin</provider>
+			</providergroup>
+			<provider mapname="online: Geodienste Sachsen"
+					  zoom4display="1.0"
+					  url="https://geodienste.sachsen.de/wms_geosn_webatlas-sn/guest?"
+					  version="1.1.1"
+					  srs="srs=EPSG:4326"
+					  format="png"
+					  layers="Siedlung,Vegetation,Gewaesser,Verkehr,Beschriftung"
+					  extended="">WMS</provider>
+			<providergroup name="Microsoft-Bing-Karten">
+				<provider mapname="online: MS Bing">BingMap</provider>
+				<provider mapname="online: MS Bing Hybrid">BingHybridMap</provider>
+				<provider mapname="online: MS Bing Satellit">BingSatelliteMap</provider>
+			</providergroup>
+			<providergroup name="Google-Karten">
+				<provider mapname="online: Google">GoogleMap</provider>
+				<provider mapname="online: Google Oberfläche">GoogleTerrainMap</provider>
+				<provider mapname="online: Google Satellit">GoogleSatelliteMap</provider>
+			</providergroup>
+			<providergroup name="OpenStreetMap">
+				<provider mapname="online: OpenStreetMap">OpenStreetMap</provider>
+				<provider mapname="online: OpenStreetMap Fahrradkarte">OpenCycleLandscapeMap</provider>
+			</providergroup>
+			<providergroup name="gescannte Karten">
+				<provider mapname="Pustertal"
+						  zoom4display="1.0"
+						  kmzfile="%USERPROFILE%\daten\Gps\Garmin\Kmz\Pustertal.kmz">GarminKMZ</provider>
 
-		<provider mapname="online: Geodienste Sachsen"
-				  dbiddelta="0"
-				  zoom4display="1.0"
-				  url="https://geodienste.sachsen.de/wms_geosn_webatlas-sn/guest?"
-				  version="1.1.1"
-				  srs="srs=EPSG:4326"
-				  format="png"
-				  layers="Siedlung,Vegetation,Gewaesser,Verkehr,Beschriftung"
-				  extended="">WMS</provider>
+				<provider mapname="Spreewald"
+						  zoom4display="1.0"
+						  kmzfile="./../../Sonstiges/Spreewald_8.kmz">GarminKMZ</provider>
 
-		<provider mapname="Spreewald"
-				  dbiddelta="0"
-				  zoom4display="1.0"
-				  kmzfile="./Sonstiges/Spreewald_8.kmz">GarminKMZ</provider>
+				<provider mapname="Berchtesgaden"
+						  zoom4display="1.0"
+						  kmzfile="./../../Sonstiges/Berchtesgaden.kmz">GarminKMZ</provider>
+			</providergroup>
+			<provider mapname="online: Geodienste Sachsen"
+					  zoom4display="1.0"
+					  url="https://geodienste.sachsen.de/wms_geosn_webatlas-sn/guest?"
+					  version="1.1.1"
+					  srs="srs=EPSG:4326"
+					  format="png"
+					  layers="Siedlung,Vegetation,Gewaesser,Verkehr,Beschriftung"
+					  extended="">WMS</provider>
 
-		<provider mapname="Berchtesgaden"
-				  dbiddelta="1"
-				  zoom4display="1.0"
-				  kmzfile="./Sonstiges/Berchtesgaden.kmz">GarminKMZ</provider>
+			<provider mapname="30-1, Ötztaler Alpen - Gurgl"     zoom4display="1.0" kmzfile="%USERPROFILE%\daten\Gps\Garmin\Kmz\Alpenvereinskarte\30-1, &#214;tztaler Alpen - Gurgl.kmz">GarminKMZ</provider>
+			<provider mapname="30-2, Ötztaler Alpen - Weißkugel" zoom4display="1.0" kmzfile="%USERPROFILE%\daten\Gps\Garmin\Kmz\Alpenvereinskarte\30-2, &#214;tztaler Alpen - Wei&#223;kugel.kmz">GarminKMZ</provider>
 
-		<provider mapname="online: MS Bing">BingMap</provider>
-		<provider mapname="online: MS Bing Hybrid">BingHybridMap</provider>
-		<provider mapname="online: MS Bing Satellit">BingSatelliteMap</provider>
-		<provider mapname="online: Google">GoogleMap</provider>
-		<provider mapname="online: Google Oberfläche">GoogleTerrainMap</provider>
-		<provider mapname="online: Google Satellit">GoogleSatelliteMap</provider>
-		<provider mapname="online: OpenStreetMap">OpenStreetMap</provider>
-		<provider mapname="online: OpenStreetMap Fahrradkarte">OpenCycleLandscapeMap</provider>
 
-		<providermenu lastuseditems="4">
-			<item txt="Garmin-Karten">
-				<subitem>0</subitem>
-				<subitem>1</subitem>
-			</item>
-			<item txt="Microsoft-Bing-Karten">
-				<subitem>5</subitem>
-				<subitem>6</subitem>
-				<subitem>7</subitem>
-			</item>
-			<item txt="Google-Karten">
-				<subitem>8</subitem>
-				<subitem>9</subitem>
-				<subitem>10</subitem>
-			</item>
-			<item txt="OpenStreetMap">
-				<subitem>11</subitem>
-				<subitem>12</subitem>
-			</item>
-			<item txt="gescannte Karten">
-				<subitem>3</subitem>
-				<subitem>4</subitem>
-			</item>
-			<item no="2"/>
-		</providermenu>
-		
+		</providergroup>
+
+		<lastmapnames>4</lastmapnames>
 	</map>
 
-	<tracks>
-		<!-- Farben für Tracks -->
-		<standard a="150" r="0" g="0" b="255" width="3.0"/>
-		<standard2 a="150" r="0" g="255" b="255" width="3.0"/>
-		<standard3 a="150" r="255" g="0" b="0" width="3.0"/>
-		<standard4 a="150" r="0" g="255" b="0" width="3.0"/>
-		<standard5 a="150" r="255" g="0" b="255" width="3.0"/>
-		<marked a="255" r="0" g="255" b="255" width="3.5"/>
-		<editable a="220" r="169" g="169" b="169" width="3.0"/>
-		<inedit a="220" r="0" g="180" b="180" width="4.0"/>
-		<selectedpart a="120" r="255" g="210" b="0" width="6.0"/>
-		<helperline a="200" r="200" g="0" b="0" width="2.0"/>
-		<slope>
-			<slope percent="-1000" r="140" g="0" b="0"/>
-			<slope percent="-20" r="255" g="0" b="0"/>
-			<slope percent="-15" r="255" g="120" b="0"/>
-			<slope percent="-10" r="255" g="216" b="0"/>
-			<slope percent="-6" r="170" g="255" b="0"/>
-			
-			<slope percent="-2" r="0" g="120" b="0"/>
+   <tracks>
+      <!-- Farben für Tracks -->
+      <standard a="200"
+                r="0"
+                g="0"
+                b="180"
+                width="4.0"/>
+      <standard2 a="200"
+                 r="150"
+                 g="0"
+                 b="150"
+                 width="4.0"/>
+      <standard3 a="200"
+                 r="255"
+                 g="0"
+                 b="0"
+                 width="3.5"/>
+      <standard4 a="200"
+                 r="0"
+                 g="255"
+                 b="0"
+                 width="3.5"/>
+      <standard5 a="200"
+                 r="255"
+                 g="0"
+                 b="255"
+                 width="3.5"/>
+      <marked a="255"
+              r="0"
+              g="255"
+              b="255"
+              width="3.5"/>
+      <editable a="200"
+                r="0"
+                g="255"
+                b="255"
+                width="3.0"/>
+      <inedit a="220"
+              r="0"
+              g="180"
+              b="180"
+              width="4.0"/>
+      <selectedpart a="120"
+                    r="255"
+                    g="210"
+                    b="0"
+                    width="6.0"/>
+      <slope>
+         <slope percent="-1000" r="140" g="0" b="0"/>
+         <slope percent="-20" r="255" g="0" b="0"/>
+         <slope percent="-15" r="255" g="120" b="0"/>
+         <slope percent="-10" r="255" g="216" b="0"/>
+         <slope percent="-6" r="170" g="255" b="0"/>
 
-			<slope percent="20" r="140" g="0" b="0"/>
-			<slope percent="15" r="255" g="0" b="0"/>
-			<slope percent="10" r="255" g="120" b="0"/>
-			<slope percent="6" r="255" g="216" b="0"/>
-			<slope percent="2" r="170" g="255" b="0"/>
-		</slope>
-	</tracks>
+         <slope percent="-2" r="0" g="120" b="0"/>
 
+         <slope percent="20" r="140" g="0" b="0"/>
+         <slope percent="15" r="255" g="0" b="0"/>
+         <slope percent="10" r="255" g="120" b="0"/>
+         <slope percent="6" r="255" g="216" b="0"/>
+         <slope percent="2" r="170" g="255" b="0"/>
+      </slope>
+   </tracks>
+  
 	<garminsymbols>
 		<group name="Marker">
 			<symbol text="Waypoint"         name="Waypoint"        >../../GarminSymbols/Waypoint.png</symbol>
@@ -416,51 +451,51 @@
 			<symbol text="Panda"       name="Contact, Panda"     >../../GarminSymbols/Contact, Panda.png</symbol>
 		</group>
 		<group name="Google">
-         <symbol text="Pfeil"              name="Google, Pfeil"              >../../GoogleSymbols/arrow.png</symbol>
+			<symbol text="Pfeil"              name="Google, Pfeil"              >../../GoogleSymbols/arrow.png</symbol>
 
-         <symbol text="schwarz klein"      name="Google, schwarz klein"      >../../GoogleSymbols/black_small.png</symbol>
-         <symbol text="blau klein"         name="Google, blau klein"         >../../GoogleSymbols/blue_small.png</symbol>
-         <symbol text="braun klein"        name="Google, braun klein"        >../../GoogleSymbols/brown_small.png</symbol>
-         <symbol text="grau klein"         name="Google, grau klein"         >../../GoogleSymbols/gray_small.png</symbol>
-         <symbol text="grün klein"         name="Google, grün klein"         >../../GoogleSymbols/green_small.png</symbol>
-         <symbol text="orange klein"       name="Google, orange klein"       >../../GoogleSymbols/orange_small.png</symbol>
-         <symbol text="purpur klein"       name="Google, purpur klein"       >../../GoogleSymbols/purple_small.png</symbol>
-         <symbol text="rot klein"          name="Google, rot klein"          >../../GoogleSymbols/red_small.png</symbol>
-         <symbol text="weiss klein"        name="Google, weiss klein"        >../../GoogleSymbols/white_small.png</symbol>
-         <symbol text="gelb klein"         name="Google, gelb klein"         >../../GoogleSymbols/yellow_small.png</symbol>
+			<symbol text="schwarz klein"      name="Google, schwarz klein"      >../../GoogleSymbols/black_small.png</symbol>
+			<symbol text="blau klein"         name="Google, blau klein"         >../../GoogleSymbols/blue_small.png</symbol>
+			<symbol text="braun klein"        name="Google, braun klein"        >../../GoogleSymbols/brown_small.png</symbol>
+			<symbol text="grau klein"         name="Google, grau klein"         >../../GoogleSymbols/gray_small.png</symbol>
+			<symbol text="grün klein"         name="Google, grün klein"         >../../GoogleSymbols/green_small.png</symbol>
+			<symbol text="orange klein"       name="Google, orange klein"       >../../GoogleSymbols/orange_small.png</symbol>
+			<symbol text="purpur klein"       name="Google, purpur klein"       >../../GoogleSymbols/purple_small.png</symbol>
+			<symbol text="rot klein"          name="Google, rot klein"          >../../GoogleSymbols/red_small.png</symbol>
+			<symbol text="weiss klein"        name="Google, weiss klein"        >../../GoogleSymbols/white_small.png</symbol>
+			<symbol text="gelb klein"         name="Google, gelb klein"         >../../GoogleSymbols/yellow_small.png</symbol>
 
-         <symbol text="blau"               name="Google, blau"               >../../GoogleSymbols/blue.png</symbol>
-         <symbol text="grün"               name="Google, grün"               >../../GoogleSymbols/green.png</symbol>
-         <symbol text="hellblau"           name="Google, hellblau"           >../../GoogleSymbols/lightblue.png</symbol>
-         <symbol text="orange"             name="Google, orange"             >../../GoogleSymbols/orange.png</symbol>
-         <symbol text="pink"               name="Google, pink"               >../../GoogleSymbols/pink.png</symbol>
-         <symbol text="purpur"             name="Google, purpur"             >../../GoogleSymbols/purple.png</symbol>
-         <symbol text="rot"                name="Google, rot"                >../../GoogleSymbols/red.png</symbol>
-         <symbol text="gelb"               name="Google, gelb"               >../../GoogleSymbols/yellow.png</symbol>
+			<symbol text="blau"               name="Google, blau"               >../../GoogleSymbols/blue.png</symbol>
+			<symbol text="grün"               name="Google, grün"               >../../GoogleSymbols/green.png</symbol>
+			<symbol text="hellblau"           name="Google, hellblau"           >../../GoogleSymbols/lightblue.png</symbol>
+			<symbol text="orange"             name="Google, orange"             >../../GoogleSymbols/orange.png</symbol>
+			<symbol text="pink"               name="Google, pink"               >../../GoogleSymbols/pink.png</symbol>
+			<symbol text="purpur"             name="Google, purpur"             >../../GoogleSymbols/purple.png</symbol>
+			<symbol text="rot"                name="Google, rot"                >../../GoogleSymbols/red.png</symbol>
+			<symbol text="gelb"               name="Google, gelb"               >../../GoogleSymbols/yellow.png</symbol>
 
-         <symbol text="Go grün"            name="Google, Go grün"            >../../GoogleSymbols/go-big-green.png</symbol>
-         <symbol text="Pause rot"          name="Google, Pause rot"          >../../GoogleSymbols/pause-big-red.png</symbol>
-         <symbol text="Pause gelb"         name="Google, Pause gelb"         >../../GoogleSymbols/pause-big-yellow.png</symbol>
-         <symbol text="Stop rot"           name="Google, Stop rot"           >../../GoogleSymbols/stop-big-red.png</symbol>
+			<symbol text="Go grün"            name="Google, Go grün"            >../../GoogleSymbols/go-big-green.png</symbol>
+			<symbol text="Pause rot"          name="Google, Pause rot"          >../../GoogleSymbols/pause-big-red.png</symbol>
+			<symbol text="Pause gelb"         name="Google, Pause gelb"         >../../GoogleSymbols/pause-big-yellow.png</symbol>
+			<symbol text="Stop rot"           name="Google, Stop rot"           >../../GoogleSymbols/stop-big-red.png</symbol>
 
-         <symbol text="blau mit Punkt"     name="Google, blau mit Punkt"     >../../GoogleSymbols/blue-dot.png</symbol>
-         <symbol text="grün mit Punkt"     name="Google, grün mit Punkt"     >../../GoogleSymbols/green-dot.png</symbol>
-         <symbol text="hellblau mit Punkt" name="Google, hellblau mit Punkt" >../../GoogleSymbols/ltblue-dot.png</symbol>
-         <symbol text="orange mit Punkt"   name="Google, orange mit Punkt"   >../../GoogleSymbols/orange-dot.png</symbol>
-         <symbol text="pink mit Punkt"     name="Google, pink mit Punkt"     >../../GoogleSymbols/pink-dot.png</symbol>
-         <symbol text="purpur mit Punkt"   name="Google, purpur mit Punkt"   >../../GoogleSymbols/purple-dot.png</symbol>
-         <symbol text="rot mit Punkt"      name="Google, rot mit Punkt"      >../../GoogleSymbols/red-dot.png</symbol>
-         <symbol text="gelb mit Punkt"     name="Google, gelb mit Punkt"     >../../GoogleSymbols/yellow-dot.png</symbol>
+			<symbol text="blau mit Punkt"     name="Google, blau mit Punkt"     >../../GoogleSymbols/blue-dot.png</symbol>
+			<symbol text="grün mit Punkt"     name="Google, grün mit Punkt"     >../../GoogleSymbols/green-dot.png</symbol>
+			<symbol text="hellblau mit Punkt" name="Google, hellblau mit Punkt" >../../GoogleSymbols/ltblue-dot.png</symbol>
+			<symbol text="orange mit Punkt"   name="Google, orange mit Punkt"   >../../GoogleSymbols/orange-dot.png</symbol>
+			<symbol text="pink mit Punkt"     name="Google, pink mit Punkt"     >../../GoogleSymbols/pink-dot.png</symbol>
+			<symbol text="purpur mit Punkt"   name="Google, purpur mit Punkt"   >../../GoogleSymbols/purple-dot.png</symbol>
+			<symbol text="rot mit Punkt"      name="Google, rot mit Punkt"      >../../GoogleSymbols/red-dot.png</symbol>
+			<symbol text="gelb mit Punkt"     name="Google, gelb mit Punkt"     >../../GoogleSymbols/yellow-dot.png</symbol>
 
-         <symbol text="Kreuz"              name="Google, Kreuz"              >../../GoogleSymbols/drag_cross_67_16.png</symbol>
+			<symbol text="Kreuz"              name="Google, Kreuz"              >../../GoogleSymbols/drag_cross_67_16.png</symbol>
 
-         <symbol text="Pin blau"           name="Google, Pin blau"           >../../GoogleSymbols/blue-pushpin.png</symbol>
-         <symbol text="Pin grün"           name="Google, Pin grün"           >../../GoogleSymbols/grn-pushpin.png</symbol>
-         <symbol text="Pin hellblau"       name="Google, Pin hellblau"       >../../GoogleSymbols/ltblu-pushpin.png</symbol>
-         <symbol text="Pin pink"           name="Google, Pin pink"           >../../GoogleSymbols/pink-pushpin.png</symbol>
-         <symbol text="Pin purpur"         name="Google, Pin purpur"         >../../GoogleSymbols/purple-pushpin.png</symbol>
-         <symbol text="Pin rot"            name="Google, Pin rot"            >../../GoogleSymbols/red-pushpin.png</symbol>
-         <symbol text="Pin gelb"           name="Google, Pin gelb"           >../../GoogleSymbols/ylw-pushpin.png</symbol>
+			<symbol text="Pin blau"           name="Google, Pin blau"           >../../GoogleSymbols/blue-pushpin.png</symbol>
+			<symbol text="Pin grün"           name="Google, Pin grün"           >../../GoogleSymbols/grn-pushpin.png</symbol>
+			<symbol text="Pin hellblau"       name="Google, Pin hellblau"       >../../GoogleSymbols/ltblu-pushpin.png</symbol>
+			<symbol text="Pin pink"           name="Google, Pin pink"           >../../GoogleSymbols/pink-pushpin.png</symbol>
+			<symbol text="Pin purpur"         name="Google, Pin purpur"         >../../GoogleSymbols/purple-pushpin.png</symbol>
+			<symbol text="Pin rot"            name="Google, Pin rot"            >../../GoogleSymbols/red-pushpin.png</symbol>
+			<symbol text="Pin gelb"           name="Google, Pin gelb"           >../../GoogleSymbols/ylw-pushpin.png</symbol>
 
 		</group>
 

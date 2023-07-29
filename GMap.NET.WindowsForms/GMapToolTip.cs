@@ -80,25 +80,28 @@ namespace GMap.NET.Skia {
       }
 
       public virtual void OnRender(Graphics g) {
-         var st = g.MeasureString(Marker.ToolTipText, Font).ToSize();
-         RectangleF rect = new Rectangle(Marker.LocalToolTipPosition.X,
-                                         Marker.LocalToolTipPosition.Y - st.Height,
-                                         st.Width + TextPadding.Width,
-                                         st.Height + TextPadding.Height);
-         RectangleF rectText = new Rectangle(Marker.LocalToolTipPosition.X,
-                                             Marker.LocalToolTipPosition.Y - st.Height,
-                                             st.Width + TextPadding.Width,
-                                             st.Height + TextPadding.Height);
-         rect.Offset(Offset.X, Offset.Y);
-         rectText.Offset(Offset.X + 7, Offset.Y + 7);
-         g.DrawLine(Stroke, Marker.LocalToolTipPosition.X, Marker.LocalToolTipPosition.Y, rect.X, rect.Y + rect.Height / 2);
-         g.FillRectangle(Fill, rect);
-         //g.DrawRectangle(Stroke, rect);
+         if (Marker.IsOnClientVisible) {
+            Point pt = Marker.LocalToolTipPosition;
+            var st = g.MeasureString(Marker.ToolTipText, Font).ToSize();
+            RectangleF rect = new Rectangle(pt.X,
+                                            pt.Y - st.Height,
+                                            st.Width + TextPadding.Width,
+                                            st.Height + TextPadding.Height);
+            RectangleF rectText = new Rectangle(pt.X,
+                                                pt.Y - st.Height,
+                                                st.Width + TextPadding.Width,
+                                                st.Height + TextPadding.Height);
+            rect.Offset(Offset.X, Offset.Y);
+            rectText.Offset(Offset.X + 7, Offset.Y + 7);
+            g.DrawLine(Stroke, pt.X, pt.Y, rect.X, rect.Y + rect.Height / 2);
+            g.FillRectangle(Fill, rect);
+            //g.DrawRectangle(Stroke, rect);
 
-         DrawRoundRectangle(g, Stroke, rect.X, rect.Y, rect.Width, rect.Height, 8);
-         //g.DrawString(Marker.ToolTipText, Font, Foreground, rectText, Format);
-         WriteString(g, Marker.ToolTipText, rectText);
-         g.Flush();
+            DrawRoundRectangle(g, Stroke, rect.X, rect.Y, rect.Width, rect.Height, 8);
+            //g.DrawString(Marker.ToolTipText, Font, Foreground, rectText, Format);
+            WriteString(g, Marker.ToolTipText, rectText);
+            g.Flush();
+         }
       }
 
       #region ISerializable Members

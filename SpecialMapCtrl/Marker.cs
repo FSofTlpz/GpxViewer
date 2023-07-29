@@ -90,11 +90,10 @@ namespace SpecialMapCtrl {
       public string Text {
          get => Waypoint.Name;
          set {
+            Waypoint.Name = value;
             int idx = GpxDataContainerIndex;
             if (idx >= 0)
                GpxDataContainer.Waypoints[idx].Name = value;
-            else
-               Waypoint.Name = value;
          }
       }
 
@@ -104,11 +103,10 @@ namespace SpecialMapCtrl {
       public double Longitude {
          get => Waypoint.Lon;
          set {
+            Waypoint.Lon = value;
             int idx = GpxDataContainerIndex;
             if (idx >= 0)
                GpxDataContainer.Waypoints[idx].Lon = value;
-            else
-               Waypoint.Lon = value;
          }
       }
 
@@ -118,11 +116,10 @@ namespace SpecialMapCtrl {
       public double Latitude {
          get => Waypoint.Lat;
          set {
+            Waypoint.Lat = value;
             int idx = GpxDataContainerIndex;
             if (idx >= 0)
                GpxDataContainer.Waypoints[idx].Lat = value;
-            else
-               Waypoint.Lat = value;
          }
       }
 
@@ -132,11 +129,10 @@ namespace SpecialMapCtrl {
       public double Elevation {
          get => Waypoint.Elevation;
          set {
+            Waypoint.Elevation = value;
             int idx = GpxDataContainerIndex;
             if (idx >= 0)
                GpxDataContainer.Waypoints[idx].Elevation = value;
-            else
-               Waypoint.Elevation = value;
          }
       }
 
@@ -146,11 +142,10 @@ namespace SpecialMapCtrl {
       public string Symbolname {
          get => Waypoint.Symbol;
          set {
+            Waypoint.Symbol = value;
             int idx = GpxDataContainerIndex;
             if (idx >= 0)
                GpxDataContainer.Waypoints[idx].Symbol = value;
-            else
-               Waypoint.Symbol = value;
          }
       }
 

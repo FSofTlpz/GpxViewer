@@ -32,12 +32,26 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BitMiracle.LibTiff.NET, Version=2.4.649.0, Culture=neutral, PublicKeyToken=53879b3e20e7a7d6, processorArchitecture=MSIL">
+      <HintPath>..\packages\BitMiracle.LibTiff.NET.2.4.649\lib\net40\BitMiracle.LibTiff.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="GeoAPI, Version=1.7.5.0, Culture=neutral, PublicKeyToken=a1a0da7def465678, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeoAPI.Core.1.7.5\lib\net45\GeoAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="GeoAPI.CoordinateSystems, Version=1.7.5.0, Culture=neutral, PublicKeyToken=a1a0da7def465678, processorArchitecture=MSIL">
+      <HintPath>..\packages\GeoAPI.CoordinateSystems.1.7.5\lib\net45\GeoAPI.CoordinateSystems.dll</HintPath>
+    </Reference>
+    <Reference Include="ProjNET, Version=1.4.0.0, Culture=neutral, PublicKeyToken=a1f5bdcd9c6f5740, processorArchitecture=MSIL">
+      <HintPath>..\packages\ProjNET4GeoAPI.1.4.1\lib\net45\ProjNET.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,18 +60,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppData.cs" />
     <Compile Include="BaseTreenode.cs" />
     <Compile Include="ColorHelper.cs" />
+    <Compile Include="Drawing\BitmapHelper.cs" />
+    <Compile Include="Geography\DEM\DEM1x1.cs" />
+    <Compile Include="Geography\DEM\DemData.cs" />
+    <Compile Include="Geography\DEM\DEMHGTReader.cs" />
+    <Compile Include="Geography\DEM\DEMNoValues.cs" />
+    <Compile Include="Geography\DEM\DEMTiffReader.cs" />
     <Compile Include="Geography\Garmin\GDB.cs" />
     <Compile Include="Geography\GeoCoding\GeoCodingResultBase.cs" />
     <Compile Include="Geography\GeoCoding\GeoCodingResultGeocodeFarm.cs" />
     <Compile Include="Geography\GeoCoding\GeoCodingResultOsm.cs" />
     <Compile Include="Geography\GeoCoding\GeoCodingReverseResultOsm.cs" />
     <Compile Include="Geography\GpxSimplification.cs" />
+    <Compile Include="Geography\KmzMap.cs" />
+    <Compile Include="Geography\SRIDReader.cs" />
+    <Compile Include="Geography\WMS_Capabilities.cs" />
     <Compile Include="Geometry\PolylineSimplification\Point.cs" />
     <Compile Include="Geometry\PolylineSimplification\PointList.cs" />
     <Compile Include="Geometry\RectangleCommon.cs" />
     <Compile Include="Geometry\Utilities.cs" />
+    <Compile Include="MyMessageBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MyMessageBox.designer.cs">
+      <DependentUpon>MyMessageBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PathHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleXmlDocument.cs" />
     <Compile Include="Geography\Garmin\GarminSymbol.cs" />
@@ -78,7 +109,16 @@
     <Compile Include="Geography\KmlReader.cs" />
     <Compile Include="Geography\KmlWriter.cs" />
     <Compile Include="Geometry\PointD.cs" />
+    <Compile Include="Sys\HighResolutionWatch.cs" />
+    <Compile Include="Threading\ThreadsafeInvoker.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="MyMessageBox.resx">
+      <DependentUpon>MyMessageBox.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

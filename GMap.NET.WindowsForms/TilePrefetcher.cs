@@ -320,12 +320,12 @@ namespace GMap.NET
 
         public GMapMarkerTile(PointLatLng p, int size) : base(p)
         {
-            LocalSize = new Size(size, size);
+         ActiveClientSize = new Size(size, size);
         }
 
         public override void OnRender(Graphics g)
         {
-            g.FillRectangle(Fill, new Rectangle(LocalPosition.X, LocalPosition.Y, LocalSize.Width, LocalSize.Height));
+            g.FillRectangle(Fill, new Rectangle(ActiveClientPosition.X, ActiveClientPosition.Y, ActiveClientSize.Width, ActiveClientSize.Height));
         }
     }
 }

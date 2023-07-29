@@ -149,7 +149,7 @@ namespace GarminImageCreator {
                             IList<double> groundResolution,
                             PictureDrawing picturePart,
                             ref object extdata,
-                            ref long cancel) {
+                            CancellationToken cancellationToken) {
 #if DRAWBITMAPSEQUENTIEL
          lock (lock4drawbitmapsequentiel) {
 #endif
@@ -209,11 +209,7 @@ namespace GarminImageCreator {
                                                              out points,
                                                              out lines,
                                                              out areas,
-                                                             ref cancel);
-
-
-
-
+                                                             cancellationToken);
                         mapData4Image.AddMapData(points, lines, areas);
                      }
                      points = mapData4Image.Points(m);
@@ -909,7 +905,12 @@ namespace GarminImageCreator {
       /// <param name="deltalat"></param>
       /// <param name="groundresolution">Meter je Pixel</param>
       /// <returns></returns>
-      public List<SearchObject> GetObjectInfo(double lon, double lat, double deltalon, double deltalat, double groundresolution) {
+      public List<SearchObject> GetObjectInfo(double lon, 
+                                              double lat, 
+                                              double deltalon, 
+                                              double deltalat, 
+                                              double groundresolution,
+                                              CancellationToken cancellationToken) {
          List<SearchObject> info = new List<SearchObject>();
          List<GarminMapData> mapData = GetGarminMapDefs();
 
@@ -922,7 +923,7 @@ namespace GarminImageCreator {
                                                     out SortedList<int, List<GeoPoint>> points,
                                                     out SortedList<int, List<GeoPoly>> lines,
                                                     out SortedList<int, List<GeoPoly>> areas,
-                                                    ref cancel);
+                                                    cancellationToken);
 
                try {
                   foreach (int type in areas.Keys) {

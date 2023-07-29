@@ -65,7 +65,7 @@ namespace GpxViewer {
          bool set = false;
          ExifProperty prop = data.Properties.FirstOrDefault(p => p.Tag == ExifTag.GPSImgDirection);
          if (prop == null) {
-            data.Properties.Add(ExifTag.GPSImgDirection, v);
+            data.Properties.Set(ExifTag.GPSImgDirection, v);
             set = true;
          } else {
             if (gpsoverwrite) {
@@ -94,6 +94,29 @@ namespace GpxViewer {
             changed = true;
 
          return changed;
+      }
+
+      public string GetUserComment() {
+         ExifProperty prop = data.Properties.FirstOrDefault(p => p.Tag == ExifTag.UserComment);
+         return prop?.Value as string;
+      }
+
+      public bool SetUserComment(string txt) {
+         ExifProperty prop = data.Properties.FirstOrDefault(p => p.Tag == ExifTag.UserComment);
+         if (string.IsNullOrEmpty(txt)) {
+            if (prop != null) {
+               data.Properties.Remove(prop);
+               return true;
+            }
+         } else {
+            if (prop?.Value as string == txt)
+               return false;
+            if (prop != null)
+               data.Properties.Remove(prop);
+            data.Properties.Set(ExifTag.UserComment, txt, System.Text.Encoding.Unicode);
+            return true;
+         }
+         return false;
       }
 
       public void SaveImage(string imgfile) {
@@ -198,39 +221,42 @@ namespace GpxViewer {
 
       bool setLonOrLat(double v, bool vislon, bool gpsoverwrite) {
          bool set = false;
-         int degree, minute;
-         float second;
-         getDegreeMinuteSecond(v, out degree, out minute, out second);
-         ExifProperty prop = data.Properties.FirstOrDefault(p => vislon ? (p.Tag == ExifTag.GPSLongitude) : (p.Tag == ExifTag.GPSLatitude));
-         if (prop == null) {
-            data.Properties.Add(vislon ? ExifTag.GPSLongitude : ExifTag.GPSLatitude, degree, minute, second);
-            set = true;
-         } else {
-            if (gpsoverwrite) {
-               prop.Value = new MathEx.UFraction32[] {
+         if (!double.IsNaN(v)) {
+            int degree, minute;
+            float second;
+            getDegreeMinuteSecond(v, out degree, out minute, out second);
+            ExifProperty prop = data.Properties.FirstOrDefault(p => vislon ? (p.Tag == ExifTag.GPSLongitude) : (p.Tag == ExifTag.GPSLatitude));
+            if (prop == null) {
+               data.Properties.Set(vislon ? ExifTag.GPSLongitude : ExifTag.GPSLatitude, degree, minute, second);
+               set = true;
+            } else {
+               if (gpsoverwrite) {
+                  prop.Value = new MathEx.UFraction32[] {
                                  new MathEx.UFraction32(degree),
                                  new MathEx.UFraction32(minute),
                                  getUFraction32ForFloat(second)
                             };
-               set = true;
+                  set = true;
+               }
             }
-         }
 
-         prop = data.Properties.FirstOrDefault(p => vislon ? (p.Tag == ExifTag.GPSLongitudeRef) : (p.Tag == ExifTag.GPSLatitudeRef));
-         if (prop == null) {
-            if (vislon)
-               data.Properties.Add(ExifTag.GPSLongitudeRef, v >= 0 ? GPSLongitudeRef.East : GPSLongitudeRef.West);
-            else
-               data.Properties.Add(ExifTag.GPSLatitudeRef, v >= 0 ? GPSLatitudeRef.North : GPSLatitudeRef.South);
-            set = true;
-         } else {
-            if (gpsoverwrite) {
+            prop = data.Properties.FirstOrDefault(p => vislon ? (p.Tag == ExifTag.GPSLongitudeRef) : (p.Tag == ExifTag.GPSLatitudeRef));
+            if (prop == null) {
                if (vislon)
-                  prop.Value = v >= 0 ? GPSLongitudeRef.East : GPSLongitudeRef.West;
+                  data.Properties.Set(ExifTag.GPSLongitudeRef, v >= 0 ? GPSLongitudeRef.East : GPSLongitudeRef.West);
                else
-                  prop.Value = v >= 0 ? GPSLatitudeRef.North : GPSLatitudeRef.South;
+                  data.Properties.Set(ExifTag.GPSLatitudeRef, v >= 0 ? GPSLatitudeRef.North : GPSLatitudeRef.South);
                set = true;
+            } else {
+               if (gpsoverwrite) {
+                  if (vislon)
+                     prop.Value = v >= 0 ? GPSLongitudeRef.East : GPSLongitudeRef.West;
+                  else
+                     prop.Value = v >= 0 ? GPSLatitudeRef.North : GPSLatitudeRef.South;
+                  set = true;
+               }
             }
+
          }
          return set;
       }

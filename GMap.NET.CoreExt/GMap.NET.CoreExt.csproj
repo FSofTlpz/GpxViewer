@@ -42,17 +42,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FSofTUtils\Drawing\BitmapHelper.cs" />
-    <Compile Include="FSofTUtils\Geography\KmzMap.cs" />
-    <Compile Include="FSofTUtils\Geography\DEM\DEM1x1.cs" />
-    <Compile Include="FSofTUtils\Geography\DEM\DemData.cs" />
-    <Compile Include="FSofTUtils\Geography\DEM\DEMHGTReader.cs" />
-    <Compile Include="FSofTUtils\Geography\DEM\DEMNoValues.cs" />
-    <Compile Include="FSofTUtils\Geography\DEM\DEMTiffReader.cs" />
-    <Compile Include="FSofTUtils\Geography\SRIDReader.cs" />
-    <Compile Include="FSofTUtils\Geography\WMS_Capabilities.cs" />
     <Compile Include="MapProviders\GMapProviderWithHillshade.cs" />
     <Compile Include="MapProviders\MapProviderDefinition.cs" />
+    <Compile Include="MapProviders\UniqueIDDelta.cs" />
     <Compile Include="MapProviders\WMSProvider.cs" />
     <Compile Include="MapProviders\GarminKmzProvider.cs" />
     <Compile Include="MapProviders\GarminProvider.cs" />
@@ -60,9 +52,6 @@
     <Compile Include="Projections\GarminProjection.cs" />
     <Compile Include="Projections\MercatorProjection2.cs" />
     <Compile Include="Projections\UTMProjection.cs" />
-    <Compile Include="WindowsForms\GMapPolygonExt.cs" />
-    <Compile Include="WindowsForms\Markers\GMarkerText.cs" />
-    <Compile Include="WindowsForms\ToolTips\GMapMarkerToolTip.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -71,6 +60,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\FSofTUtils\FSofTUtils.csproj">
+      <Project>{647215b2-bba7-4df2-ab85-d679bdc701e5}</Project>
+      <Name>FSofTUtils</Name>
+    </ProjectReference>
     <ProjectReference Include="..\GarminImageCreator\GarminImageCreator.csproj">
       <Project>{29c115fc-77e6-44c1-a46e-5eb4d0385428}</Project>
       <Name>GarminImageCreator</Name>
@@ -91,9 +84,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BitMiracle.LibTiff.NET">
-      <Version>2.4.649</Version>
-    </PackageReference>
     <PackageReference Include="GeoAPI.CoordinateSystems">
       <Version>1.7.5</Version>
     </PackageReference>

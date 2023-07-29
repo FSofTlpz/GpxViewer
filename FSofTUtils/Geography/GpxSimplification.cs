@@ -251,9 +251,9 @@ namespace FSofTUtils.Geography {
       /// <param name="ptlst"><see cref="GpxTrackPoint"/>-Liste</param>
       /// <param name="type">Art des Vereinfachungalgorithmus</param>
       /// <param name="width">Parameter für den Vereinfachungalgorithmus (obsolet bei <see cref="VSimplification.SlidingMean"/>)</param>
-      /// <returns>Anzahl der entfernten Punkte</returns>
+      /// <returns>Anzahl der geänderten Höhen Punkte</returns>
       public static int VerticalSimplification(IList<GpxTrackPoint> ptlst, VSimplification type, double width) {
-         int removed = 0;
+         int changed = 0;
          if (type != VSimplification.Nothing) {
             if (type == VSimplification.SlidingMean)
                width = Math.Max(2, (int)Math.Round(width));    // >= 2
@@ -280,13 +280,18 @@ namespace FSofTUtils.Geography {
                   break;
             }
 
-            removed = ptlst.Count;
-            for (int p = profile.Length - 1; p > 0; p--)
-               if (!profile.Get(p).IsValid)
-                  ptlst.RemoveAt(p);
-            removed -= ptlst.Count;
+            changed = 0;
+
+            // Daten speichern
+            for (int p = 0; p < profile.Length; p++) {
+               double v = profile.Get(p).Y;
+               if (ptlst[p].Elevation != v) {
+                  ptlst[p].Elevation = v;
+                  changed++;
+               }
+            }
          }
-         return removed;
+         return changed;
       }
 
       /// <summary>

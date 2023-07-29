@@ -50,9 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EditHelper\EditHelper.cs" />
-    <Compile Include="EditHelper\EditMarkerHelper.cs" />
-    <Compile Include="EditHelper\EditTrackHelper.cs" />
+    <Compile Include="CheckRouteCrossing.cs" />
     <Compile Include="Marker.cs" />
     <Compile Include="GpxAllExt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -61,6 +59,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="RouteCrossing.cs" />
     <Compile Include="Scale4Map.cs" />
     <Compile Include="SpecialMapCtrl.cs">
       <SubType>UserControl</SubType>

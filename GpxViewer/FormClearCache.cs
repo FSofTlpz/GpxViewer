@@ -8,6 +8,11 @@ namespace GpxViewer {
 
       public int ProviderIndex;
 
+      /// <summary>
+      /// 0 ohne löschen, 1 nur für akt. Provider gelöscht, 2 alles gelöscht
+      /// </summary>
+      public int Clear { get; protected set; }
+
 
       public FormClearCache() {
          InitializeComponent();
@@ -15,6 +20,9 @@ namespace GpxViewer {
 
       protected override void OnShown(EventArgs e) {
          base.OnShown(e);
+
+         Clear = 0;
+
          if (Map == null)
             Close();
          if (ProviderIndex < 0)
@@ -26,12 +34,14 @@ namespace GpxViewer {
       private void button_actMap_Click(object sender, EventArgs e) {
          Map.MapClearMemoryCache();
          showResult(Map.MapClearCache(ProviderIndex));
+         Clear = 1;
          Close();
       }
 
       private void button_allMaps_Click(object sender, EventArgs e) {
          Map.MapClearMemoryCache();
          showResult(Map.MapClearCache(-1));
+         Clear = 2;
          Close();
       }
 

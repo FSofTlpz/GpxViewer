@@ -90,6 +90,11 @@ namespace SpecialMapCtrl {
          SelectedPart,
 
          /// <summary>
+         /// wird gerade aufgezeichnet
+         /// </summary>
+         LiveDraw,
+
+         /// <summary>
          /// Nutzerdefiniert
          /// </summary>
          Custom,
@@ -290,6 +295,33 @@ namespace SpecialMapCtrl {
          }
       }
 
+      /// <summary>
+      /// Farbe für Aufzeichnung (bei <see cref="VisualStyle.LiveDraw"/>)
+      /// </summary>
+      public static Color LiveDrawColor {
+         get {
+            return predefPen[VisualStyle.LiveDraw].Color;
+         }
+         set {
+            VisualStyle vs = VisualStyle.LiveDraw;
+            predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
+         }
+      }
+
+      /// <summary>
+      /// Breite für Aufzeichnung (bei <see cref="VisualStyle.LiveDraw"/>)
+      /// </summary>
+      public static float LiveDrawWidth {
+         get {
+            return predefPen[VisualStyle.LiveDraw].Width;
+         }
+         set {
+            VisualStyle vs = VisualStyle.LiveDraw;
+            predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
+         }
+      }
+
+
       /*
        * Zugriff auf Pen kann beim Multithreading off. zu Problemen führen!
        * 
@@ -409,6 +441,8 @@ namespace SpecialMapCtrl {
             { VisualStyle.Standard4,    new PenWithDef(Color.FromArgb(100, Color.Blue), 3.0F, false) },
             // Standard-Pen 5
             { VisualStyle.Standard5,    new PenWithDef(Color.FromArgb(100, Color.Blue), 3.0F, false) },
+            // Standard-Pen für markierte Tracks
+            { VisualStyle.LiveDraw,     new PenWithDef(Color.FromArgb(255, Color.Black), 3.0F, false) },
             // Standard-Pen für markierte Tracks
             { VisualStyle.Marked,       new PenWithDef(Color.FromArgb(255, Color.Cyan), 3.0F, false) },
             // Standard-Pen für editierbare Tracks

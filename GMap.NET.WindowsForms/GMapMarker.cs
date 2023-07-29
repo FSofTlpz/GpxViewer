@@ -51,44 +51,60 @@ namespace GMap.NET.Skia {
          }
       }
 
-      Rectangle _area;
+      Rectangle _activearea;
 
       /// <summary>
       /// lokaler Bereich (in client-Koordinaten) auf den z.B. ein Click als Click auf den <see cref="GMapMarker"/> interpretiert wird
-      /// <para>Die Location ist die <see cref="LocalPosition"/>.</para>
+      /// (i.A. ist das auch die Bildfläche)
+      /// <para>Die Location ist die <see cref="ActiveClientPosition"/>.</para>
       /// </summary>
-      public Rectangle LocalArea {
-         get => _area;
+      public Rectangle ActiveClientArea {
+         get => _activearea;
       }
 
       /// <summary>
-      /// lokale Position (in client-Koordinaten) entsprechend Position (== Location von <see cref="LocalArea"/>)
+      /// lokale Position (in client-Koordinaten) entsprechend Position (== Location von <see cref="ActiveClientArea"/>)
       /// </summary>
-      public Point LocalPosition {
-         get => _area.Location;
+      public Point ActiveClientPosition {
+         get => _activearea.Location;
          set {
-            if (_area.Location != value) {
-               _area.Location = value;
-               if (Overlay != null &&
-                   Overlay.Control != null &&
-                   !Overlay.Control.HoldInvalidation)
-                  Overlay.Control.Map_CoreInvalidate();
-            }
+            //if (_activearea.Location != value) {
+            //   _activearea.X = value.X;
+            //   _activearea.Y = value.Y;
+            //   _activearea.Location = value;
+            //   if (Overlay != null &&
+            //       Overlay.Control != null &&
+            //       !Overlay.Control.HoldInvalidation)
+            //      Overlay.Control.Map_CoreInvalidate();
+            //}
+            SetActiveClientPosition(value.X, value.Y);
+         }
+      }
+
+      public void SetActiveClientPosition(int xclient, int yclient) {
+         if (_activearea.X != xclient ||
+             _activearea.Y != yclient) {
+            _activearea.X = xclient;
+            _activearea.Y = yclient;
+            if (Overlay != null &&
+                Overlay.Control != null &&
+                !Overlay.Control.HoldInvalidation)
+               Overlay.Control.Map_CoreInvalidate();
          }
       }
 
       /// <summary>
-      /// Größe des lokalen Bereiches <see cref="LocalArea"/>
+      /// Größe des lokalen Bereiches (in client-Koordinaten) <see cref="ActiveClientArea"/>
       /// </summary>
-      public Size LocalSize {
-         get => _area.Size;
-         set => _area.Size = value;
+      public Size ActiveClientSize {
+         get => _activearea.Size;
+         set => _activearea.Size = value;
       }
 
       Point _offset;
 
       /// <summary>
-      /// Offset zur <see cref="LocalPosition"/> für die Darstellung
+      /// Offset zur <see cref="ActiveClientPosition"/> für die Darstellung
       /// </summary>
       public Point LocalOffset {
          get => _offset;
@@ -106,10 +122,11 @@ namespace GMap.NET.Skia {
 
 
       /// <summary>
-      /// lokale Position (in client-Koordinaten) des ToolTip (i.A. <see cref="LocalArea"/>.Location - <see cref="LocalOffset"/>)
+      /// lokale Position (in client-Koordinaten) des ToolTip (i.A. <see cref="ActiveClientArea"/>.Location - <see cref="LocalOffset"/>)
       /// </summary>
-      public Point LocalToolTipPosition => new Point(LocalPosition.X + LocalOffset.X,
-                                                     LocalPosition.Y + LocalOffset.Y);
+      public Point LocalToolTipPosition => IsOnClientVisible ? new Point(ActiveClientPosition.X + ActiveClientSize.Width / 2,
+                                                                         ActiveClientPosition.Y + ActiveClientSize.Height / 2) :
+                                                               new Point(0, 0);
 
       public GMapToolTip ToolTip;
 
@@ -155,6 +172,11 @@ namespace GMap.NET.Skia {
             }
          }
       }
+
+      /// <summary>
+      /// actual visible on client
+      /// </summary>
+      public bool IsOnClientVisible => int.MinValue < ActiveClientPosition.X && int.MinValue < ActiveClientPosition.Y;
 
       /// <summary>
       /// if true, marker will be rendered even if it's outside current view

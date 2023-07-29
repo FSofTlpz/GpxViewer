@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace GpxViewer {
    public partial class FormTrackSimplificationcs : Form {
@@ -361,7 +360,7 @@ namespace GpxViewer {
          int gapfilledheights = 0;
          int gapfilledtimestamps = 0;
          int removedhsimpl = 0;
-         int removedvsimpl = 0;
+         int changedvsimpl = 0;
 
          SimplificationData sd = getActualData();
 
@@ -397,7 +396,7 @@ namespace GpxViewer {
             removedhsimpl = GpxSimplification.HorizontalSimplification(gpxTrackPoints, sd.HSimplification, sd.HSimplificationWidth);
 
          if (sd.VSimplificationIsActiv)
-            removedvsimpl = GpxSimplification.VerticalSimplification(gpxTrackPoints, sd.VSimplification, sd.VSimplificationWidth);
+            changedvsimpl = GpxSimplification.VerticalSimplification(gpxTrackPoints, sd.VSimplification, sd.VSimplificationWidth);
 
          if (removedtimestamps > 0 ||
              removedheights > 0 ||
@@ -409,7 +408,7 @@ namespace GpxViewer {
              gapfilledheights > 0 ||
              gapfilledtimestamps > 0 ||
              removedhsimpl > 0 ||
-             removedvsimpl > 0) {
+             changedvsimpl > 0) {
             DestTrack = new Track(gpxTrackPoints, SrcTrack.VisualName + " (vereinfacht)");
             StringBuilder sb = new StringBuilder();
 
@@ -435,8 +434,8 @@ namespace GpxViewer {
                sb.AppendLine("* " + gapfilledtimestamps + " Punkte ohne Zeitstempel mit interpolierten Zeitstempel gesetzt");
             if (removedhsimpl > 0)
                sb.AppendLine("* " + removedhsimpl + " Punkte bei horizontaler Vereinfachung entfernt");
-            if (removedvsimpl > 0)
-               sb.AppendLine("* " + removedvsimpl + " Punkte bei vertikaler Vereinfachung entfernt");
+            if (changedvsimpl > 0)
+               sb.AppendLine("* " + changedvsimpl + " Punkte bei vertikaler Vereinfachung verändert");
 
             MessageBox.Show(sb.ToString(), "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
          } else

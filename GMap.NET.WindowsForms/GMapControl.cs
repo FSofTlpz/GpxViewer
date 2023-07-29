@@ -1,4 +1,6 @@
 ﻿//#define WITHORGCODE
+//#define USEMATRIXTRANSFORM
+
 using GMap.NET.Internals;
 using GMap.NET.MapProviders;
 using GMap.NET.ObjectModel;
@@ -29,6 +31,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 #endif
 
@@ -127,10 +130,10 @@ namespace GMap.NET.WindowsForms {
       }
 
       public class DrawExtendedEventArgs {
-         public readonly float RenderTranform;
+         public readonly double RenderTranform;
          public readonly Graphics Graphics;
 
-         public DrawExtendedEventArgs(Graphics g, float rendertranform) {
+         public DrawExtendedEventArgs(Graphics g, double rendertranform) {
             RenderTranform = rendertranform;
             Graphics = g;
          }
@@ -341,6 +344,118 @@ namespace GMap.NET.WindowsForms {
 
       #endregion
 
+      #region Zoom/Scaling
+
+      [Category("GMap.NET")]
+      [Description("map scale type")]
+      public ScaleModes Map_ScaleMode { get; set; } = ScaleModes.Integer;
+
+      /// <summary>
+      /// zusätzlicher Zoom zum ganzzahligen Zoom von <see cref="PublicCore.Zoom"/> (1.0 .. 2.0)?
+      /// </summary>
+      double extendedFractionalZoom = 1;
+
+      double _zoom;
+
+      /// <summary>
+      /// akt. Zoom (exponentiell, d.h. +1 bedeutet Verdopplung); kann je nach <see cref="Map_ScaleMode"/> ev. nur ganzzahlig sein
+      /// </summary>
+      [Category("GMap.NET")]
+      [DefaultValue(12)]
+      public double Map_Zoom {
+         get => _zoom;
+         set {
+            if (_zoom != value) {
+               if (value > Map_MaxZoom) {
+                  _zoom = Map_MaxZoom;
+               } else if (value < Map_MinZoom) {
+                  _zoom = Map_MinZoom;
+               } else {
+                  _zoom = value;
+               }
+
+               double remainder = value % 1;
+               if (Map_ScaleMode == ScaleModes.Fractional &&
+                   remainder != 0) {
+                  extendedFractionalZoom = (float)Math.Pow(2.0, remainder);  // 1.0 < .. < 2.0
+                  core.Zoom = (int)value;                                  // ganzzahliger Anteil
+               } else {
+                  extendedFractionalZoom = 1;
+                  _zoom = value;
+                  core.Zoom = (int)value;
+               }
+
+               //setTransformMatrix();
+               if (core.IsStarted && !_isDragging) {
+                  OnSizeChanged(EventArgs.Empty);
+                  forceUpdateOverlays();
+
+                  OnMapFracionalZoomChanged?.Invoke(this, new EventArgs());
+               }
+            }
+         }
+      }
+
+      /// <summary>
+      /// (linearer) Zoomfaktor von <see cref="Map_Zoom"/> (bezogen auf <see cref="Map_MinZoom"/>)
+      /// </summary>
+      [Category("GMap.NET")]
+      public double Map_ZoomLinear {
+         get => Math.Pow(2.0, Map_Zoom - Map_MinZoom);
+         set {
+            if (value >= 1)
+               Map_Zoom = Math.Log(value, 2) + Map_MinZoom;
+         }
+      }
+
+      /// <summary>
+      /// min zoom
+      /// </summary>
+      [Category("GMap.NET")]
+      [Description("minimum zoom level of map")]
+      [DefaultValue(2)]
+      public int Map_MinZoom {
+         get => core.MinZoom;
+         set => core.MinZoom = value;
+      }
+
+      /// <summary>
+      /// max zoom
+      /// </summary>
+      [Category("GMap.NET")]
+      [Description("maximum zoom level of map")]
+      [DefaultValue(24)]
+      public int Map_MaxZoom {
+         get => core.MaxZoom;
+         set => core.MaxZoom = value;
+      }
+
+      double deviceZoom = 1;
+
+      /// <summary>
+      /// zusätzlicher Vergrößerungsfaktor falls das Display eine zu hohe DPI hat (1.0 ...)
+      /// </summary>
+      [Category("GMap.NET")]
+      [Description("extended zoom for real device")]
+      [DefaultValue(1)]
+      public double Map_DeviceZoom {
+         get => deviceZoom;
+         set {
+            if (0 < value) {
+               deviceZoom = value;
+               //setTransformMatrix();
+               OnSizeChanged(EventArgs.Empty);
+            }
+         }
+      }
+
+      /// <summary>
+      /// Gesamtfaktor für die Darstellung auf einem realen Device
+      /// </summary>
+      protected double scale4device => extendedFractionalZoom * Map_DeviceZoom;
+
+      #endregion
+
       #region public Props / Vars
 
       public static int Map_ThreadPoolSize {
@@ -440,33 +555,6 @@ namespace GMap.NET.WindowsForms {
          set => _isDragging = value;
       }
 
-      ///// <summary>
-      ///// map render mode
-      ///// </summary>
-      //[Browsable(false)]
-      //public RenderMode MapRenderMode {
-      //   get => Core.RenderMode;
-      //   internal set => Core.RenderMode = value;
-      //}
-
-      [Category("GMap.NET")]
-      [Description("map scale type")]
-      public ScaleModes Map_ScaleMode { get; set; } = ScaleModes.Integer;
-
-      /// <summary>
-      /// zusätzlicher Vergrößerungsfaktor falls das Display eine zu hohe DPI hat (null oder 1.0 ...)
-      /// </summary>
-      [Browsable(false)]
-      public float Map_RenderZoom2RealDevice {
-         get => _map_RenderZoom2RealDevice ?? 1;
-         set {
-            if (value == 1)
-               _map_RenderZoom2RealDevice = null;
-            else
-               _map_RenderZoom2RealDevice = value;
-         }
-      }
-
       /// <summary>
       /// retry count to get tile
       /// </summary>
@@ -483,78 +571,6 @@ namespace GMap.NET.WindowsForms {
       public int Map_LevelsKeepInMemory {
          get => core.LevelsKeepInMemory;
          set => core.LevelsKeepInMemory = value;
-      }
-
-      double _zoomReal;
-
-      /// <summary>
-      /// akt. Zoom (exponentiell, d.h. +1 bedeutet Verdopplung)
-      /// </summary>
-      [Category("GMap.NET")]
-      [DefaultValue(12)]
-      public double Map_Zoom {
-         get => _zoomReal;
-         set {
-            if (_zoomReal != value) {
-               if (value > Map_MaxZoom) {
-                  _zoomReal = Map_MaxZoom;
-               } else if (value < Map_MinZoom) {
-                  _zoomReal = Map_MinZoom;
-               } else {
-                  _zoomReal = value;
-               }
-
-               double remainder = value % 1;
-               if (Map_ScaleMode == ScaleModes.Fractional && remainder != 0) {
-                  //_extraZoom = 1 + remainder;
-                  float scaleValue = (float)Math.Pow(2d, remainder);
-                  _map_RenderTransform = scaleValue;
-
-                  map_ZoomStep = Convert.ToInt32(value - remainder);
-               } else {
-                  _map_RenderTransform = null;
-                  _zoomReal = map_ZoomStep = (int)Math.Floor(value);
-               }
-
-               if (core.IsStarted && !_isDragging) {
-                  forceUpdateOverlays();
-
-                  OnMapFracionalZoomChanged?.Invoke(this, new EventArgs());
-               }
-            }
-         }
-      }
-
-      /// <summary>
-      /// (linearer) Zoomfaktor von <see cref="Map_Zoom"/> (bezogen auf <see cref="Map_MinZoom"/>)
-      /// </summary>
-      [Category("GMap.NET")]
-      public double Map_ZoomLinear {
-         get => Math.Pow(2.0, Map_Zoom - Map_MinZoom);
-         set {
-            if (value >= 1)
-               Map_Zoom = Math.Log(value, 2) + Map_MinZoom;
-         }
-      }
-
-      /// <summary>
-      /// min zoom
-      /// </summary>
-      [Category("GMap.NET")]
-      [Description("minimum zoom level of map")]
-      public int Map_MinZoom {
-         get => core.MinZoom;
-         set => core.MinZoom = value;
-      }
-
-      /// <summary>
-      /// max zoom
-      /// </summary>
-      [Category("GMap.NET")]
-      [Description("maximum zoom level of map")]
-      public int Map_MaxZoom {
-         get => core.MaxZoom;
-         set => core.MaxZoom = value;
       }
 
       /// <summary>
@@ -605,7 +621,7 @@ namespace GMap.NET.WindowsForms {
       /// <summary>
       /// vervielfacht die scheinbare Trackbreite (bei 1 wird nur die echte Trackbreite verwendet)
       /// </summary>
-      public float Map_ClickTolerance4Tracks { get => map_ClickTolerance4Tracks; set => map_ClickTolerance4Tracks = value; }
+      public float Map_ClickTolerance4Tracks { get; set; } = 1F;
 
       /// <summary>
       /// if true, selects area just by holding mouse and moving
@@ -873,13 +889,6 @@ namespace GMap.NET.WindowsForms {
          LicenseManager.UsageMode == LicenseUsageMode.Designtime;
 #endif
 
-      protected int map_ZoomStep {
-         get => core.Zoom;
-         set => core.Zoom = value;
-      }
-
-      protected float map_RenderTransform => _map_RenderTransform ?? 1;
-
       /// <summary>
       /// gets map manager (<see cref="GMaps.Instance"/>)
       /// </summary>
@@ -940,8 +949,6 @@ namespace GMap.NET.WindowsForms {
       //      }
       //#endif
 
-      GPoint map_CoreRenderOffset => core.RenderOffset;
-
       /// <summary>
       /// map boundaries
       /// </summary>
@@ -961,16 +968,6 @@ namespace GMap.NET.WindowsForms {
       /// lets you zoom by MouseWheel even when pointer is in area of marker
       /// </summary>
       bool map_IgnoreMarkerOnMouseWheel = false;
-
-      /// <summary>
-      /// Zusätzliche Skalierung zu <see cref="Map_Zoom"/> (null oder 1.0..2.0)?
-      /// </summary>
-      float? _map_RenderTransform;
-
-      /// <summary>
-      /// zusätzlicher Vergrößerungsfaktor falls das Display eine zu hohe DPI hat (null oder 1.0 ...)
-      /// </summary>
-      float? _map_RenderZoom2RealDevice = null;
 
       PointLatLng selectionStart;
       PointLatLng selectionEnd;
@@ -1004,6 +1001,13 @@ namespace GMap.NET.WindowsForms {
       readonly PublicCore core = new PublicCore();
 
       #endregion
+
+
+      PointLatLng clientLeftTop = new PointLatLng(90, -180),
+                  clientRightBottom = new PointLatLng(-90, 180);
+
+
+
 
 
       static GMapControl() {
@@ -1094,7 +1098,7 @@ namespace GMap.NET.WindowsForms {
 #endif
          if (!Map_IsMouseOverMarker) {
             if (e.Button == Map_DragButton && Map_CanDragMap) {
-               core.MouseDown = new GPoint(e.X, e.Y);
+               core.MouseDown = new GPoint(clientx2core(e.X), clienty2core(e.Y));
                Map_CoreInvalidate();
             } else if (!isSelected) {
                isSelected = true;
@@ -1133,13 +1137,6 @@ namespace GMap.NET.WindowsForms {
                 !boundsOfMap.Value.Contains(Map_Position) &&
                 core.LastLocationInBounds.HasValue)
                Map_Position = core.LastLocationInBounds.Value;
-
-            //////////////////////////////////////////////////////////
-            float scale = this.scale();
-            if (Math.Floor(scale) != scale)
-               Map_Position = Map_FromLocalToLatLng(Width / 2, Height / 2);   // Bei nichtganzzahligem Zoom ist eine Korrektur nötig!
-            //////////////////////////////////////////////////////////
-
          } else {
             if (e.Button == Map_DragButton)
                core.MouseDown = GPoint.Empty;
@@ -1163,6 +1160,11 @@ namespace GMap.NET.WindowsForms {
          base.OnMouseClick(e);
          _onMouseClick(e, false, false, out _, out _, out _);
       }
+
+      protected override void OnMouseDoubleClick(MouseEventArgs e) {
+         base.OnMouseDoubleClick(e);
+         _onMouseClick(e, true, false, out _, out _, out _);
+      }
 #else
       PointLatLng OnMouseClick(MouseEventArgs e,
                                bool all,
@@ -1172,6 +1174,20 @@ namespace GMap.NET.WindowsForms {
          MouseClick?.Invoke(this, e);
          return _onMouseClick(e,
                               false,
+                              all,
+                              out markers,
+                              out tracks,
+                              out polygons);
+      }
+
+      PointLatLng OnMouseDoubleClick(MouseEventArgs e,
+                                     bool all,
+                                     out List<GMapMarker> markers,
+                                     out List<GMapTrack> tracks,
+                                     out List<GMapPolygon> polygons) {
+         MouseDoubleClick?.Invoke(this, e);
+         return _onMouseClick(e,
+                              true,
                               all,
                               out markers,
                               out tracks,
@@ -1189,15 +1205,12 @@ namespace GMap.NET.WindowsForms {
       /// <param name="tracks"></param>
       /// <param name="polygons"></param>
       /// <returns></returns>
-      PointLatLng _onMouseClick(MouseEventArgs e,
+      PointLatLng _onMouseClick(MouseEventArgs eclient,
                                 bool doubleclick,
                                 bool all,
                                 out List<GMapMarker> markers,
                                 out List<GMapTrack> tracks,
                                 out List<GMapPolygon> polygons) {
-
-         GPoint rp = core.RealClientPoint(e.X, e.Y);
-
          PointLatLng point = PointLatLng.Empty;
          markers = new List<GMapMarker>();
          tracks = new List<GMapTrack>();
@@ -1207,13 +1220,14 @@ namespace GMap.NET.WindowsForms {
             bool overlayObject = false;
 
             for (int i = map_Overlays.Count - 1; i >= 0; i--) {
-               var o = map_Overlays[i];
+               GMapOverlay ov = map_Overlays[i];
+               if (ov != null &&
+                   ov.IsVisibile &&
+                   ov.IsHitTestVisible) {
 
-               if (o != null && o.IsVisibile && o.IsHitTestVisible) {
-
-                  List<GMapMarker> markers4o = new List<GMapMarker>(getMarkers4Point(o, rp, all));
-                  List<GMapTrack> tracks4o = new List<GMapTrack>(getTracks4Point(o, rp, all, Map_ClickTolerance4Tracks));
-                  List<GMapPolygon> polygons4o = new List<GMapPolygon>(getPolygons4Point(o, e.X, e.Y, all));
+                  List<GMapMarker> markers4o = new List<GMapMarker>(getMarkers4Point(ov, eclient.X, eclient.Y, all));
+                  List<GMapTrack> tracks4o = new List<GMapTrack>(getTracks4Point(ov, eclient.X, eclient.Y, all, Map_ClickTolerance4Tracks));
+                  List<GMapPolygon> polygons4o = new List<GMapPolygon>(getPolygons4Point(ov, Map_FromLocalToLatLng(eclient.X, eclient.Y), all));
 
                   markers.AddRange(markers4o);
                   tracks.AddRange(tracks4o);
@@ -1221,23 +1235,23 @@ namespace GMap.NET.WindowsForms {
 
                   foreach (var m in markers4o) {
                      if (doubleclick)
-                        OnMapMarkerDoubleClick?.Invoke(this, new GMapMarkerEventArgs(m, e));
+                        OnMapMarkerDoubleClick?.Invoke(this, new GMapMarkerEventArgs(m, eclient));
                      else
-                        OnMapMarkerClick?.Invoke(this, new GMapMarkerEventArgs(m, e));
+                        OnMapMarkerClick?.Invoke(this, new GMapMarkerEventArgs(m, eclient));
                   }
 
                   foreach (var t in tracks4o) {
                      if (doubleclick)
-                        OnMapTrackDoubleClick?.Invoke(this, new GMapTrackEventArgs(t, e));
+                        OnMapTrackDoubleClick?.Invoke(this, new GMapTrackEventArgs(t, eclient));
                      else
-                        OnMapTrackClick?.Invoke(this, new GMapTrackEventArgs(t, e));
+                        OnMapTrackClick?.Invoke(this, new GMapTrackEventArgs(t, eclient));
                   }
 
                   foreach (var p in polygons4o) {
                      if (doubleclick)
-                        OnMapPolygonDoubleClick?.Invoke(p, new GMapPolygonEventArgs(p, e));
+                        OnMapPolygonDoubleClick?.Invoke(p, new GMapPolygonEventArgs(p, eclient));
                      else
-                        OnMapPolygonClick?.Invoke(p, new GMapPolygonEventArgs(p, e));
+                        OnMapPolygonClick?.Invoke(p, new GMapPolygonEventArgs(p, eclient));
                   }
 
                }
@@ -1247,32 +1261,11 @@ namespace GMap.NET.WindowsForms {
             }
 
             if (!overlayObject && core.MouseDown != GPoint.Empty)
-               point = Map_FromLocalToLatLng(e.X, e.Y);
+               point = Map_FromLocalToLatLng(eclient.X, eclient.Y);
          }
 
          return point;
       }
-
-#if !GMAP4SKIA
-      protected override void OnMouseDoubleClick(MouseEventArgs e) {
-         base.OnMouseDoubleClick(e);
-         _onMouseClick(e, true, false, out _, out _, out _);
-      }
-#else
-      PointLatLng OnMouseDoubleClick(MouseEventArgs e,
-                                     bool all,
-                                     out List<GMapMarker> markers,
-                                     out List<GMapTrack> tracks,
-                                     out List<GMapPolygon> polygons) {
-         MouseDoubleClick?.Invoke(this, e);
-         return _onMouseClick(e,
-                              true,
-                              all,
-                              out markers,
-                              out tracks,
-                              out polygons);
-      }
-#endif
 
 #if !GMAP4SKIA
       protected override void OnMouseMove(MouseEventArgs e) {
@@ -1287,10 +1280,11 @@ namespace GMap.NET.WindowsForms {
 #endif
          if (!core.IsDragging &&             // noch nicht gestartet ...
              !core.MouseDown.IsEmpty) {      // ... und Startpunkt bei MouseDown registriert ...
-            var p = new GPoint(e.X, e.Y);
-            if (Math.Abs(p.X - core.MouseDown.X) * 2 >= map_DragSize.Width ||  // ... und Mindestweite der Bewegung vorhanden
-                Math.Abs(p.Y - core.MouseDown.Y) * 2 >= map_DragSize.Height)
+            if (Math.Abs(e.X - core.MouseDown.X) * 2 >= map_DragSize.Width ||  // ... und Mindestweite der Bewegung vorhanden
+                Math.Abs(e.Y - core.MouseDown.Y) * 2 >= map_DragSize.Height) {
+
                core.BeginDrag(core.MouseDown);  // Dragging mit diesen Clientkoordinaten starten
+            }
          }
 
          if (core.IsDragging) {
@@ -1302,11 +1296,13 @@ namespace GMap.NET.WindowsForms {
 #endif
             }
 
+            clientLeftTop = Map_FromLocalToLatLng(0, 0);
+            clientRightBottom = Map_FromLocalToLatLng(Width, Height);
+
             if (boundsOfMap.HasValue && !boundsOfMap.Value.Contains(Map_Position)) {
                // ...
             } else {
-               GPoint pt = new GPoint(e.X, e.Y);
-               core.Drag(pt);
+               core.Drag(new GPoint(clientx2core(e.X), clienty2core(e.Y)));
                forceUpdateOverlays();
                controlInvalidate();
             }
@@ -1315,30 +1311,27 @@ namespace GMap.NET.WindowsForms {
                 !selectionStart.IsEmpty &&
                 (ModifierKeys == Keys.Alt || ModifierKeys == Keys.Shift || Map_DisableAltForSelection)) {
                selectionEnd = Map_FromLocalToLatLng(e.X, e.Y);
-               {
-                  var p1 = selectionStart;
-                  var p2 = selectionEnd;
+               var p1 = selectionStart;
+               var p2 = selectionEnd;
 
-                  double x1 = Math.Min(p1.Lng, p2.Lng);
-                  double y1 = Math.Max(p1.Lat, p2.Lat);
-                  double x2 = Math.Max(p1.Lng, p2.Lng);
-                  double y2 = Math.Min(p1.Lat, p2.Lat);
+               double x1 = Math.Min(p1.Lng, p2.Lng);
+               double y1 = Math.Max(p1.Lat, p2.Lat);
+               double x2 = Math.Max(p1.Lng, p2.Lng);
+               double y2 = Math.Min(p1.Lat, p2.Lat);
 
-                  Map_SelectedArea = new RectLatLng(y1, x1, x2 - x1, y1 - y2);
-               }
-            } else
-            if (core.MouseDown.IsEmpty) {
+               Map_SelectedArea = new RectLatLng(y1, x1, x2 - x1, y1 - y2);
+            } else if (core.MouseDown.IsEmpty) {
                for (int i = map_Overlays.Count - 1; i >= 0; i--) {
-                  GPoint rp = core.RealClientPoint(e.X, e.Y);
+                  GMapOverlay ov = map_Overlays[i];
+                  if (ov != null &&
+                      ov.IsVisibile &&
+                      ov.IsHitTestVisible) {
 
-                  var o = map_Overlays[i];
-                  if (o != null && o.IsVisibile && o.IsHitTestVisible) {
+                     List<GMapMarker> markers = getMarkers4Point(ov, e.X, e.Y, true);
+                     List<GMapTrack> tracks = getTracks4Point(ov, e.X, e.Y, true, Map_ClickTolerance4Tracks);
+                     List<GMapPolygon> polygons = getPolygons4Point(ov, Map_FromLocalToLatLng(e.X, e.Y), true);
 
-                     List<GMapMarker> markers = getMarkers4Point(o, rp, true);
-                     List<GMapTrack> tracks = getTracks4Point(o, rp, true, Map_ClickTolerance4Tracks);
-                     List<GMapPolygon> polygons = getPolygons4Point(o, e.X, e.Y, true);
-
-                     foreach (var m in o.Markers) {
+                     foreach (var m in ov.Markers) {
                         if (m.IsVisible &&
                             m.IsHitTestVisible) {
                            if (markers.Contains(m)) {
@@ -1359,7 +1352,7 @@ namespace GMap.NET.WindowsForms {
                         }
                      }
 
-                     foreach (var t in o.Tracks) {
+                     foreach (var t in ov.Tracks) {
                         if (t.IsVisible &&
                             t.IsHitTestVisible) {
                            if (tracks.Contains(t)) {
@@ -1380,7 +1373,7 @@ namespace GMap.NET.WindowsForms {
                         }
                      }
 
-                     foreach (var p in o.Polygons) {
+                     foreach (var p in ov.Polygons) {
                         if (p.IsVisible &&
                             p.IsHitTestVisible) {
                            if (polygons.Contains(p)) {
@@ -1405,7 +1398,6 @@ namespace GMap.NET.WindowsForms {
             }
          }
       }
-
 
 #if !GMAP4SKIA
       protected override void OnPaint(PaintEventArgs e) {
@@ -1449,16 +1441,18 @@ namespace GMap.NET.WindowsForms {
          //   return;
 
          if (!IsDesignerHosted) {
-            core.OnMapSizeChanged(Width, Height);
-
+            core.OnMapSizeChanged((int)Math.Round(Width / Map_DeviceZoom),
+                                  (int)Math.Round(Height / Map_DeviceZoom));
+            clientLeftTop = Map_FromLocalToLatLng(0, 0);
+            clientRightBottom = Map_FromLocalToLatLng(Width, Height);
             if (Visible &&
                 IsHandleCreated &&
                 core.IsStarted) {
-
                forceUpdateOverlays();
             }
          }
       }
+
 
 #if !GMAP4SKIA
       protected override void OnLoad(EventArgs e) {
@@ -1560,11 +1554,11 @@ namespace GMap.NET.WindowsForms {
 
             #endregion
 
-            OnMapDrawCenter(new DrawExtendedEventArgs(g, map_RenderTransform));
+            OnMapDrawCenter(new DrawExtendedEventArgs(g, extendedFractionalZoom));
 
-            OnMapDrawScale(new DrawExtendedEventArgs(g, map_RenderTransform));
+            OnMapDrawScale(new DrawExtendedEventArgs(g, extendedFractionalZoom));
 
-            OnMapDrawOnTop(new DrawExtendedEventArgs(g, map_RenderTransform));
+            OnMapDrawOnTop(new DrawExtendedEventArgs(g, extendedFractionalZoom));
 
          } catch (Exception ex) {
             if (OnMapExceptionThrown != null)
@@ -1754,32 +1748,17 @@ namespace GMap.NET.WindowsForms {
 #endif
       }
 
-      /// <summary>
-      /// alle Aktionen die nicht zum akt. Zoom gehören abbrechen
-      /// </summary>
-      /// <param name="all">alle oder alle außer dem akt. Zoom</param>
-      public void Map_CancelUnnecessaryThreads(bool all = false) => core.CancelUnnecessaryThreads(all);
 
       /// <summary>
       /// Anzahl der Tiles die noch in der Warteschlange stehen
       /// </summary>
       /// <returns></returns>
-      public int Map_TilesInQueue() => core.MapTilesInQueue();
+      public int Map_WaitingTasks() => core.WaitingTasks();
 
       /// <summary>
-      ///     gets world coordinate from local control coordinate
+      /// Warteschlange wird geleert
       /// </summary>
-      /// <param name="x"></param>
-      /// <param name="y"></param>
-      /// <returns></returns>
-      public PointLatLng Map_FromLocalToLatLng(int x, int y) => core.FromLocalToLatLng(x, y, scale());
-
-      /// <summary>
-      ///     gets local coordinate from world coordinate
-      /// </summary>
-      /// <param name="point"></param>
-      /// <returns></returns>
-      public GPoint Map_FromLatLngToLocal(PointLatLng point) => core.FromLatLngToLocal(point, scale());
+      public void Map_ClearWaitingTaskList() => core.ClearWaitingTaskList();
 
       RectLatLng? _lazySetZoomToFitRect;
       bool _lazyEvents = true;
@@ -2031,51 +2010,45 @@ namespace GMap.NET.WindowsForms {
 #endif
 
       /// <summary>
-      ///     updates markers local position (only for internal use)
+      /// updates markers local position in client coordinates (only for internal use)
       /// </summary>
       /// <param name="marker"></param>
       internal void Map_UpdateMarkerLocalPosition(GMapMarker marker) {
-         GPoint p = core.FromLatLngToLocal(marker.Position, scale(), true);
-         marker.LocalPosition = new Point((int)p.X, (int)p.Y);
+         // Ist der Punkt innerhalb der Client-Grenzen bzgl. der Map_Position und der Client-Größe?
+         // (wenn z.B. Map_Position gerade gesetzt wurde, aber der Client noch nicht angepasst wurde)
+         double halfdeltalat = (clientLeftTop.Lat - clientRightBottom.Lat) / 2;
+         double halfdeltalon = (clientRightBottom.Lng - clientLeftTop.Lng) / 2;
+         if (Map_Position.Lat - halfdeltalat <= marker.Position.Lat && marker.Position.Lat <= Map_Position.Lat + halfdeltalat &&
+             Map_Position.Lng - halfdeltalon <= marker.Position.Lng && marker.Position.Lng <= Map_Position.Lng + halfdeltalon) {
+            Map_FromLatLngToLocal(marker.Position, out int xclient, out int yclient);
+            marker.SetActiveClientPosition(xclient + marker.LocalOffset.X,
+                                           yclient + marker.LocalOffset.Y);
+         } else {
+            marker.SetActiveClientPosition(int.MinValue, int.MinValue);
+         }
       }
 
-      /*    Es werden LocalPolyline.Count GPoints verworfen.
-       *    Dann werden genauso viele GPoints neu erzeugt und in der Liste registriert.
-       *    Das läßt sich leider nicht vermeiden und belastet die Speicherverwaltung.
-       */
-
-
-      ///// <summary>
-      ///// updates tracks local position (only for internal use)
-      ///// <para>optimized for creating lesser objects</para>
-      ///// </summary>
-      ///// <param name="track"></param>
-      //internal void Map_UpdateTrackLocalPosition(GMapTrack track) {
-      //   if (track.LocalPolyline.Count > track.Points.Count)
-      //      track.LocalPolyline.RemoveRange(track.Points.Count, track.LocalPolyline.Count - track.Points.Count);
-      //   for (int i = 0; i < track.Points.Count; i++) {
-      //      GPoint p = core.FromLatLngToLocal(track.Points[i], scale(), true);
-      //      if (track.LocalPolyline.Count <= i)
-      //         track.LocalPolyline.Add(p);
-      //      else { // etwas umständlich, aber es wird nur ein schon vorhandenes GPoint-Objekt verändert
-      //         // Ersatz für: track.LocalPolyline.Add(p);
-
-      //         track.LocalPolyline[i] = p;
-
-      //         //track.LocalPolyline[i].OffsetNegative(track.LocalPolyline[i]);
-      //         //track.LocalPolyline[i].Offset(p);
-      //      }
-      //   }
-      //   track.UpdateVisualParts(map_CoreRenderOffset);
-      //}
-
       internal void Map_UpdateTrackLocalPosition(GMapTrack track) {
-         track.LocalPolyline = new Point[track.Points.Count];
-         for (int i = 0; i < track.Points.Count; i++) {
-            GPoint p = core.FromLatLngToLocal(track.Points[i], scale(), true);
-            track.LocalPolyline[i] = new Point((int)p.X, (int)p.Y);
-         }
-         track.UpdateVisualParts(map_CoreRenderOffset);
+         if (track.LocalPolyline == null ||
+             track.Points.Count != track.LocalPolyline.Length)       // ev. Array der Cientpunkte erzeugen/aktualisieren
+            track.LocalPolyline = new Point[track.Points.Count];
+
+         // Ist das Bounding innerhalb der Client-Grenzen bzgl. der Map_Position und der Client-Größe?
+         // (wenn z.B. Map_Position gerade gesetzt wurde, aber der Client noch nicht angepasst wurde)
+         double halfdeltalat = (clientLeftTop.Lat - clientRightBottom.Lat) / 2;
+         double halfdeltalon = (clientRightBottom.Lng - clientLeftTop.Lng) / 2;
+         if (track.BoundingsIntersects(Map_Position.Lat - halfdeltalat,
+                                       Map_Position.Lat + halfdeltalat,
+                                       Map_Position.Lng - halfdeltalon,
+                                       Map_Position.Lng + halfdeltalon)) {
+            for (int i = 0; i < track.Points.Count; i++) {
+               Map_FromLatLngToLocal(track.Points[i], out int xclient, out int yclient);
+               track.LocalPolyline[i].X = xclient;
+               track.LocalPolyline[i].Y = yclient;
+            }
+            track.UpdateVisualParts(true);
+         } else
+            track.UpdateVisualParts(false);
       }
 
       /// <summary>
@@ -2085,8 +2058,8 @@ namespace GMap.NET.WindowsForms {
       internal void Map_UpdatePolygonLocalPosition(GMapPolygon polygon) {
          polygon.LocalPoints.Clear();
          for (int i = 0; i < polygon.Points.Count; i++) {
-            GPoint p = core.FromLatLngToLocal(polygon.Points[i], scale(), true);
-            polygon.LocalPoints.Add(p);
+            GPoint pclient = Map_FromLatLngToLocal(polygon.Points[i]);
+            polygon.LocalPoints.Add(pclient);
          }
          polygon.UpdateGraphicsPath();
       }
@@ -2120,11 +2093,13 @@ namespace GMap.NET.WindowsForms {
          }
       }
 
-      List<GMapMarker> getMarkers4Point(GMapOverlay o, GPoint clientwithoffset, bool all = true) {
+      List<GMapMarker> getMarkers4Point(GMapOverlay o, int xclient, int yclient, bool all = true) {
          List<GMapMarker> markers = new List<GMapMarker>();
          foreach (var m in o.Markers) {
-            if (m.IsVisible && m.IsHitTestVisible) {
-               if (m.LocalArea.Contains((int)clientwithoffset.X, (int)clientwithoffset.Y)) {
+            if (m.IsVisible &&
+                m.IsHitTestVisible &&
+                m.IsOnClientVisible) {
+               if (m.ActiveClientArea.Contains(xclient, yclient)) {
                   markers.Add(m);
                   if (!all)
                      break;
@@ -2134,11 +2109,12 @@ namespace GMap.NET.WindowsForms {
          return markers;
       }
 
-      List<GMapTrack> getTracks4Point(GMapOverlay o, GPoint clientwithoffset, bool all = true, float tolerance = 1F) {
+      List<GMapTrack> getTracks4Point(GMapOverlay o, int xclient, int yclient, bool all = true, float tolerance = 1F) {
          List<GMapTrack> tracks = new List<GMapTrack>();
          foreach (var t in o.Tracks) {
-            if (t.IsVisible && t.IsHitTestVisible) {
-               if (t.IsInside((int)clientwithoffset.X, (int)clientwithoffset.Y, tolerance)) {
+            if (t.IsVisible &&
+                t.IsHitTestVisible) {
+               if (t.IsInside(xclient, yclient, tolerance)) {
                   tracks.Add(t);
                   if (!all)
                      break;
@@ -2148,11 +2124,11 @@ namespace GMap.NET.WindowsForms {
          return tracks;
       }
 
-      List<GMapPolygon> getPolygons4Point(GMapOverlay o, int clientx, int clienty, bool all = true) {
+      List<GMapPolygon> getPolygons4Point(GMapOverlay o, PointLatLng pt, bool all = true) {
          List<GMapPolygon> polys = new List<GMapPolygon>();
          foreach (var p in o.Polygons) {
             if (p.IsVisible && p.IsHitTestVisible) {
-               if (p.IsInside(Map_FromLocalToLatLng(clientx, clienty))) {
+               if (p.IsInside(pt)) {
                   polys.Add(p);
                   if (!all)
                      break;
@@ -2193,8 +2169,6 @@ namespace GMap.NET.WindowsForms {
       //static double radians(double degrees) => degrees * (Math.PI / 180);
 
       //static double degrees(double radians) => radians * (180 / Math.PI);
-
-      float scale() => map_RenderTransform * Map_RenderZoom2RealDevice;
 
       void overlays_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
          if (e.NewItems != null) {
@@ -2425,19 +2399,10 @@ namespace GMap.NET.WindowsForms {
       /// </summary>
       /// <param name="g"></param>
       void drawGraphics(Graphics g) {
-         float scale = this.scale();
-         if (scale == 1) {
-            g.TranslateTransform(map_CoreRenderOffset.X, map_CoreRenderOffset.Y, MatrixOrder.Prepend);
-            drawMap(g);
-         } else {
-            g.ScaleTransform(scale, scale, MatrixOrder.Append);
-            g.TranslateTransform(map_CoreRenderOffset.X, map_CoreRenderOffset.Y, MatrixOrder.Append);
-            drawMap(g);
+         g.Transform = getTransformationMatrix(false, true);
+         drawMap(g);
 
-            // neu setzen für OnPaintOverlays()
-            g.ResetTransform();
-            g.TranslateTransform(map_CoreRenderOffset.X, map_CoreRenderOffset.Y, MatrixOrder.Append);
-         }
+         g.ResetTransform();
          OnPaintOverlays(g);
 
          if (map_ShowCoreData4Test)
@@ -2633,20 +2598,18 @@ namespace GMap.NET.WindowsForms {
       /// liefert den benötigten Bildausschnitt
       /// </summary>
       /// <param name="img"></param>
-      /// <param name="x"></param>
-      /// <param name="y"></param>
+      /// <param name="corex"></param>
+      /// <param name="corey"></param>
       /// <param name="width"></param>
       /// <param name="height"></param>
-      void getImageSourceArea(GMapImage img, out int x, out int y, out int width, out int height) {
-         getImageSourceArea(img, (int)img.Ix, (int)img.Xoff, (int)img.Yoff, out x, out y, out width, out height);
-      }
+      void getImageSourceArea(GMapImage img, out int corex, out int corey, out int width, out int height) =>
+         getImageSourceArea(img, (int)img.Ix, (int)img.Xoff, (int)img.Yoff, out corex, out corey, out width, out height);
 
-      void getImageSourceArea(GMapImage img, int ix, int xoff, int yoff, out int x, out int y, out int width, out int height) {
-         x = xoff * (img.Img.Width / ix);
-         y = yoff * (img.Img.Height / ix);
+      void getImageSourceArea(GMapImage img, int ix, int xoff, int yoff, out int corex, out int corey, out int width, out int height) {
+         corex = xoff * (img.Img.Width / ix);
+         corey = yoff * (img.Img.Height / ix);
          width = img.Img.Width / ix;
          height = img.Img.Height / ix;
-
       }
 
       #endregion
@@ -2841,7 +2804,7 @@ namespace GMap.NET.WindowsForms {
       /// </summary>
       public new int Height {
          get => _height;
-         set => _height = value;
+         protected set => _height = value;
       }
 
       /// <summary>
@@ -2849,12 +2812,8 @@ namespace GMap.NET.WindowsForms {
       /// </summary>
       public new int Width {
          get => _width;
-         set => _width = value;
+         protected set => _width = value;
       }
-
-      public int ClientSizeWidth => Width;
-
-      public int ClientSizeHeight => Height;
 
       /// <summary>
       /// Setzt den Eingabefokus auf das Steuerelement.
@@ -2879,13 +2838,130 @@ namespace GMap.NET.WindowsForms {
 
 #endif
 
+      void Map_FromLatLngToLocal(PointLatLng latlng, out int xclient, out int yclient) {
+         GPoint p = Map_FromLatLngToLocal(latlng);
+         xclient = (int)p.X;
+         yclient = (int)p.Y;
+      }
+
+#if USEMATRIXTRANSFORM
+
+      /// <summary>
+      /// gets world coordinate from client (control) coordinate
+      /// </summary>
+      /// <param name="x"></param>
+      /// <param name="y"></param>
+      /// <returns></returns>
+      public PointLatLng Map_FromLocalToLatLng(int clientx, int clienty) {
+         transform(getTransformationMatrix(true, false), ref clientx, ref clienty);    // Client -> CoreClient
+         return core.FromLocalCoreToLatLng(clientx, clienty);
+      }
+
+      /// <summary>
+      /// gets client (control) coordinate from world coordinate
+      /// </summary>
+      /// <param name="point"></param>
+      /// <returns></returns>
+      public GPoint Map_FromLatLngToLocal(PointLatLng latlng) => transform(getTransformationMatrix(false, false),
+                                                                           core.FromLatLngToLocalCore(latlng));
+
+#else
+
+      int clientx2core(int clientx) =>
+         (int)Math.Round((clientx + Width * (extendedFractionalZoom - 1) / 2) / (extendedFractionalZoom * deviceZoom));
+
+      int clienty2core(int clienty) =>
+         (int)Math.Round((clienty + Height * (extendedFractionalZoom - 1) / 2) / (extendedFractionalZoom * deviceZoom));
+
+      /// <summary>
+      /// gets world coordinate from client (control) coordinate
+      /// </summary>
+      /// <param name="x"></param>
+      /// <param name="y"></param>
+      /// <returns></returns>
+      public PointLatLng Map_FromLocalToLatLng(int clientx, int clienty) {
+         return core.FromLocalCoreToLatLng(clientx2core(clientx), clienty2core(clienty));
+      }
+
+      /// <summary>
+      /// gets client (control) coordinate from world coordinate
+      /// </summary>
+      /// <param name="point"></param>
+      /// <returns></returns>
+      public GPoint Map_FromLatLngToLocal(PointLatLng latlng) {
+         GPoint ptcore = core.FromLatLngToLocalCore(latlng);
+         ptcore.X = (long)Math.Round(ptcore.X * extendedFractionalZoom * deviceZoom - Width * (extendedFractionalZoom - 1) / 2);
+         ptcore.Y = (long)Math.Round(ptcore.Y * extendedFractionalZoom * deviceZoom - Height * (extendedFractionalZoom - 1) / 2);
+         return ptcore;
+      }
+
+#endif
+
+      #region Matrix für Koordinatentransformation
+
+      /// <summary>
+      /// liefert die Matrix für die Koordinatentransformation von core- in client-Koordinaten
+      /// </summary>
+      /// <param name="invert">wenn true, dann für Umwandlung von client- in core-Koordinaten</param>
+      /// <param name="withrenderoffset">wenn true, wird der <see cref="PublicCore.RenderOffset"/> einbezogen 
+      /// (i.A. nur in <see cref="drawGraphics(Graphics)"/> nötig)</param>
+      /// <returns></returns>
+      Matrix getTransformationMatrix(bool invert, bool withrenderoffset) {
+         Matrix m = new Matrix();
+         if (withrenderoffset)
+            m.Translate(core.RenderOffset.X,
+                        core.RenderOffset.Y,
+                        MatrixOrder.Append);
+         m.Scale((float)extendedFractionalZoom,
+                 (float)extendedFractionalZoom,
+                 MatrixOrder.Append);
+         m.Scale((float)deviceZoom,
+                 (float)deviceZoom,
+                 MatrixOrder.Append);
+         m.Translate(-(int)(Width * (extendedFractionalZoom - 1) / 2),
+                     -(int)(Height * (extendedFractionalZoom - 1) / 2),
+                     MatrixOrder.Append);
+         if (invert)
+            m.Invert();
+         return m;
+      }
+
+#if USEMATRIXTRANSFORM
+      void transform(Matrix m, Point[] pts) => m.TransformPoints(pts);
+
+      void transform(Matrix m, ref int x, ref int y) {
+         Point[] pts = new Point[] {
+               Point.Empty,
+            };
+         pts[0].X = x;
+         pts[0].Y = y;
+         transform(m, pts);
+         x = pts[0].X;
+         y = pts[0].Y;
+      }
+
+      GPoint transform(Matrix m, GPoint pt) {
+         Point[] pts = new Point[] {
+               Point.Empty,
+            };
+         pts[0].X = (int)pt.X;
+         pts[0].Y = (int)pt.Y;
+         transform(m, pts);
+         pt.X = pts[0].X;
+         pt.Y = pts[0].Y;
+         return pt;
+      }
+#endif
+
+      #endregion
+
+
       #region Implementierung der IDisposable-Schnittstelle
 
       /// <summary>
       /// true, wenn schon ein Dispose() erfolgte
       /// </summary>
       bool _isdisposed = false;
-      private float map_ClickTolerance4Tracks = 1F;
 
       /// <summary>
       /// kann expliziet für das Objekt aufgerufen werden um interne Ressourcen frei zu geben
@@ -2959,5 +3035,6 @@ namespace GMap.NET.WindowsForms {
       }
 
       #endregion
+
    }
 }

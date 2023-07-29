@@ -123,6 +123,16 @@ namespace SpecialMapCtrl {
          MarkerlistlistChanged?.Invoke(this, e);
       }
 
+      public class LoadEventArgs {
+         public string Info;
+
+         public LoadEventArgs(string info) {
+            Info = info;
+         }
+      }
+
+      public event EventHandler<LoadEventArgs> LoadInfoEvent;
+
       #endregion
 
       /// <summary>
@@ -255,6 +265,24 @@ namespace SpecialMapCtrl {
          Markers4PicturesAreVisible = true;
          TrackWidth = 1;
          TrackColor = Color.Black;
+
+         if (!string.IsNullOrEmpty(xmltext))
+            posImportXml();
+      }
+
+      void posImportXml() {
+         postLoad();
+
+         for (int i = 0; i < Tracks.Count; i++) {
+            // falls individuelle Farben def. sind:
+            foreach (var item in Tracks[i].UnhandledChildXml) {
+               if (item.Value.StartsWith("<extensions>")) {
+                  Color col = getGarminColor(item.Value);
+                  if (col != Color.Empty)
+                     TrackList[i].LineColor = col;
+               }
+            }
+         }
       }
 
       #region Track einfügen oder entfernen
@@ -616,8 +644,8 @@ namespace SpecialMapCtrl {
       }
 
       void visualRefreshMarkers() {
-         if (Markers4StandardAreVisible) 
-            foreach (Marker m in MarkerList) 
+         if (Markers4StandardAreVisible)
+            foreach (Marker m in MarkerList)
                m.Refresh();
       }
 
@@ -666,8 +694,13 @@ namespace SpecialMapCtrl {
       /// <param name="filename"></param>
       /// <param name="creator"></param>
       /// <param name="withgarminext"></param>
+      /// <param name="colorname">diese Farbe wird NICHT gespeichert</param>
       /// <param name="gpxversion"></param>
-      public void Save(string filename, string creator, bool withgarminext, string gpxversion = "1.1") {
+      public void Save(string filename,
+                       string creator,
+                       bool withgarminext,
+                       GarminTrackColors.Colorname colorname = GarminTrackColors.Colorname.Transparent,
+                       string gpxversion = "1.1") {
          RebuildMetadataBounds();
          Metadata.Time = DateTime.Now;
 
@@ -675,7 +708,9 @@ namespace SpecialMapCtrl {
             // Trackfarben
             for (int i = 0; i < TrackList.Count; i++) {
                GarminTrackColors.Colorname col = GarminTrackColors.GetColorname(TrackList[i].LineColor, true);
-               if (col != GarminTrackColors.Colorname.Unknown) {
+               if (col != GarminTrackColors.Colorname.Unknown &&
+                   col != GarminTrackColors.Colorname.Transparent &&
+                   col != colorname) {    // Farbe setzen
                   int key = -1;
                   string xmlextension = null;
                   foreach (var item in Tracks[i].UnhandledChildXml) {
@@ -693,6 +728,25 @@ namespace SpecialMapCtrl {
                      Tracks[i].UnhandledChildXml.Add(key, xmlextension);
                   } else
                      Tracks[i].UnhandledChildXml[key] = xmlextension;
+               } else {       // ev. vorhandene Farbe aus den UnhandledChildXml entfernen
+                  int key = -1;
+                  foreach (var item in Tracks[i].UnhandledChildXml) {
+                     /* z.B.:
+                              <extensions>
+                                <gpxx:TrackExtension xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3">
+                                  <gpxx:DisplayColor>DarkGray</gpxx:DisplayColor>
+                                </gpxx:TrackExtension>
+                              </extensions>
+                      */
+                     if (item.Value.StartsWith("<extensions>") &&
+                         item.Value.Contains("<gpxx:TrackExtension xmlns:gpxx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\">") &&
+                         item.Value.Contains("<gpxx:DisplayColor>")) {
+                        key = item.Key;
+                        break;
+                     }
+                  }
+                  if (0 <= key)
+                     Tracks[i].UnhandledChildXml.Remove(key);
                }
             }
 
@@ -752,26 +806,18 @@ namespace SpecialMapCtrl {
       /// </summary>
       /// <param name="filename"></param>
       /// <param name="removenamespace"></param>
-      public void Load(string filename, bool removenamespace = false) {
+      public void Load(string filename,
+                       bool removenamespace = false) {
          string ext = Path.GetExtension(filename).ToLower();
          if (ext == ".gpx") {
 
+            sendLoadInfo("read XML");
             FromXml(File.ReadAllText(filename), removenamespace);
-            postLoad();
-
-            for (int i = 0; i < Tracks.Count; i++) {
-               // falls individuelle Farben def. sind:
-               foreach (var item in Tracks[i].UnhandledChildXml) {
-                  if (item.Value.StartsWith("<extensions>")) {
-                     Color col = getGarminColor(item.Value);
-                     if (col != Color.Empty)
-                        TrackList[i].LineColor = col;
-                  }
-               }
-            }
+            posImportXml();
 
          } else if (ext == ".gdb") {
 
+            sendLoadInfo("read GDB");
             List<GDB.Object> objlst = GDB.ReadGDBObjectList(filename);
             long dtunix = new DateTime(1970, 1, 1).Ticks;
             foreach (GDB.Object obj in objlst) {
@@ -823,11 +869,14 @@ namespace SpecialMapCtrl {
 
          } else if (ext == ".kml" || ext == ".kmz") {
 
+            sendLoadInfo("read KML/KMZ");
             GpxAll gpx4kml = new FSofTUtils.Geography.KmlReader().Read(filename, out List<Color> colors);
 
+            sendLoadInfo("InsertWaypoints");
             foreach (var wp in gpx4kml.Waypoints)
                InsertWaypoint(wp);
 
+            sendLoadInfo("InsertTracks");
             foreach (var track in gpx4kml.Tracks)
                InsertTrack(track);
 
@@ -840,12 +889,102 @@ namespace SpecialMapCtrl {
       }
 
       /// <summary>
+      /// testet, ob ein rechteckiges Testgebiet von den Daten der GPX-Datei betroffen ist
+      /// </summary>
+      /// <param name="filename"></param>
+      /// <param name="testarea"></param>
+      /// <param name="withwaypoints"></param>
+      /// <param name="isroutecrossing"></param>
+      /// <returns></returns>
+      public bool CheckAreaFromFile(string filename,
+                                    GpxBounds testarea,
+                                    bool withwaypoints,
+                                    Func<GpxBounds, IList<GpxTrackPoint>, bool> isroutecrossing) {
+         // zuerst nur ev. vorhandene Metadaten testen
+         string xmltxt;
+         using (StreamReader sr = new StreamReader(filename)) {
+            char[] txtbuff = new char[1000];
+            int chars = sr.ReadBlock(txtbuff, 0, txtbuff.Length);
+            xmltxt = RemoveNamespace(new string(txtbuff));
+
+            int start = xmltxt.IndexOf("<" + GpxMetadata1_1.NODENAME + ">");
+            if (start >= 0) {
+               int end = xmltxt.IndexOf("</" + GpxMetadata1_1.NODENAME + ">");
+               if (end >= 0) {
+                  string metadatatxt = xmltxt.Substring(start, end - start + 3 + GpxMetadata1_1.NODENAME.Length);
+                  XPathNavigator navm = GetNavigator4XmlText(metadatatxt);
+                  string[] tmpm = XReadOuterXml(navm, "/" + GpxMetadata1_1.NODENAME);
+                  if (tmpm != null) {
+                     GpxMetadata1_1 metadata = new GpxMetadata1_1(tmpm[0]);
+                     if (metadata.Bounds.MinLon != metadata.Bounds.MaxLon &&
+                         metadata.Bounds.MinLat != metadata.Bounds.MaxLat) {
+                        if (!metadata.Bounds.IntersectsWith(testarea))
+                           return false;
+                     }
+                  }
+               }
+            }
+         }
+
+         // vollständige Datei testen
+         GpxBounds bounds;
+         string[] tmp;
+         XPathNavigator nav = GetNavigator4XmlText(RemoveNamespace(System.IO.File.ReadAllText(filename)));
+
+         if (withwaypoints) {
+            tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxWaypoint.NODENAME);
+            if (tmp != null) {
+               // Lage aller Waypoints testen
+               for (int w = 0; w < tmp.Length; w++) {
+                  GpxWaypoint wp = new GpxWaypoint(tmp[w]);
+                  if (testarea.IntersectsWith(new GpxBounds(wp.Lat, wp.Lat, wp.Lon, wp.Lon)))
+                     return true;
+               }
+            }
+         }
+
+         //Routes = new List<GpxRoute>();
+         //tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxRoute.NODENAME);
+         //if (tmp != null) {
+         //   for (int r = 0; r < tmp.Length; r++)
+         //      Routes.Add(new GpxRoute(tmp[r]));
+         //}
+
+         tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxTrack.NODENAME);
+         if (tmp != null) {
+            for (int t = 0; t < tmp.Length; t++) {
+               GpxTrack track = new GpxTrack(tmp[t]);
+               for (int i = 0; i < track.Segments.Count; i++) {
+                  List<GpxTrackPoint> pts = track.GetSegment(i).Points;
+                  bounds = new GpxBounds();
+                  bounds.Union(pts);
+                  if (isroutecrossing == null) {
+                     if (testarea.IntersectsWith(bounds))
+                        return true;
+                  } else {
+                     if (isroutecrossing(testarea, pts))
+                        return true;
+                  }
+               }
+            }
+         }
+
+         return false;
+      }
+
+      void sendLoadInfo(string txt) => LoadInfoEvent?.Invoke(this, new LoadEventArgs(txt));
+
+      /// <summary>
       /// ev. notwendige Aufbereitung der GPX-Daten
       /// </summary>
       void postLoad() {
+         sendLoadInfo("splitMultiSegmentTracks");
          splitMultiSegmentTracks();
+         sendLoadInfo("removeEmptyTracks");
          removeEmptyTracks();
+         sendLoadInfo("rebuildTrackList");
          rebuildTrackList();
+         sendLoadInfo("rebuildMarkerList");
          rebuildMarkerList();
       }
 
@@ -933,7 +1072,7 @@ namespace SpecialMapCtrl {
       /// etwas getrickst, um eine Garminfarbe zu lesen
       /// </summary>
       /// <param name="xmlextension"></param>
-      /// <returns></returns>
+      /// <returns>Color.Empty wenn keine Farbe gelesen wurde</returns>
       Color getGarminColor(string xmlextension) {
          if (xmlextension.StartsWith("<extensions>")) {
             xmlextension = xmlextension.Replace("<gpxx:", "<");

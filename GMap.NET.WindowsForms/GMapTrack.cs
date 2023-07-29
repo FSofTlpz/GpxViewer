@@ -1,4 +1,6 @@
 ﻿//#define ORGUPDATEGRAPHICSPATH
+//#define ONEVISUALPART
+
 #if GMAP4SKIA
 using SkiaSharp;
 #endif
@@ -121,69 +123,69 @@ namespace GMap.NET.Skia {
       protected internal Point[] LocalPolyline = new Point[0];
 
 
-      class IntersectLineAndRectangle {
+      //class IntersectLineAndRectangle {
 
-         public static bool Check(PointF a, PointF b, RectangleF rect) {
-            return Check(a.X, a.Y, b.X, b.Y, rect.Left, rect.Bottom, rect.Right, rect.Top);
-         }
+      //   public static bool Check(PointF a, PointF b, RectangleF rect) {
+      //      return Check(a.X, a.Y, b.X, b.Y, rect.Left, rect.Bottom, rect.Right, rect.Top);
+      //   }
 
-         public static bool Check(float ax, float ay, float bx, float by, float left, float top, float right, float bottom) {
-            if (ax <= bx) {
-               if (intersectVerticalLine(ax, ay, bx, by, left, bottom, top))
-                  return true;
-               if (intersectVerticalLine(ax, ay, bx, by, right, bottom, top))
-                  return true;
-            } else {
-               if (intersectVerticalLine(bx, by, ax, ay, left, bottom, top))
-                  return true;
-               if (intersectVerticalLine(bx, by, ax, ay, right, bottom, top))
-                  return true;
-            }
+      //   public static bool Check(float ax, float ay, float bx, float by, float left, float top, float right, float bottom) {
+      //      if (ax <= bx) {
+      //         if (intersectVerticalLine(ax, ay, bx, by, left, bottom, top))
+      //            return true;
+      //         if (intersectVerticalLine(ax, ay, bx, by, right, bottom, top))
+      //            return true;
+      //      } else {
+      //         if (intersectVerticalLine(bx, by, ax, ay, left, bottom, top))
+      //            return true;
+      //         if (intersectVerticalLine(bx, by, ax, ay, right, bottom, top))
+      //            return true;
+      //      }
 
-            if (ay <= by) {
-               if (intersectHorizontalLine(ax, ay, bx, by, bottom, left, right))
-                  return true;
-               if (intersectHorizontalLine(ax, ay, bx, by, top, left, right))
-                  return true;
-            } else {
-               if (intersectHorizontalLine(bx, by, ax, ay, bottom, left, right))
-                  return true;
-               if (intersectHorizontalLine(bx, by, ax, ay, top, left, right))
-                  return true;
-            }
-            return false;
-         }
+      //      if (ay <= by) {
+      //         if (intersectHorizontalLine(ax, ay, bx, by, bottom, left, right))
+      //            return true;
+      //         if (intersectHorizontalLine(ax, ay, bx, by, top, left, right))
+      //            return true;
+      //      } else {
+      //         if (intersectHorizontalLine(bx, by, ax, ay, bottom, left, right))
+      //            return true;
+      //         if (intersectHorizontalLine(bx, by, ax, ay, top, left, right))
+      //            return true;
+      //      }
+      //      return false;
+      //   }
 
-         static bool intersectVerticalLine(float leftx, float lefty, float rightx, float righty, float axisx, float bottom, float top) {
-            if (leftx == rightx) {
-               if (leftx == axisx)
-                  if (Math.Min(lefty, righty) <= top &&
-                      Math.Max(lefty, righty) >= bottom)
-                     return true;
-            } else {
-               if (leftx <= axisx && axisx <= rightx) {
-                  float y = lefty + (axisx - leftx) * (righty - lefty) / (rightx - leftx);
-                  return bottom <= y && y <= top;
-               }
-            }
-            return false;
-         }
+      //   static bool intersectVerticalLine(float leftx, float lefty, float rightx, float righty, float axisx, float bottom, float top) {
+      //      if (leftx == rightx) {
+      //         if (leftx == axisx)
+      //            if (Math.Min(lefty, righty) <= top &&
+      //                Math.Max(lefty, righty) >= bottom)
+      //               return true;
+      //      } else {
+      //         if (leftx <= axisx && axisx <= rightx) {
+      //            float y = lefty + (axisx - leftx) * (righty - lefty) / (rightx - leftx);
+      //            return bottom <= y && y <= top;
+      //         }
+      //      }
+      //      return false;
+      //   }
 
-         static bool intersectHorizontalLine(float bottomx, float bottomy, float topx, float topy, float axisy, float left, float right) {
-            if (bottomy == topy) {
-               if (bottomy == axisy)
-                  if (Math.Min(bottomx, topx) <= right &&
-                      Math.Max(bottomx, topx) >= left)
-                     return true;
-            } else {
-               if (bottomy <= axisy && axisy <= topy) {
-                  float x = bottomx + (axisy - bottomy) * (topx - bottomx) / (topy - bottomy);
-                  return left <= x && x <= right;
-               }
-            }
-            return false;
-         }
-      }
+      //   static bool intersectHorizontalLine(float bottomx, float bottomy, float topx, float topy, float axisy, float left, float right) {
+      //      if (bottomy == topy) {
+      //         if (bottomy == axisy)
+      //            if (Math.Min(bottomx, topx) <= right &&
+      //                Math.Max(bottomx, topx) >= left)
+      //               return true;
+      //      } else {
+      //         if (bottomy <= axisy && axisy <= topy) {
+      //            float x = bottomx + (axisy - bottomy) * (topx - bottomx) / (topy - bottomy);
+      //            return left <= x && x <= right;
+      //         }
+      //      }
+      //      return false;
+      //   }
+      //}
 
       /// <summary>
       /// sichtbare Teile des Tracks in local/client Koordinaten (Punktlisten sinnvoll wegen DrawLines())
@@ -206,6 +208,9 @@ namespace GMap.NET.Skia {
       /// </summary>
       bool endptvisible = true;
 
+      double minlat = double.MaxValue, maxlat = double.MinValue,
+             minlon = double.MaxValue, maxlon = double.MinValue;
+
 
       static GMapTrack() {
          DefaultStroke.LineJoin = LineJoin.Round;
@@ -214,6 +219,7 @@ namespace GMap.NET.Skia {
 
       public GMapTrack(IEnumerable<PointLatLng> points, string name)
           : base(points, name) {
+         CalculateLatLonBoundings();
       }
 
       public virtual void OnRender(Graphics g) {
@@ -253,6 +259,50 @@ namespace GMap.NET.Skia {
          }
       }
 
+      public void CalculateLatLonBoundings() {
+         minlat = double.MaxValue;
+         maxlat = double.MinValue;
+         minlon = double.MaxValue;
+         maxlon = double.MinValue;
+         foreach (var item in Points) {
+            if (item.Lat < minlat)
+               minlat = item.Lat;
+            if (maxlat < item.Lat)
+               maxlat = item.Lat;
+            if (item.Lng < minlon)
+               minlon = item.Lng;
+            if (maxlon < item.Lng)
+               maxlon = item.Lng;
+         }
+      }
+
+      //public bool BoundingsIntersects(double fromlat, double tolat, double fromlon, double tolon) {
+      //   // if rectangle has area 0, no overlap
+      //   if (minlat == maxlat || minlon == maxlon || tolat == fromlat || fromlon == tolon)
+      //      return false;
+
+      //   // If one rectangle is on left side of other
+      //   if (minlat > tolat || fromlat > maxlat)
+      //      return false;
+
+      //   // If one rectangle is above other
+      //   if (maxlon > fromlon || tolon > minlon)
+      //      return false;
+
+      //   return true;
+      //}
+
+      public bool BoundingsIntersects(double fromlat, double tolat, double fromlon, double tolon) {
+         if (fromlat < maxlat &&
+             minlat < tolat &&
+             fromlon < maxlon) 
+            return minlon < tolon;
+         return false;
+      }
+
+
+
+
       protected virtual void OnSpecialCapDraw(Graphics graphics,
                                               Color color,
                                               float linewidth,
@@ -271,6 +321,37 @@ namespace GMap.NET.Skia {
                                                                        isStartCap));
       }
 
+      /// <summary>
+      /// actual visible on client
+      /// </summary>
+      public bool IsOnClientVisible => visualParts.Count > 0;
+
+      ///// <summary>
+      ///// Indicates whether the specified point is contained within this <see cref="visualPolylines"/>
+      ///// </summary>
+      ///// <param name="x"></param>
+      ///// <param name="y"></param>
+      ///// <returns></returns>
+      //internal bool IsInside(int x, int y, float tolerance = 1F) {
+      //   if (visualPolylines.Count > 0) {
+      //      tolerance = Math.Max(1F, tolerance);
+      //      RectangleF rect = new RectangleF(x - tolerance * Stroke.Width / 2,
+      //                                       y - tolerance * Stroke.Width / 2,
+      //                                       tolerance * Stroke.Width / 2,
+      //                                       tolerance * Stroke.Width / 2);
+      //      foreach (Point[] part in visualPolylines) {
+      //         if (rect.Contains(part[0]))
+      //            return true;
+      //         for (int i = 0; i < part.Length - 1; i++) {
+      //            if (rect.Contains(part[i + 1]))
+      //               return true;
+      //            if (IntersectLineAndRectangle.Check(part[i], part[i + 1], rect))
+      //               return true;
+      //         }
+      //      }
+      //   }
+      //   return false;
+      //}
 
       /// <summary>
       /// Indicates whether the specified point is contained within this <see cref="visualPolylines"/>
@@ -278,26 +359,71 @@ namespace GMap.NET.Skia {
       /// <param name="x"></param>
       /// <param name="y"></param>
       /// <returns></returns>
-      internal bool IsInside(int x, int y, float tolerance = 1F) {
+      internal bool IsInside(int x, int y, float radius) {
          if (visualPolylines.Count > 0) {
-            tolerance = Math.Max(1F, tolerance);
-            RectangleF rect = new RectangleF(x - tolerance * Stroke.Width / 2,
-                                             y - tolerance * Stroke.Width / 2,
-                                             tolerance * Stroke.Width / 2,
-                                             tolerance * Stroke.Width / 2);
-            foreach (Point[] part in visualPolylines) {
-               if (rect.Contains(part[0]))
+            PointF circle = new PointF(x, y);
+            foreach (Point[] part in visualPolylines)
+               for (int i = 0; i < part.Length - 1; i++)
+                  if (intersectLineAndCircle(circle, radius, part[i], part[i + 1]))
+                     return true;
+         }
+         return false;
+      }
+
+      static bool intersectLineAndCircle(PointF pc, float radius, PointF pa, PointF pb) {
+         if (pa.X == pb.X) {  // senkrechte Linie
+            if (pc.X - radius <= pa.X && pa.X <= pc.X + radius) {
+               float d = (float)Math.Sqrt(radius * radius - (pa.X - pc.X) * (pa.X - pc.X));
+               float ys = pc.Y + d;
+               if ((pa.Y <= ys && ys <= pb.Y) ||
+                   (pa.Y >= ys && ys >= pb.Y))
                   return true;
-               for (int i = 0; i < part.Length - 1; i++) {
-                  if (rect.Contains(part[i + 1]))
-                     return true;
-                  if (IntersectLineAndRectangle.Check(part[i], part[i + 1], rect))
-                     return true;
-               }
+               ys = pc.Y - d;
+               if ((pb.Y <= ys && ys <= pa.Y) ||
+                   (pb.Y >= ys && ys >= pa.Y))
+                  return true;
+            }
+         } else {
+            // Parameter der Gerade y=mx+n
+            float m = (pb.Y - pa.Y) / (pb.X - pa.X);
+            float n = pa.Y - m * pa.X;
+
+            // Kreisgleichung (x-xc)² + (y-yc)² = r²
+            //    -> 0 = (x-xc)² + (y-yc)² - r²
+            //       0 = (x-xc)² + ((m*x+n)-yc)² - r²
+            //       0 = x² + xc² - 2*x*xc + (m*x+n)² + yc² - 2*(m*x+n)*yc - r²
+            //       0 = x² + xc² - 2*x*xc + m²x² + n² + 2*x*m*n + yc² - 2*m*x*yc - 2*n*yc - r²
+            //       0 = x² + m²x²   - 2*x*xc + 2*x*m*n - 2*m*x*yc    + xc²+ n² + yc² - 2*n*yc - r² 
+            //       0 = (m²+1)x²    + x*2(-xc + m*n - m*yc)          + xc²+ n² + yc² - 2*n*yc - r² 
+            //          a = m²+1
+            //          b = 2(-xc + m*n - m*yc)             = 2(m*n - xc - m*yc)
+            //          c = xc² + yc² + n² - 2*n*yc - r²    = xc² + (yc - n)² - r²
+            // Parameter für quadratische Gleichung y=ax²+bx+c
+            float a = m * m + 1;
+            float b = 2 * (m * n - pc.X - m * pc.Y);
+            float c = pc.X * pc.X + (n - pc.Y) * (n - pc.Y) - radius * radius;
+
+            // x = (-b±sqrt(b²-4ac))/2a
+            // Schnittpunkt/e ex. nur, wenn:
+            float d = b * b - 4 * a * c;
+            if (0 <= d) {
+               // untersuchen, ob Schnittpunkt/e innerhalb der Strecke liegen
+               d = (float)Math.Sqrt(d);
+
+               float s = (-b + d) / (2 * a);
+               if ((pa.X < pb.X && pa.X <= s && s <= pb.X) ||
+                   (pa.X > pb.X && pa.X >= s && s >= pb.X))
+                  return true; ;
+
+               s = (-b - d) / (2 * a);
+               if ((pa.X < pb.X && pa.X <= s && s <= pb.X) ||
+                   (pa.X > pb.X && pa.X >= s && s >= pb.X))
+                  return true;
             }
          }
          return false;
       }
+
 
 #if ORGUPDATEGRAPHICSPATH
       // arbeitet Path für den _gesamten_ Track
@@ -325,8 +451,8 @@ namespace GMap.NET.Skia {
       /// update <see cref="visualPolylines"/>
       /// <para>von <see cref="GMapControl"/> aufgerufen</para>
       /// </summary>
-      /// <param name="offset"></param>
-      internal void UpdateVisualParts(GPoint offset) {
+      /// <param name="isvisible"></param>
+      internal void UpdateVisualParts(bool isvisible) {
          startptvisible = false;
          endptvisible = false;
 
@@ -334,8 +460,17 @@ namespace GMap.NET.Skia {
 
          visualPolylines.Clear();
 
-         if (IsVisible && LocalPolyline.Length > 1) {
-            // akt. Boundingbox
+         if (isvisible &&
+             IsVisible && 
+             LocalPolyline.Length > 1) {
+#if ONEVISUALPART
+            visualParts.Add((0, LocalPolyline.Length));
+            visualPolylines.Add(new Point[LocalPolyline.Length]);
+            for (int i = 0; i < LocalPolyline.Length; i++) {
+               visualPolylines[0][i] = new Point(LocalPolyline[i].X, LocalPolyline[i].Y);
+            }
+#else
+            // akt. Boundingbox der Client-Punkte
             long xmin = long.MaxValue;
             long ymin = long.MaxValue;
             long xmax = long.MinValue;
@@ -346,21 +481,20 @@ namespace GMap.NET.Skia {
                xmax = Math.Max(xmax, item.X);
                ymax = Math.Max(ymax, item.Y);
             }
-            Rectangle rectBB = new Rectangle((int)xmin, (int)ymin, (int)(xmax - xmin), (int)(ymax - ymin));
-            rectBB.Offset((int)offset.X, (int)offset.Y);
+            Rectangle rectBB = new Rectangle((int)xmin,
+                                             (int)ymin,
+                                             (int)(xmax - xmin),
+                                             (int)(ymax - ymin));
 
-            GPoint lefttop = new GPoint(-15, -15);
-            GPoint rightbottom = new GPoint(
-#if !GMAP4SKIA
-                                            Overlay.Control.Width + 15,
-                                            Overlay.Control.Height + 15
-#else
-                                            Overlay.Control.ClientSizeWidth + 15,
-                                            Overlay.Control.ClientSizeHeight + 15
-#endif
-                                 );
+            long clientleft = -15, 
+                 clienttop = -15,
+                 clientright = Overlay.Control.Width + 15, 
+                 clientbottom = Overlay.Control.Height + 15;
 
-            if (rectBB.IntersectsWith(new Rectangle((int)lefttop.X, (int)lefttop.Y, (int)(rightbottom.X - lefttop.X), (int)(rightbottom.Y - lefttop.Y)))) {
+            if (rectBB.IntersectsWith(new Rectangle((int)clientleft,
+                                                    (int)clienttop,
+                                                    (int)(clientright - clientleft),
+                                                    (int)(clientbottom - clienttop)))) {
                List<Point> actpoints = new List<Point>();
                Point p1 = LocalPolyline[0];
                int startidx = 0;
@@ -368,12 +502,12 @@ namespace GMap.NET.Skia {
                for (int i = 1; i < LocalPolyline.Length; i++) {
                   Point p2 = LocalPolyline[i];
 
-                  if (localSegmentIsNecessary(p1.X + offset.X,
-                                              p1.Y + offset.Y,
-                                              p2.X + offset.X,
-                                              p2.Y + offset.Y,
-                                              lefttop,
-                                              rightbottom)) {
+                  if (localSegmentIsNecessary(p1.X,
+                                              p1.Y,
+                                              p2.X,
+                                              p2.Y,
+                                              clientleft, clienttop,
+                                              clientright, clientbottom)) {
                      if (actpoints.Count > 0) {
                         actpoints.Add(p2);
                         count++;
@@ -404,6 +538,7 @@ namespace GMap.NET.Skia {
                }
 
             }
+#endif
          }
       }
 
@@ -424,13 +559,15 @@ namespace GMap.NET.Skia {
       /// <param name="p1y"></param>
       /// <param name="p2x"></param>
       /// <param name="p2y"></param>
-      /// <param name="lefttop"></param>
-      /// <param name="rightbottom"></param>
+      /// <param name="left"></param>
+      /// <param name="top"></param>
+      /// <param name="right"></param>
+      /// <param name="bottom"></param>
       /// <returns></returns>
-      bool localSegmentIsNecessary(long p1x, long p1y, long p2x, long p2y, GPoint lefttop, GPoint rightbottom) {
-         int area1 = area4localpoint(p1x, p1y, lefttop, rightbottom);
+      bool localSegmentIsNecessary(long p1x, long p1y, long p2x, long p2y, long left, long top, long right, long bottom) {
+         int area1 = area4localpoint(p1x, p1y, left, top, right, bottom);
          if (area1 != 4) {  // not in client area
-            int area2 = area4localpoint(p2x, p2y, lefttop, rightbottom);
+            int area2 = area4localpoint(p2x, p2y, left, top, right, bottom);
             if (area2 != 4) {
                switch (area1) {
                   case 0:
@@ -507,28 +644,30 @@ namespace GMap.NET.Skia {
       /// </summary>
       /// <param name="x"></param>
       /// <param name="y"></param>
-      /// <param name="lefttop"></param>
-      /// <param name="rightbottom"></param>
+      /// <param name="left"></param>
+      /// <param name="top"></param>
+      /// <param name="right"></param>
+      /// <param name="bottom"></param>
       /// <returns></returns>
-      int area4localpoint(long x, long y, GPoint lefttop, GPoint rightbottom) {
-         if (x < lefttop.X) {
-            if (y < lefttop.Y)
+      int area4localpoint(long x, long y, long left, long top, long right, long bottom) {
+         if (x < left) {
+            if (y < top)
                return 0;
-            if (y < rightbottom.Y)
+            if (y < bottom)
                return 3;
             else
                return 6;
-         } else if (x < rightbottom.X) {
-            if (y < lefttop.Y)
+         } else if (x < right) {
+            if (y < top)
                return 1;
-            if (y < rightbottom.Y)
+            if (y < bottom)
                return 4;
             else
                return 7;
          } else {
-            if (y < lefttop.Y)
+            if (y < top)
                return 2;
-            if (y < rightbottom.Y)
+            if (y < bottom)
                return 5;
             else
                return 8;

@@ -1,6 +1,5 @@
 ﻿using FSofTUtils;
 using SpecialMapCtrl;
-using SpecialMapCtrl.EditHelper;
 using System;
 using System.Drawing;
 using System.IO;
@@ -20,9 +19,15 @@ namespace GpxViewer {
             if (gpx != null) {
                gpx.MarkerlistlistChanged -= Gpx_MarkerlistlistChanged;
                gpx.TracklistChanged -= Gpx_TracklistChanged;
+               treeView_Tracks.Nodes.Clear();
+               treeView_Marker.Nodes.Clear();
             }
             gpx = value;
             if (gpx != null) {
+               treeView_Tracks.Nodes.Clear();
+               treeView_Marker.Nodes.Clear();
+               Gpx_TracklistChanged(gpx, new GpxAllExt.TracklistChangedEventArgs(GpxAllExt.TracklistChangedEventArgs.Kind.Add, -1, -1));
+               Gpx_MarkerlistlistChanged(gpx, new GpxAllExt.MarkerlistChangedEventArgs(GpxAllExt.MarkerlistChangedEventArgs.Kind.Add, -1, -1));
                gpx.MarkerlistlistChanged += Gpx_MarkerlistlistChanged;
                gpx.TracklistChanged += Gpx_TracklistChanged;
             }
@@ -207,7 +212,7 @@ namespace GpxViewer {
                      for (int i = 0; i < gpx.TrackList.Count; i++) {
                         tv.Nodes.Add(gpx.TrackList[i].VisualName);
                         tv_SetSelectedIndex(tv, i);
-                        tv.SelectedNode.Checked = true;
+                        tv.SelectedNode.Checked = gpx.TrackList[i].IsVisible;
                      }
                   }
                   break;
@@ -249,7 +254,7 @@ namespace GpxViewer {
                      for (int i = 0; i < gpx.MarkerList.Count; i++) {
                         tv.Nodes.Add(gpx.MarkerList[i].Text);
                         tv_SetSelectedIndex(tv, i);
-                        tv.SelectedNode.Checked = true;
+                        tv.SelectedNode.Checked = gpx.MarkerList[i].IsVisible;
                      }
                   }
                   break;
@@ -510,7 +515,7 @@ namespace GpxViewer {
          } else if (tv.Equals(treeView_Marker)) {
 
             if (idx4MarkerIsValid(idx))
-               ShowMarkerEvent(this, new MarkerEventArgs(gpx.MarkerList[idx], e.Node.Checked));
+               ShowMarkerEvent?.Invoke(this, new MarkerEventArgs(gpx.MarkerList[idx], e.Node.Checked));
 
          }
       }

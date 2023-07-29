@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using GMap.NET.MapProviders;
 using GMap.NET.CoreExt.Projections;
+using System.IO;
 
 namespace GMap.NET.CoreExt.MapProviders {
 
@@ -269,6 +270,9 @@ namespace GMap.NET.CoreExt.MapProviders {
       #endregion
 
       public class WMSMapDefinition : MapProviderDefinition {
+
+         static UniqueIDDelta uniqueIDDelta = null;
+
          /// <summary>
          /// WMS-version
          /// </summary>
@@ -311,7 +315,6 @@ namespace GMap.NET.CoreExt.MapProviders {
          /// 
          /// </summary>
          /// <param name="mapname">Name der Karte</param>
-         /// <param name="dbiddelta">Delta zur Standard-DbId des Providers</param>
          /// <param name="zoom4display">zusätzlicher Vergrößerungsfaktor falls das Display eine zu hohe DPI hat (null oder 1.0 ...)</param>
          /// <param name="minzoom">kleinster zulässiger Zoom</param>
          /// <param name="maxzoom">größter zulässiger Zoom</param>
@@ -322,7 +325,6 @@ namespace GMap.NET.CoreExt.MapProviders {
          /// <param name="pictureformat">Bildformat</param>
          /// <param name="extendedparameters"></param>
          public WMSMapDefinition(string mapname,
-                                 int dbiddelta,
                                  double zoom4display,
                                  int minzoom,
                                  int maxzoom,
@@ -332,14 +334,19 @@ namespace GMap.NET.CoreExt.MapProviders {
                                  string wmsversion = "1.1.1",
                                  string pictureformat = "png",
                                  string extendedparameters = "") :
-            base(mapname, WMSProvider.Instance.Name, zoom4display, minzoom, maxzoom) {
+            base(mapname, Instance.Name, zoom4display, minzoom, maxzoom) {
             Version = wmsversion;
             Layer = layerlist;
             URL = url;
             PictureFormat = pictureformat;
             SRS = srs;
             ExtendedParameters = extendedparameters;
-            DbIdDelta = dbiddelta;
+
+            string hash4delta = UniqueIDDelta.GetHashString(mapname + Version + Layer + URL + PictureFormat + SRS + ExtendedParameters, 
+                                                            new byte[0]);
+            if (uniqueIDDelta == null)
+               uniqueIDDelta = new UniqueIDDelta(Path.Combine(PublicCore.MapCacheLocation, "iddelta.wms"));
+            DbIdDelta = uniqueIDDelta.GetDelta(hash4delta);
          }
 
          public WMSMapDefinition(WMSMapDefinition def) :
@@ -350,6 +357,7 @@ namespace GMap.NET.CoreExt.MapProviders {
             PictureFormat = def.PictureFormat;
             SRS = def.SRS;
             ExtendedParameters = def.ExtendedParameters;
+            DbIdDelta = def.DbIdDelta;
          }
 
          public override string ToString() {

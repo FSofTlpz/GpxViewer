@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GpxViewer {
@@ -12,31 +13,88 @@ namespace GpxViewer {
 
       class PictureData {
 
-         const int SUBIDX_PICTURE = 0;
-         const int SUBIDX_FILENAME = 1;
-         const int SUBIDX_FILEDATE = 2;
-         const int SUBIDX_GEODATE = 3;
-         const int SUBIDX_GEOCOORD = 4;
-         const int SUBIDX_GEODIRECT = 5;
+         /// <summary>
+         /// Spaltenindex im <see cref="ListViewItem"/>
+         /// </summary>
+         public const int SUBIDX_PICTURE = 0;
+         public const int SUBIDX_FILENAME = 1;
+         public const int SUBIDX_FILEDATE = 2;
+         public const int SUBIDX_ORIGINALDATE = 3;
+         public const int SUBIDX_GEOCOORD = 4;
+         public const int SUBIDX_GEODIRECT = 5;
+         public const int SUBIDX_USERCOMMENT = 6;
+         public const int SUBIDX_LAST = SUBIDX_USERCOMMENT;
 
+         /// <summary>
+         /// Dateiname
+         /// </summary>
          public string FileName { get; protected set; }
+
+         /// <summary>
+         /// (kleines) Bild für die Anzeige im <see cref="ListViewItem"/>
+         /// </summary>
          public Image Thumbnail { get; protected set; }
+
+         /// <summary>
+         /// Dateidatum
+         /// </summary>
          public DateTime DateTimeFile { get; protected set; }
 
+         /// <summary>
+         /// Bilddatum aus den Baseline-Tags (i.A. identisch zu <see cref="OriginalDateTime"/>)
+         /// </summary>
          public DateTime DateTime { get; protected set; }
-         public DateTime DateTimeOriginal { get; protected set; }
+
+         /// <summary>
+         /// Originaldatum des Bildes (EXIF) (The date and time when the original image data was generated. For a digital still camera, this is the date and time the picture was taken or recorded.)
+         /// </summary>
+         public DateTime OriginalDateTime { get; protected set; }
+
+         /// <summary>
+         /// geografische Breite des Bilds (EXIF)
+         /// </summary>
          public double Latitude { get; protected set; }
+
+         /// <summary>
+         /// geografische Länge des Bilds (EXIF)
+         /// </summary>
          public double Longitude { get; protected set; }
+
+         /// <summary>
+         /// Richtung des Bildes (0..360°) (EXIF)
+         /// </summary>
          public double Direction { get; protected set; }
 
-         public bool Changed { get; protected set; }
+         /// <summary>
+         /// Bildkommentar (EXIF)
+         /// </summary>
+         public string UserComment { get; protected set; }
 
-         public bool IsInit { get; protected set; }
+         /// <summary>
+         /// Daten wurden geändert
+         /// </summary>
+         public bool Changed { get; protected set; } = false;
 
-         public bool HasGeoData {
-            get => !(double.IsNaN(Longitude) || double.IsNaN(Latitude));
-         }
+         /// <summary>
+         /// Wurden die EXIF-Daten schon eingelesen?
+         /// </summary>
+         public bool IsExifRead { get; protected set; } = false;
 
+         /// <summary>
+         /// Wurde der <see cref="Thumbnail"/> schon erzeugt?
+         /// </summary>
+         public bool ExistThumbnail =>
+            Thumbnail != null;
+
+         /// <summary>
+         /// Sind geografische Länge und Breite vorhanden?
+         /// </summary>
+         public bool HasGeoData =>
+            !(double.IsNaN(Longitude) || double.IsNaN(Latitude));
+
+         /// <summary>
+         /// zugehöriges <see cref="ListViewItem"/>
+         /// </summary>
          public ListViewItem ListViewItem;
 
          /// <summary>
@@ -45,13 +103,15 @@ namespace GpxViewer {
          string orgFilename = "";
 
 
+         /// <summary>
+         /// ermittelt alle notwendigen Daten, liest aber noch nicht das Bild (erzeugt also noch kein <see cref="Thumbnail"/>)
+         /// </summary>
+         /// <param name="filename"></param>
          public PictureData(string filename) {
-            IsInit = false;
-            Changed = false;
             orgFilename = FileName = filename;
 
             DateTimeFile = File.GetLastWriteTime(orgFilename);
-            getActualGeoData();
+            getActualExifData();
 
             string text = Path.GetFileName(orgFilename);
             ListViewItem = new ListViewItem() {
@@ -63,21 +123,32 @@ namespace GpxViewer {
             setSubItemsText();
          }
 
+         /// <summary>
+         /// ermittelt alle notwendigen Daten und erzeugt auch den <see cref="Thumbnail"/>
+         /// </summary>
+         /// <param name="filename"></param>
+         /// <param name="thumbnailsize"></param>
          public PictureData(string filename, Size thumbnailsize) : this(filename) {
-            InitData(thumbnailsize);
+            CreateThumbnail(thumbnailsize);
          }
 
-         public void InitData(Size thumbnailsize) {
-            //DateTimeFile = File.GetLastWriteTime(FileName);
-            //getActualGeoData();
-            using (Image img = ReadImage(orgFilename)) {
-               if (img != null) {
-                  Thumbnail = createPicture(img, thumbnailsize.Width, thumbnailsize.Height);
-                  IsInit = true;
+         /// <summary>
+         /// erzeugt den <see cref="Thumbnail"/> aus den Dateidaten
+         /// </summary>
+         /// <param name="thumbnailsize"></param>
+         public void CreateThumbnail(Size thumbnailsize) {
+            if (Thumbnail == null)
+               using (Image img = ReadImage(orgFilename)) {
+                  if (img != null)
+                     Thumbnail = createThumbnail(img, thumbnailsize.Width, thumbnailsize.Height);
                }
-            }
          }
 
+         /// <summary>
+         /// geografische Länge und Breite werden geändert
+         /// </summary>
+         /// <param name="longitude"></param>
+         /// <param name="latitude"></param>
          public void ChangeLonLat(double longitude, double latitude) {
             Changed = true;
             Longitude = longitude;
@@ -85,20 +156,42 @@ namespace GpxViewer {
             setSubItemsText();
          }
 
+         /// <summary>
+         /// der Dateiname wir geändert
+         /// </summary>
+         /// <param name="poorfilename"></param>
          public void ChangeFilename(string poorfilename) {
             Changed = true;
             FileName = Path.Combine(Path.GetDirectoryName(orgFilename), poorfilename);
             setSubItemsText();
          }
 
+         /// <summary>
+         /// der Dateikommentar wird geändert
+         /// </summary>
+         /// <param name="comment"></param>
+         public void ChangeUserComment(string comment) {
+            Changed = true;
+            UserComment = comment;
+            setSubItemsText();
+         }
+
+         /// <summary>
+         /// wenn Daten geändert wurden (<see cref="Changed"/>==true) wird die Datei neu gespeichert
+         /// </summary>
+         /// <param name="preserveDateTimeFile"></param>
+         /// <returns></returns>
          public bool Save(bool preserveDateTimeFile = false) {
             if (Changed) {
                DateTime orgDateTime = File.GetLastWriteTime(orgFilename);
                ExifGeo exifGeo = new ExifGeo(orgFilename);
 
-               if (exifGeo.SetLatLon(Latitude, Longitude, true)) {
+               bool set1 = exifGeo.SetLatLon(Latitude, Longitude, true);
+               bool set2 = exifGeo.SetUserComment(UserComment);
+               if (set1 ||
+                   set2) {
                   exifGeo.SaveImage(FileName);
-                  getActualGeoData();
+                  getActualExifData();
                   if (preserveDateTimeFile)
                      File.SetLastWriteTime(FileName, orgDateTime);
                   else
@@ -111,17 +204,50 @@ namespace GpxViewer {
             return false;
          }
 
-         public Image ReadImage() {
-            return ReadImage(orgFilename);
+         /// <summary>
+         /// das Bild wird aus der Datei eingelesen
+         /// </summary>
+         /// <returns></returns>
+         public Image ReadImage() =>
+            ReadImage(orgFilename);
+
+         /// <summary>
+         /// das Bild wird aus dieser Datei eingelesen
+         /// </summary>
+         /// <param name="filename"></param>
+         /// <returns></returns>
+         public static Image ReadImage(string filename) {
+            byte[] buffer = null;
+            using (Stream stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read)) { // nur zum lesen öffnen mit read-sharing für andere
+               buffer = new byte[stream.Length];
+               stream.Read(buffer, 0, buffer.Length);
+               stream.Close();         // kein Zugriff mehr auf die Datei
+            }
+            if (buffer != null) {
+               using (MemoryStream memstream = new MemoryStream(buffer)) {
+                  return Image.FromStream(memstream);
+               }
+            }
+            return null;
          }
 
-         void getActualGeoData() {
+         /// <summary>
+         /// alle EXIF-Daten werden eingelesen
+         /// </summary>
+         void getActualExifData() {
             ExifGeo exifGeo = new ExifGeo(orgFilename);
+
+            OriginalDateTime = exifGeo.GetDateTimeOriginal();
             DateTime = exifGeo.GetDateTime();
-            DateTimeOriginal = exifGeo.GetDateTimeOriginal();
+            if (DateTime == DateTime.MinValue &&
+               OriginalDateTime != DateTime.MinValue)
+               DateTime = OriginalDateTime;
+
             Direction = exifGeo.GetDirection();
             Latitude = exifGeo.GetLat();
             Longitude = exifGeo.GetLon();
+            UserComment = exifGeo.GetUserComment();
+            IsExifRead = true;
          }
 
          /// <summary>
@@ -131,17 +257,25 @@ namespace GpxViewer {
             const string textprefix = "  ";
             const string textpostfix = "   ";    // need for AutoResizeColumns()
 
-            while (ListViewItem.SubItems.Count < 6)
+            while (ListViewItem.SubItems.Count < SUBIDX_LAST + 1)
                ListViewItem.SubItems.Add("");
             ListViewItem.SubItems[SUBIDX_PICTURE].Text = "";
             ListViewItem.SubItems[SUBIDX_FILENAME].Text = textprefix + Path.GetFileName(FileName) + textpostfix;
             ListViewItem.SubItems[SUBIDX_FILEDATE].Text = textprefix + DateTimeFile.ToString("G") + textpostfix;
-            ListViewItem.SubItems[SUBIDX_GEODATE].Text = textprefix + DateTimeOriginal.ToString("G") + textpostfix;
+            ListViewItem.SubItems[SUBIDX_ORIGINALDATE].Text = textprefix + OriginalDateTime.ToString("G") + textpostfix;
             ListViewItem.SubItems[SUBIDX_GEOCOORD].Text = double.IsNaN(Longitude) || double.IsNaN(Latitude) ? textprefix : string.Format("{0:N6}° {1:N6}°", Longitude, Latitude) + textpostfix;
             ListViewItem.SubItems[SUBIDX_GEODIRECT].Text = double.IsNaN(Direction) ? "" : textprefix + string.Format("{0:N0}°", Direction) + textpostfix;
+            ListViewItem.SubItems[SUBIDX_USERCOMMENT].Text = textprefix + UserComment + textpostfix;
          }
 
-         static Bitmap createPicture(Image img, int width, int height) {
+         /// <summary>
+         /// erzeugt aus dem Bild den <see cref="Thumbnail"/>
+         /// </summary>
+         /// <param name="img"></param>
+         /// <param name="width"></param>
+         /// <param name="height"></param>
+         /// <returns></returns>
+         static Bitmap createThumbnail(Image img, int width, int height) {
             Bitmap bm = new Bitmap(width, height);
             using (Graphics g = Graphics.FromImage(bm)) {
                g.Clear(Color.Transparent);
@@ -161,21 +295,6 @@ namespace GpxViewer {
             return bm;
          }
 
-         public static Image ReadImage(string filename) {
-            byte[] buffer = null;
-            using (Stream stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read)) { // nur zum lesen öffnen mit read-sharing für andere
-               buffer = new byte[stream.Length];
-               stream.Read(buffer, 0, buffer.Length);
-               stream.Close();         // kein Zugriff mehr auf die Datei
-            }
-            if (buffer != null) {
-               using (MemoryStream memstream = new MemoryStream(buffer)) {
-                  return Image.FromStream(memstream);
-               }
-            }
-            return null;
-         }
-
          public override string ToString() {
             return string.Format("{0}, {1}, lat={2}°, lon={3}°, direction={4}°",
                                  FileName,
@@ -186,20 +305,50 @@ namespace GpxViewer {
          }
       }
 
+      /// <summary>
+      /// Filter für die Anzeige der Bilder
+      /// </summary>
       enum PictureFilter {
          None,
+         /// <summary>
+         /// nur wenn Geodaten vorhanden sind
+         /// </summary>
          WithGeoData,
+         /// <summary>
+         /// nur wenn keine Geodaten vorhanden sind
+         /// </summary>
          WithoutGeoData,
       }
 
+      /// <summary>
+      /// Sortierung der Bilder
+      /// </summary>
       enum PictureSort {
          None,
+         /// <summary>
+         /// nach Dateiname aufsteigen
+         /// </summary>
          FilenameAscending,
+         /// <summary>
+         /// nach Dateiname absteigen
+         /// </summary>
          FilenameDescending,
+         /// <summary>
+         /// nach Dateidatum aufsteigen
+         /// </summary>
          FiledateAscending,
+         /// <summary>
+         /// nach Dateidatum absteigen
+         /// </summary>
          FiledateDescending,
-         GeodateAscending,
-         GeodateDescending,
+         /// <summary>
+         /// nach Aufnahmedatum aufsteigen
+         /// </summary>
+         OriginaldateAscending,
+         /// <summary>
+         /// nach Aufnahmedatum aufsteigen
+         /// </summary>
+         OriginaldateDescending,
       }
 
       #region events
@@ -243,11 +392,19 @@ namespace GpxViewer {
 
          public readonly double Longitude;
 
+         public readonly DateTime Timestamp;
+
 
          public PictureDataEventArgs(string filename, double lon, double lat) {
             Filename = filename;
             Longitude = lon;
             Latitude = lat;
+         }
+
+         public PictureDataEventArgs(string filename, DateTime timestamp) {
+            Filename = filename;
+            Timestamp = timestamp;
+            Longitude = Latitude = double.MinValue;
          }
 
          public override string ToString() {
@@ -463,11 +620,11 @@ namespace GpxViewer {
                      listView1.ListViewItemSorter = new ListViewFiledateDescendComparer(ThumbnailSize);
                      break;
 
-                  case PictureSort.GeodateAscending:
+                  case PictureSort.OriginaldateAscending:
                      listView1.ListViewItemSorter = new ListViewGeodateAscendComparer(ThumbnailSize);
                      break;
 
-                  case PictureSort.GeodateDescending:
+                  case PictureSort.OriginaldateDescending:
                      listView1.ListViewItemSorter = new ListViewGeodateDescendComparer(ThumbnailSize);
                      break;
                }
@@ -498,58 +655,277 @@ namespace GpxViewer {
                   ToolStripMenuItem_FiledateDesc.Checked = true;
                   break;
 
-               case PictureSort.GeodateAscending:
+               case PictureSort.OriginaldateAscending:
                   ToolStripMenuItem_GeodateAsc.Checked = true;
                   break;
 
-               case PictureSort.GeodateDescending:
+               case PictureSort.OriginaldateDescending:
                   ToolStripMenuItem_GeodateDesc.Checked = true;
                   break;
             }
          }
       }
 
-      string actualPicturePath = "";
+      public string ActualPicturePath { get; set; } = "";
 
+      const int ITEMMARGIN = 2;
+      const int ITEMMARGINTHUMBNAIL = 3;
+
+      List<string> proposalComment = new List<string>();
+
+      List<string> proposalFilename = new List<string>();
+
+
+      /*
+       * Bei einem Verzeichniswechsel werden die EXIF-Daten aller Bilder eingelesen. 
+       *    Das könnte man vermeiden und diese Daten immer erst bei Bedarf einlesen. Bei der Bildsortierung und -filterung müssten dann aber z.T. alle Daten auf
+       *    einmal ermittelt werden.
+       * Das jeweilige Thumbnail wird erst erzeugt, wenn es das Listview benötigt.
+       * Das Bild für die Picturebox wird immer neu eingelesen, wenn es benötigt wird.
+       * 
+       */
 
 
       public PictureManager() {
          InitializeComponent();
+
+         ActualPicturePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
       }
 
       private void PictureManager_Load(object sender, EventArgs e) {
-         listView1.OwnerDraw = true;
          listView1.DrawItem += ListView1_DrawItem;
          listView1.DrawSubItem += ListView1_DrawSubItem;
          listView1.DrawColumnHeader += ListView1_DrawColumnHeader;
-         listView1.View = View.Tile;
-         listView1.TileSize = new Size(TextRenderer.MeasureText("=-999,999999° -99,999999° [999°]=", listView1.Font).Width,   // längster möglicherText
-                                       2 +
-                                       2 * listView1.Font.Height +
-                                       2 +
-                                       ThumbnailSize.Height + 6 +
-                                       2 +
-                                       2 * listView1.Font.Height +
-                                       2);
+         // ACHTUNG
+         // Es scheint ein interner Fehler zu ex.. Wenn im Designer die View-Art auf Detail gesetzt ist, wird bei der Zeichnenfunktion eine falscher Bounds-Wert geliefert,
+         // obwohl TileSize korrekt ist. Deshalb schon im Designer auf "View.Tile" setzen!!!
+         listView1.TileSize = computeTileSize();
+         listView1.OwnerDraw = true;
+         if (listView1.View != View.Tile)
+            swapView(listView1);
+         listView1.MultiSelect = false;
+
+
+         /*
+                 this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+                     this.columnPicture,
+                     this.columnFile,
+                     this.columnFileDate,
+                     this.columnPictureDate,
+                     this.columnCoordinates,
+                     this.columnDirection,
+                     this.columnComment});
+          */
+
+         listView1.Columns[PictureData.SUBIDX_ORIGINALDATE].DisplayIndex = 1;
+         listView1.Columns[PictureData.SUBIDX_USERCOMMENT].DisplayIndex = 2;
+
 
          pictureFilter = PictureFilter.None;
          pictureSort = PictureSort.FilenameAscending;
 
          toolStripButton_SaveGpx.Enabled = false;
          toolStripButton_SaveAll.Enabled = false;
-
-         actualPicturePath = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-
-         //newLoad(@"..\..\..\..\Gpx\2020_02 Stralsund", false);
       }
 
-      void newLoad(string path, bool recursesubdirectories) {
-         actualPicturePath = Path.GetFullPath(path);
-         if (!string.IsNullOrEmpty(actualPicturePath)) {
-            fillDataCache(actualPicturePath, recursesubdirectories);
+      #region public-functions
+
+      /// <summary>
+      /// neuen Dateipfad setzen
+      /// </summary>
+      /// <param name="path"></param>
+      /// <param name="recursesubdirectories"></param>
+      public async void SetPicturePath(string path, bool recursesubdirectories) {
+         string newpath = Path.GetFullPath(path);
+         if (!string.IsNullOrEmpty(newpath) &&
+             Directory.Exists(newpath)) {
+            ActualPicturePath = newpath;
+            listView1.Items.Clear();   // als Zeichen, dass etwas passiert
+            Cursor orgcursor = Cursor;
+            Cursor = Cursors.WaitCursor;
+
+            //fillDataCache(ActualPicturePath, recursesubdirectories);
+            await fillDataCacheAsync(ActualPicturePath, recursesubdirectories);
             fillListView(listView1, pictureFilter, pictureSort);
-            toolStripButton_SaveAll.Enabled = false;
+
+            setStatusSaveButtons();
+
+            Cursor = orgcursor;
+
+            if (Parent is Form) {
+               Parent.Text = "Bilder: " + ActualPicturePath;
+            }
          }
+      }
+
+      /// <summary>
+      /// Kommentar eines Bildes ändern
+      /// </summary>
+      /// <param name="idx">Index des Items oder das selektierte Item</param>
+      public void EditPictureComment(int idx = -1) =>
+         editPictureText(idx, true);
+
+      /// <summary>
+      /// Dateiname eines Bildes ändern
+      /// </summary>
+      /// <param name="idx">Index des Items oder das selektierte Item</param>
+      public void EditPictureFilename(int idx = -1) {
+         editPictureText(idx, false);
+      }
+
+      /// <summary>
+      /// Bild speichern
+      /// </summary>
+      /// <param name="all">alle ungespeicherten Items oder nur 1</param>
+      /// <param name="idx">Index des Items oder das selektierte Item</param>
+      public void SavePicture(bool all, int idx = -1) {
+         if (all)
+            toolStripButton_SaveAll_Click(null, null);
+         else {
+            PictureData pd = getPictureData(idx);
+            if (pd != null &&
+                pd.Changed) {
+               try {
+                  pd.Save();
+               } catch (Exception ex) {
+                  MessageBox.Show("Fehler beim Speichern: " + ex.Message, "FEHLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
+               }
+            }
+            showPictureCount();
+            setStatusSaveButtons();
+         }
+      }
+
+      /// <summary>
+      /// Bildposition auf Karte anzeigen
+      /// </summary>
+      /// <param name="idx">Index des Items oder das selektierte Item</param>
+      public void GoToPicturePosition(int idx = -1) {
+         PictureData pd = getPictureData(idx);
+         if (pd != null &&
+             !double.IsNaN(pd.Longitude) &&
+             !double.IsNaN(pd.Latitude))
+            OnShowExtern?.Invoke(this, new PictureDataEventArgs(pd.FileName, pd.Longitude, pd.Latitude));
+      }
+
+      /// <summary>
+      /// Bildposition auf Karte setzen
+      /// </summary>
+      /// <param name="idx">Index des Items oder das selektierte Item</param>
+      public void SetPicturePosition(int idx = -1) {
+         PictureData pd = getPictureData(idx);
+         if (pd != null)
+            OnNeedNewData?.Invoke(this, new PictureDataEventArgs(pd.FileName, pd.Longitude, pd.Latitude));
+      }
+
+      public void SetPicturePosition2(int idx = -1) {
+         PictureData pd = getPictureData(idx);
+         if (pd != null)
+            OnNeedNewData?.Invoke(this, new PictureDataEventArgs(pd.FileName, pd.DateTime));
+      }
+
+      public void SetPositionExtern(string filename, double longitude, double latitude) {
+         if (!string.IsNullOrEmpty(filename) &&
+             longitude != double.MinValue &&
+             latitude != double.MinValue) {
+            ListView lv = listView1;
+            PictureData pd = null;
+            // Item suchen
+            for (int i = 0; i < listView1.Items.Count; i++) {
+               if (lv.Items[i] != null && lv.Items[i].Tag != null) {
+                  if ((lv.Items[i].Tag as PictureData).FileName == filename) {
+                     pd = lv.Items[i].Tag as PictureData;
+                     break;
+                  }
+               }
+            }
+
+            if (pd != null) {
+               pd.ChangeLonLat(longitude, latitude);
+               lv.Refresh();
+            }
+            showPictureCount();
+            setStatusSaveButtons();
+            OnShowExtern?.Invoke(this, new PictureDataEventArgs(filename, longitude, latitude));
+         }
+      }
+
+      public void OpenPath() {
+         toolStripButton_OpenPath_Click(null, null);
+      }
+
+      public void SwapView() {
+         toolStripButton_SwapView_Click(null, null);
+      }
+
+      public void Reload() {
+         toolStripButton_Reload_Click(null, null);
+      }
+
+      #endregion
+
+      /// <summary>
+      /// Text für Kommentar oder Dateiname ändern
+      /// </summary>
+      /// <param name="idx"></param>
+      /// <param name="comment"></param>
+      void editPictureText(int idx, bool comment) {
+         PictureData pd = getPictureData(idx);
+         if (pd != null) {
+            Point pt = listView1.PointToScreen(pd.ListViewItem.Bounds.Location);
+            if (pd.ListViewItem.ListView.View == View.Tile) {
+               pt.Offset(5, 5);
+            } else if (pd.ListViewItem.ListView.View == View.Details) {
+               pt = listView1.PointToScreen(pd.ListViewItem.SubItems[comment ?
+                                                                        PictureData.SUBIDX_USERCOMMENT :
+                                                                        PictureData.SUBIDX_FILENAME].Bounds.Location);
+            }
+
+            FormEditPictureFilename form = new FormEditPictureFilename() {
+               Location = pt,
+               EditText = comment ?
+                              pd.UserComment :
+                              Path.GetFileName(pd.FileName),
+               ProposalText = comment ?
+                                 proposalComment :
+                                 proposalFilename,
+            };
+            string oldtext = form.EditText;
+            if (form.ShowDialog() == DialogResult.OK &&
+                oldtext != form.EditText) {
+               if (comment) {
+                  pd.ChangeUserComment(form.EditText);
+                  if (form.EditText != "") {
+                     proposalComment.Remove(form.EditText);
+                     proposalComment.Insert(0, form.EditText);
+                  }
+               } else {
+                  if (filenameIsValid(form.EditText)) {
+                     pd.ChangeFilename(form.EditText);
+                     if (form.EditText != "") {
+                        proposalFilename.Remove(form.EditText);
+                        proposalFilename.Insert(0, form.EditText);
+                     }
+                  } else
+                     MessageBox.Show("Der Dateiname '" + form.EditText + "' ist nicht gültig.", "Achtung", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               }
+               if (pd.Changed) {
+                  showPictureCount();
+                  setStatusSaveButtons();
+               }
+            }
+         }
+      }
+
+      void setStatusSaveButtons() {
+         toolStripButton_SaveGpx.Enabled = getSelectedPictureDataArray(listView1).Length > 0; // ShownPictures > 0
+         toolStripButton_SaveAll.Enabled = UnsavedPictures > 0;
+      }
+
+      async Task fillDataCacheAsync(string path, bool recursesubdirectories) {
+         await Task.Run(() => {
+            fillDataCache(path, recursesubdirectories);
+         });
       }
 
       /// <summary>
@@ -558,15 +934,14 @@ namespace GpxViewer {
       /// <param name="path"></param>
       /// <param name="recursesubdirectories"></param>
       void fillDataCache(string path, bool recursesubdirectories) {
-         Cursor cursor = Cursor;
-         Cursor = Cursors.WaitCursor;
-
          List<string> pictfiles = new List<string>();
 
-         pictfiles.AddRange(Directory.GetFiles(path, "*?.png", recursesubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
-         pictfiles.AddRange(Directory.GetFiles(path, "*?.jpg", recursesubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
-         pictfiles.AddRange(Directory.GetFiles(path, "*?.jpeg", recursesubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
-         pictfiles.Sort((string name1, string name2) => { return string.Compare(name1, name2, true); });
+         if (Directory.Exists(path)) {
+            pictfiles.AddRange(Directory.GetFiles(path, "*?.png", recursesubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
+            pictfiles.AddRange(Directory.GetFiles(path, "*?.jpg", recursesubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
+            pictfiles.AddRange(Directory.GetFiles(path, "*?.jpeg", recursesubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
+            pictfiles.Sort((string name1, string name2) => { return string.Compare(name1, name2, true); });
+         }
          // "*.jpg" liefert auch "*.jpg_orig", deshalb:
          for (int i = pictfiles.Count - 1; i >= 0; i--) {
             string ext = Path.GetExtension(pictfiles[i]).ToLower();
@@ -576,7 +951,6 @@ namespace GpxViewer {
                pictfiles.RemoveAt(i);
          }
          fillDataCache(pictfiles);
-         Cursor = cursor;
       }
 
       /// <summary>
@@ -584,16 +958,11 @@ namespace GpxViewer {
       /// </summary>
       /// <param name="files"></param>
       void fillDataCache(IList<string> files) {
-         Cursor orgCursor = Cursor;
-         Cursor = Cursors.WaitCursor;
-
          dataCacheAll.Clear();
          foreach (string file in files) {
             PictureData pd = new PictureData(file);
             dataCacheAll.Add(pd);
          }
-
-         Cursor = orgCursor;
       }
 
       /// <summary>
@@ -637,64 +1006,69 @@ namespace GpxViewer {
          if (lv.Items.Count > 0)
             lv.Items[0].Selected = true;
 
-         toolStripStatusLabel_Path.Text = actualPicturePath;
+         toolStripStatusLabel_Path.Text = ActualPicturePath;
          showPictureCount();
       }
 
       #region ownerdraw listview
-
-      private void ListView1_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e) {
-         using (LinearGradientBrush brush = new LinearGradientBrush(e.Bounds, Color.LightGray, Color.DarkGray, LinearGradientMode.Vertical)) {
-            Rectangle r = e.Bounds;
-            r.Width -= 2;
-            r.Height -= 2;
-            e.Graphics.FillRectangle(brush, r);
-         }
-         e.DrawText(TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-      }
 
       private void ListView1_DrawItem(object sender, DrawListViewItemEventArgs e) {
          ListView lv = sender as ListView;
          PictureData pd = e.Item.Tag != null ?
                               e.Item.Tag as PictureData :
                               null;
-         if (pd != null &&
-             !pd.IsInit) {
-            try {
-               pd.InitData(ThumbnailSize);
-               pd.ListViewItem.ToolTipText = Path.GetFileName(pd.FileName);
-            } catch (Exception ex) {
-               MessageBox.Show("Fehler beim Lesen der Bilddatei '" + pd.FileName + "': " + ex.Message, "FEHLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+         if (pd != null) {
+            pd.ListViewItem.ToolTipText = Path.GetFileName(pd.FileName);
+            if (!pd.ExistThumbnail)
+               try {
+                  pd.CreateThumbnail(ThumbnailSize);
+               } catch (Exception ex) {
+                  MessageBox.Show("Fehler beim Lesen der Bilddatei '" + pd.FileName + "': " + ex.Message, "FEHLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
+               }
          }
 
          if (lv.View == View.Tile) {
-            // background
-            if (e.Item.Selected) {
-               using (SolidBrush brush = new SolidBrush(System.Drawing.SystemColors.Highlight))
-                  e.Graphics.FillRectangle(brush, e.Bounds);
-               if (e.Item.Focused)
-                  e.DrawFocusRectangle();
-            } else {
-               if (pd == null || !pd.Changed)
-                  using (LinearGradientBrush brush = new LinearGradientBrush(e.Bounds, Color.LightGray, Color.DarkGray, LinearGradientMode.Vertical)) {
-                     e.Graphics.FillRectangle(brush, e.Bounds);
-                  }
-               else
-                  using (LinearGradientBrush brush = new LinearGradientBrush(e.Bounds, Color.LightSalmon, Color.Red, LinearGradientMode.Vertical)) {
-                     e.Graphics.FillRectangle(brush, e.Bounds);
-                  }
-            }
+            drawTileBackground(e.Graphics, pd, e.Bounds, e.Item.Selected);
 
-            // content
+            //if (e.Item.Selected &&
+            //    e.Item.Focused)
+            //   e.DrawFocusRectangle();           // unnötig wegen Backgroundfarbe
+
             drawTileContent(e.Graphics,
                             pd,
                             e.Bounds,
-                            e.Item.Font);
-
+                            e.Item.ListView.Font);
          } else {
+
+            // e.Item.Bounds.Width == e.Item.SubItems[0].Bounds.Width
+            int w = e.Item.SubItems[0].Bounds.Width;
+            for (int i = 1; i < e.Item.SubItems.Count; i++)
+               w -= e.Item.SubItems[i].Bounds.Width;
+
+            Rectangle rectSubItem = new Rectangle(e.Item.Position.X - (lv.Margin.Left + 1),
+                                                  e.Item.Bounds.Y,
+                                                  w,
+                                                  e.Item.Bounds.Height);
+
+            drawDetailBackground(e.Graphics, e.Item, rectSubItem);
+            drawDetailColPicture(e.Graphics, e.Item, rectSubItem);
+
             //if (e.Item.Focused)
             //   e.DrawFocusRectangle();
+         }
+      }
+
+      void drawTileBackground(Graphics g, PictureData pd, Rectangle bounds, bool selected) {
+         if (selected) {
+            using (SolidBrush brush = new SolidBrush(SystemColors.Highlight))
+               g.FillRectangle(brush, bounds);
+         } else {
+            if (pd == null || !pd.Changed)
+               using (LinearGradientBrush brush = new LinearGradientBrush(bounds, Color.LightGray, Color.DarkGray, LinearGradientMode.Vertical))
+                  g.FillRectangle(brush, bounds);
+            else
+               using (LinearGradientBrush brush = new LinearGradientBrush(bounds, Color.LightSalmon, Color.Red, LinearGradientMode.Vertical))
+                  g.FillRectangle(brush, bounds);
          }
       }
 
@@ -704,7 +1078,7 @@ namespace GpxViewer {
       /// <param name="g"></param>
       /// <param name="pd"></param>
       /// <param name="bounds"></param>
-      /// <param name="font"></param>
+      /// <param name="font">i.A. Font des <see cref="ListView"/></param>
       void drawTileContent(Graphics g, PictureData pd, Rectangle bounds, Font font) {
          if (pd != null) {
             int y = bounds.Location.Y;
@@ -718,7 +1092,7 @@ namespace GpxViewer {
 
             g.Clip = new Region(bounds);
 
-            y += 2;
+            y += ITEMMARGIN;
 
             using (Font font1 = new Font(font, FontStyle.Bold)) {
                g.DrawString(Path.GetFileName(pd.FileName),
@@ -732,8 +1106,8 @@ namespace GpxViewer {
             g.DrawString(pd.DateTimeFile.ToString("G"), font, Brushes.Blue, xCenter, y, sfCenter);
             y += font.Height;
 
-            if (pd.Thumbnail != null) {
-               y += 3;
+            if (pd.Thumbnail != null) {      // Bild ausgeben
+               y += ITEMMARGINTHUMBNAIL;
 
                int left = xCenter - pd.Thumbnail.Width / 2;
                int top = y;
@@ -744,29 +1118,29 @@ namespace GpxViewer {
                Brush ligthedge = SystemBrushes.ControlLightLight; // Brushes.LightGray;
                Brush darkedge = SystemBrushes.ControlDark;        // Brushes.DarkGray;
 
-               g.FillRectangle(darkedge, left - 3, top - 3, width + 6, height + 6);
-               g.FillRectangle(ligthedge, left, top, width + 3, height + 3);
+               g.FillRectangle(darkedge, left - ITEMMARGINTHUMBNAIL, top - ITEMMARGINTHUMBNAIL, width + 2 * ITEMMARGINTHUMBNAIL, height + 2 * ITEMMARGINTHUMBNAIL);
+               g.FillRectangle(ligthedge, left, top, width + ITEMMARGINTHUMBNAIL, height + ITEMMARGINTHUMBNAIL);
                g.FillPolygon(ligthedge,
                              new Point[] {
-                                new Point(left - 3, top + height + 3),
-                                new Point(left, top + height + 3),
+                                new Point(left - ITEMMARGINTHUMBNAIL, top + height + ITEMMARGINTHUMBNAIL),
+                                new Point(left, top + height + ITEMMARGINTHUMBNAIL),
                                 new Point(left, top + height),
                              });
                g.FillPolygon(ligthedge,
                              new Point[] {
                                 new Point(left + width, top),
-                                new Point(left + width + 3, top),
-                                new Point(left + width + 3, top - 3),
+                                new Point(left + width + ITEMMARGINTHUMBNAIL, top),
+                                new Point(left + width + ITEMMARGINTHUMBNAIL, top - ITEMMARGINTHUMBNAIL),
                              });
                g.FillRectangle(content, left, top, width, height);
 
                g.DrawImageUnscaled(pd.Thumbnail, left, top);
 
-               y += height + 6;
+               y += height + 2 * ITEMMARGINTHUMBNAIL;
             }
 
-            if (pd.DateTimeOriginal != DateTime.MinValue) {
-               g.DrawString(pd.DateTimeOriginal.ToString("G"), font, Brushes.DarkGreen, xCenter, y, sfCenter);
+            if (pd.OriginalDateTime != DateTime.MinValue) {
+               g.DrawString(pd.OriginalDateTime.ToString("G"), font, Brushes.DarkGreen, xCenter, y, sfCenter);
                y += font.Height;
             }
 
@@ -777,7 +1151,71 @@ namespace GpxViewer {
                g.DrawString(txt, font, Brushes.DarkRed, xCenter, y, sfCenter);
                y += font.Height;
             }
+            if (!string.IsNullOrEmpty(pd.UserComment)) {
+               g.DrawString(pd.UserComment, font, Brushes.Black, xCenter, y, sfCenter);
+               y += font.Height;
+            }
          }
+      }
+
+      private void ListView1_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e) {
+         using (LinearGradientBrush brush = new LinearGradientBrush(e.Bounds, Color.LightGray, Color.DarkGray, LinearGradientMode.Vertical))
+            e.Graphics.FillRectangle(brush, e.Bounds);
+         using (Pen pen = new Pen(Color.Black))
+            e.Graphics.DrawRectangle(pen, e.Bounds);
+         e.DrawText(TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+      }
+
+      void drawDetailBackground(Graphics g, ListViewItem lvi, Rectangle bounds) {
+         //e.DrawBackground();
+         if (lvi.Selected) {
+            using (SolidBrush brush = new SolidBrush(System.Drawing.SystemColors.Highlight))
+               g.FillRectangle(brush, bounds);
+            using (Pen pen = new Pen(Color.Black))
+               g.DrawRectangle(pen, bounds);
+         } else {
+            PictureData pd = lvi.Tag != null ?
+                                 lvi.Tag as PictureData :
+                                 null;
+            if (pd != null) {
+               using (SolidBrush brush = new SolidBrush(pd.Changed ? Color.FromArgb(255, 128, 128) : Color.LightGray))
+                  g.FillRectangle(brush, bounds);
+               using (Pen pen = new Pen(Color.Black, 1))
+                  g.DrawRectangle(pen, bounds);
+            }
+         }
+      }
+
+      void drawDetailColPicture(Graphics g, ListViewItem lvi, Rectangle bounds) {
+         using (SolidBrush brush = new SolidBrush(lvi.BackColor))
+            g.FillRectangle(brush, bounds);
+         using (Pen pen = new Pen(Color.Black, 1))
+            g.DrawRectangle(pen, bounds);
+
+         PictureData pd = lvi.Tag as PictureData;
+         if (pd != null) {
+            Image img = pd.Thumbnail;
+            if (img != null) {
+               g.DrawImage(img,
+                           bounds.Left + 1,
+                           bounds.Top + 1,
+                           (bounds.Height - 1) * img.Width / img.Height,
+                           bounds.Height - 1);
+            }
+         }
+      }
+
+      void drawDetailColText(Graphics g, ListViewItem.ListViewSubItem lvsi, Rectangle bounds) {
+         using (Brush brush = new SolidBrush(lvsi.ForeColor))
+            g.DrawString(lvsi.Text,
+                         lvsi.Font,
+                         brush,
+                         bounds,
+                         new StringFormat() {
+                            Alignment = StringAlignment.Near,
+                            LineAlignment = StringAlignment.Center,
+                            FormatFlags = StringFormatFlags.NoWrap | StringFormatFlags.NoClip | StringFormatFlags.MeasureTrailingSpaces,
+                         });
       }
 
       /// <summary>
@@ -786,48 +1224,10 @@ namespace GpxViewer {
       /// <param name="sender"></param>
       /// <param name="e"></param>
       private void ListView1_DrawSubItem(object sender, DrawListViewSubItemEventArgs e) {
-         Rectangle rectSubItem = e.Bounds;
-         rectSubItem.Width -= 2;
-         rectSubItem.Height -= 2;
-
-         // draw background
-         if (e.Item.Selected) {
-            using (SolidBrush brush = new SolidBrush(System.Drawing.SystemColors.Highlight)) {
-               using (Pen pen = new Pen(Color.Black)) {
-                  e.Graphics.FillRectangle(brush, rectSubItem);
-                  e.Graphics.DrawRectangle(pen, rectSubItem);
-               }
-            }
-         } else {
-            //e.DrawBackground();
-            using (SolidBrush brush = new SolidBrush(System.Drawing.SystemColors.InactiveCaption)) {
-               e.Graphics.FillRectangle(brush, rectSubItem);
-            }
-         }
-
          // draw content
-         if (e.ColumnIndex == 0) {
-            PictureData pd = e.Item.Tag as PictureData;
-            if (pd != null) {
-               Image img = pd.Thumbnail;
-               if (img != null) {
-                  Rectangle r = rectSubItem;
-                  float h = r.Height;
-                  float w = h * img.Width / img.Height;
-                  e.Graphics.DrawImage(img, r.Left, r.Top, w, h);
-               }
-            }
-         } else {
-            using (Brush brush = new SolidBrush(e.SubItem.ForeColor))
-               e.Graphics.DrawString(e.SubItem.Text,
-                                     e.SubItem.Font,
-                                     brush,
-                                     rectSubItem,
-                                     new StringFormat() {
-                                        Alignment = StringAlignment.Near,
-                                        LineAlignment = StringAlignment.Center,
-                                        FormatFlags = StringFormatFlags.NoWrap | StringFormatFlags.NoClip | StringFormatFlags.MeasureTrailingSpaces,
-                                     });
+         if (e.ColumnIndex > 0) {
+            drawDetailBackground(e.Graphics, e.Item, e.Bounds);
+            drawDetailColText(e.Graphics, e.SubItem, e.Bounds);
          }
       }
 
@@ -839,35 +1239,15 @@ namespace GpxViewer {
 
       PictureDataListEventArgs.PictureData[] lastSelectedPictureData = new PictureDataListEventArgs.PictureData[0];
 
-      public void SetExtern(string filename, double longitude, double latitude) {
-         ListView lv = listView1;
-         PictureData pd = null;
-         for (int i = 0; i < listView1.Items.Count; i++) {
-            if (lv.Items[i] != null && lv.Items[i].Tag != null) {
-               if ((lv.Items[i].Tag as PictureData).FileName == filename) {
-                  pd = lv.Items[i].Tag as PictureData;
-                  break;
-               }
-            }
-         }
-
-         if (pd != null) {
-            pd.ChangeLonLat(longitude, latitude);
-            lv.Refresh();
-         }
-         toolStripButton_SaveAll.Enabled = UnsavedPictures > 0;
-         showPictureCount();
-         OnShowExtern?.Invoke(this, new PictureDataEventArgs(filename, longitude, latitude));
-      }
-
       private void listView1_SelectedIndexChanged(object sender, EventArgs e) {
          OnDeselectPictures?.Invoke(this, new PictureDataListEventArgs(lastSelectedPictureData));
 
          toolStripStatusLabel_Filename.Text = "";
          PictureData pd = getFirstSelectedPictureData(sender as ListView);
-         if (pd != null && !string.IsNullOrEmpty(pd.FileName)) {
-            pictureBox1.Image = (sender as ListView).SelectedIndices.Count == 1 ?
-                                    pd.ReadImage() :
+         if (pd != null &&
+             !string.IsNullOrEmpty(pd.FileName)) {
+            pictureBox1.Image = (sender as ListView).SelectedIndices.Count == 1 ?   // genau 1 Bild markiert
+                                    pd.ReadImage() :                                // da das Originalbild nicht gespeichert wird, wird es immer akt. eingelesen
                                     null;
             toolStripStatusLabel_Filename.Text = Path.GetFileName(pd.FileName);
          } else
@@ -877,16 +1257,25 @@ namespace GpxViewer {
          lastSelectedPictureData = sp;
          OnSelectPictures?.Invoke(this, new PictureDataListEventArgs(sp));
 
-         toolStripButton_SaveGpx.Enabled = sp.Length > 1;
+         toolStripButton_SaveGpx.Enabled = sp.Length > 0;
+      }
+
+      /// <summary>
+      /// liefert den Index des ListView-Items oder -1
+      /// </summary>
+      /// <param name="desctoppt"></param>
+      /// <returns></returns>
+      int listviewItemIdx4Point(Point desctoppt) {
+         int idx = getItemIdx4Point(listView1, listView1.PointToClient(desctoppt));
+         return 0 <= idx && idx < listView1.Items.Count ? idx : -1;
       }
 
       int itemidx4contextmenu = -1;
 
       private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e) {
          e.Cancel = true;
-         itemidx4contextmenu = getItemIdx4Point(listView1, listView1.PointToClient(MousePosition));
-         if (itemidx4contextmenu >= 0 &&
-             itemidx4contextmenu < listView1.Items.Count) {
+         itemidx4contextmenu = listviewItemIdx4Point(MousePosition);
+         if (0 <= itemidx4contextmenu) {
             PictureData pd = listView1.Items[itemidx4contextmenu].Tag as PictureData;
             if (pd != null) {
                e.Cancel = false;
@@ -895,17 +1284,59 @@ namespace GpxViewer {
          }
       }
 
+      /// <summary>
+      /// berechnet die notwendige Größe für ein Tile
+      /// </summary>
+      /// <returns></returns>
+      Size computeTileSize() =>
+         new Size(TextRenderer.MeasureText("=-999,999999° -99,999999° [999°]=", listView1.Font).Width,   // längster möglicherText
+                  ITEMMARGIN +
+                  2 * listView1.Font.Height +                                             // 2 Textzeilen
+                  ITEMMARGINTHUMBNAIL + ThumbnailSize.Height + 2 * ITEMMARGINTHUMBNAIL +  // Bild
+                  3 * listView1.Font.Height +                                             // 3 Textzeilen
+                  ITEMMARGIN);
+
+      async void swapViewAsync(ListView lv) {
+         Cursor orgcursor = Cursor;
+         Cursor = Cursors.WaitCursor;
+
+         await Task.Run(() => {
+            swapView(lv);
+         });
+
+         Cursor = orgcursor;
+      }
+
+
+      /// <summary>
+      /// !!! relativ langsam !!!
+      /// </summary>
+      /// <param name="lv"></param>
       void swapView(ListView lv) {
+         Cursor orgcursor = Cursor;
+         Cursor = Cursors.WaitCursor;
+
          lv.SuspendLayout();
          lv.BeginUpdate();
          if (lv.View == View.Tile) {
             lv.View = View.Details;
             lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+
+            // zusätzlich die Breite für die Spaltenheader testen:
+            ListView.ColumnHeaderCollection cc = lv.Columns;
+            for (int i = 0; i < cc.Count; i++) {
+               int colWidth = TextRenderer.MeasureText(cc[i].Text, lv.Font).Width + 20;
+               if (colWidth > cc[i].Width)   // falls zu schmal
+                  cc[i].Width = colWidth;
+            }
          } else {
+            lv.TileSize = computeTileSize();
             lv.View = View.Tile;
          }
          lv.ResumeLayout();
          lv.EndUpdate();
+
+         Cursor = orgcursor;
       }
 
       PictureDataListEventArgs.PictureData[] getSelectedPictureDataArray(ListView lv) {
@@ -965,111 +1396,97 @@ namespace GpxViewer {
          return null;
       }
 
-      PictureData getPictureData4Idx(int idx) {
-         if (idx >= 0 &&
-             idx < listView1.Items.Count)
-            return listView1.Items[idx].Tag as PictureData;
-         return null;
+      /// <summary>
+      /// liefert die <see cref="PictureData"/> zum Item mit dem Index oder zum 1. ausgewählten Item oder null
+      /// </summary>
+      /// <param name="idx"></param>
+      /// <returns></returns>
+      PictureData getPictureData(int idx) {
+         PictureData pd = 0 <= idx &&
+                          idx < listView1.Items.Count ?
+                                    listView1.Items[idx].Tag as PictureData :
+                                    null;
+         if (pd == null)
+            pd = listView1.SelectedItems.Count == 1 ?
+                     listView1.SelectedItems[0].Tag as PictureData :
+                     null;
+         return pd;
       }
 
       #region Contextmenu
 
       private void ToolStripMenuItemSave_Click(object sender, EventArgs e) {
-         PictureData pd = getPictureData4Idx(itemidx4contextmenu);
-         if (pd != null) {
-            try {
-               pd.Save();
-            } catch (Exception ex) {
-               MessageBox.Show("Fehler beim Speichern: " + ex.Message, "FEHLER", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-         }
-         showPictureCount();
-         toolStripButton_SaveAll.Enabled = UnsavedPictures > 0;
+         SavePicture(false, itemidx4contextmenu);
+         itemidx4contextmenu = -1;
       }
 
       private void ToolStripMenuItemShow_Click(object sender, EventArgs e) {
-         PictureData pd = getPictureData4Idx(itemidx4contextmenu);
-         if (pd != null)
-            OnShowExtern?.Invoke(this, new PictureDataEventArgs(pd.FileName, pd.Longitude, pd.Latitude));
+         GoToPicturePosition(itemidx4contextmenu);
+         itemidx4contextmenu = -1;
       }
 
       private void ToolStripMenuItemSet_Click(object sender, EventArgs e) {
-         PictureData pd = getPictureData4Idx(itemidx4contextmenu);
-         if (pd != null)
-            OnNeedNewData?.Invoke(this, new PictureDataEventArgs(pd.FileName, pd.Longitude, pd.Latitude));
+         SetPicturePosition(itemidx4contextmenu);
+         itemidx4contextmenu = -1;
+      }
+
+      private void ToolStripMenuItemSet2_Click(object sender, EventArgs e) {
+         SetPicturePosition2(itemidx4contextmenu);
+         itemidx4contextmenu = -1;
+      }
+
+      private void ToolStripMenuItemEditComment_Click(object sender, EventArgs e) {
+         EditPictureComment(itemidx4contextmenu);
+         itemidx4contextmenu = -1;
       }
 
       private void ToolStripMenuItemEditFilename_Click(object sender, EventArgs e) {
-         PictureData pd = getPictureData4Idx(itemidx4contextmenu);
-         if (pd != null) {
-
-            Point pt = listView1.PointToScreen(pd.ListViewItem.Position);
-            pt.Offset(5, 5);
-
-            FormEditPictureFilename form = new FormEditPictureFilename() {
-               Location = pt,
-               EditText = Path.GetFileName(pd.FileName),
-            };
-            if (form.ShowDialog() == DialogResult.OK) {
-               if (filenameIsValid(form.EditText))
-                  pd.ChangeFilename(form.EditText);
-               else
-                  MessageBox.Show("Der Dateiname '" + form.EditText + "' ist nicht gültig.", "Achtung", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            }
-         }
+         EditPictureFilename(itemidx4contextmenu);
+         itemidx4contextmenu = -1;
       }
+
 
       #endregion
 
       #region Toolbar
 
-      private void toolStripButton_SwapView_Click(object sender, EventArgs e) {
+      private void toolStripButton_SwapView_Click(object sender, EventArgs e) =>
          swapView(listView1);
-      }
 
-      private void ToolStripMenuItem_ViewAll_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_ViewAll_Click(object sender, EventArgs e) =>
          pictureFilter = PictureFilter.None;
-      }
 
-      private void ToolStripMenuItem_ViewWithGeo_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_ViewWithGeo_Click(object sender, EventArgs e) =>
          pictureFilter = PictureFilter.WithGeoData;
-      }
 
-      private void ToolStripMenuItem_ViewWithoutGeo_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_ViewWithoutGeo_Click(object sender, EventArgs e) =>
          pictureFilter = PictureFilter.WithoutGeoData;
-      }
 
-      private void ToolStripMenuItem_FilenameAsc_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_FilenameAsc_Click(object sender, EventArgs e) =>
          pictureSort = PictureSort.FilenameAscending;
-      }
 
-      private void ToolStripMenuItem_FilenameDesc_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_FilenameDesc_Click(object sender, EventArgs e) =>
          pictureSort = PictureSort.FilenameDescending;
-      }
 
-      private void ToolStripMenuItem_FiledateAsc_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_FiledateAsc_Click(object sender, EventArgs e) =>
          pictureSort = PictureSort.FiledateAscending;
-      }
 
-      private void ToolStripMenuItem_FiledateDesc_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_FiledateDesc_Click(object sender, EventArgs e) =>
          pictureSort = PictureSort.FiledateDescending;
-      }
 
-      private void ToolStripMenuItem_GeodateAsc_Click(object sender, EventArgs e) {
-         pictureSort = PictureSort.GeodateAscending;
-      }
+      private void ToolStripMenuItem_GeodateAsc_Click(object sender, EventArgs e) =>
+         pictureSort = PictureSort.OriginaldateAscending;
 
-      private void ToolStripMenuItem_GeodateDesc_Click(object sender, EventArgs e) {
-         pictureSort = PictureSort.GeodateDescending;
-      }
+      private void ToolStripMenuItem_GeodateDesc_Click(object sender, EventArgs e) =>
+         pictureSort = PictureSort.OriginaldateDescending;
 
       private void toolStripButton_OpenPath_Click(object sender, EventArgs e) {
          // SendKeys.Send("{TAB}{TAB}{RIGHT}");
 
-         folderBrowserDialog1.SelectedPath = actualPicturePath;
+         folderBrowserDialog1.SelectedPath = ActualPicturePath;
          if (!CancelNewLoad() &&
              folderBrowserDialog1.ShowDialog() == DialogResult.OK)
-            newLoad(folderBrowserDialog1.SelectedPath, toolStripButton_WithSubDirs.Checked);
+            SetPicturePath(folderBrowserDialog1.SelectedPath, toolStripButton_WithSubDirs.Checked);
       }
 
       bool internToolstripButtonSet = false;
@@ -1077,7 +1494,7 @@ namespace GpxViewer {
       private void toolStripButton_WithSubDirs_Click(object sender, EventArgs e) {
          if (!internToolstripButtonSet) {
             if (!CancelNewLoad())
-               newLoad(actualPicturePath, (sender as ToolStripButton).Checked);
+               SetPicturePath(ActualPicturePath, (sender as ToolStripButton).Checked);
             else {
                internToolstripButtonSet = true;
                (sender as ToolStripButton).Checked = !(sender as ToolStripButton).Checked;
@@ -1100,6 +1517,9 @@ namespace GpxViewer {
       }
 
       private void toolStripButton_SaveAll_Click(object sender, EventArgs e) {
+         Cursor orgcursor = Cursor;
+         Cursor = Cursors.WaitCursor;
+
          foreach (PictureData pd in dataCacheAll)
             if (pd.Changed)
                try {
@@ -1110,8 +1530,10 @@ namespace GpxViewer {
                }
 
          showPictureCount();
-         toolStripButton_SaveAll.Enabled = UnsavedPictures > 0;
+         setStatusSaveButtons();
          listView1.Refresh();
+
+         Cursor = orgcursor;
       }
 
       private void toolStripButton_SaveGpx_Click(object sender, EventArgs e) {
@@ -1172,8 +1594,8 @@ namespace GpxViewer {
 
       private void toolStripButton_Reload_Click(object sender, EventArgs e) {
          if (!CancelNewLoad() &&
-             !string.IsNullOrEmpty(actualPicturePath))
-            newLoad(actualPicturePath, toolStripButton_WithSubDirs.Checked);
+             !string.IsNullOrEmpty(ActualPicturePath))
+            SetPicturePath(ActualPicturePath, toolStripButton_WithSubDirs.Checked);
       }
 
       #endregion
@@ -1188,23 +1610,5 @@ namespace GpxViewer {
             return true;
          return false;
       }
-
-      //private void button4_Click(object sender, EventArgs e) {
-
-      //   // TEST
-      //   string filename = "";
-      //   if (listView1.SelectedItems.Count > 0) {
-      //      ListViewItem lvi = listView1.SelectedItems[0];
-      //      if (lvi != null && lvi.Tag != null) {
-      //         PictureData pd = lvi.Tag as PictureData;
-      //         filename = pd.FileName;
-      //      }
-      //   }
-
-      //   if (!string.IsNullOrEmpty(filename))
-      //      SetExtern(filename, 12.345678, 15.678901);
-
-      //}
-
    }
 }

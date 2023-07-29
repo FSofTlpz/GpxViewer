@@ -5,6 +5,7 @@ using GarminImageCreator.Garmin;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace GarminImageCreator {
    /// <summary>
@@ -141,7 +142,7 @@ namespace GarminImageCreator {
                              out SortedList<int, List<GeoPoint>> pointlst,
                              out SortedList<int, List<GeoPoly>> linelst,
                              out SortedList<int, List<GeoPoly>> arealst,
-                             ref long cancel) {
+                             CancellationToken cancellationToken) {
          bool result = false;
 #if GETDATASEQUENTIEL
          lock (lock4getdatasequentiel) {
@@ -157,7 +158,7 @@ namespace GarminImageCreator {
                                 out List<GeoPoly> Lines,
                                 out List<GeoPoint> Points,
                                 true,
-                                ref cancel)) {
+                                cancellationToken)) {
 
             // Ergebnislisten füllen
             foreach (var point in Points) {

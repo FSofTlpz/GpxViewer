@@ -15,7 +15,7 @@ for offline garmin-maps, geotiffs and garmin-kmz-maps. You can also use DEM-data
 For further information see: https://github.com/judero01col/GMap.NET/wiki
 
 FSofTUtils, GarminCore, GarminImageCreator, GMap.NET.Core, SpecialMapCtrl and 
-GpxViewer.Common are also used in <a href="../TrackEddi.Maui">TrackEddi</a>!
+GpxViewer.Common are also used in <a href="https://github.com/FSofTlpz/TrackEddi.Maui">TrackEddi</a>!
 
 Additional parts are insert as source code:
 

@@ -12,7 +12,7 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Header der IMG-Datei
       /// </summary>
-      Header ImgHeader;
+      Header? ImgHeader;
 
       /// <summary>
       /// Größe der FAT (einschließlich Root) in Byte
@@ -25,7 +25,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       protected class FileProps : IDisposable {
 
-         string _Name;
+         string _Name = "";
 
          /// <summary>
          /// Name der Datei
@@ -134,12 +134,12 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Liste aller Dateien
       /// </summary>
-      protected List<FileProps> Files;
+      protected List<FileProps> Files = new List<FileProps>();
 
       /// <summary>
       /// Dateiindex für jede Blocknummer
       /// </summary>
-      Dictionary<UInt16, int> file4block;
+      Dictionary<UInt16, int> file4block = new Dictionary<ushort, int>();
 
       /// <summary>
       /// Anzahl der Blöcke vor den Datei-Datenblöcken in der IMG-Datei (für das Lesen der Daten)
@@ -149,7 +149,7 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// BinaryReaderWriter für die zu lesende IMG-Datei
       /// </summary>
-      protected BinaryReaderWriter binreader;
+      protected BinaryReaderWriter? binreader;
 
       /// <summary>
       /// liefert die Dateianzahl der internen Dateien
@@ -193,53 +193,55 @@ namespace GarminCore.OptimizedReader {
       void read(BinaryReaderWriter br) {
          binreader = br;
 
-         // Header einlesen
-         binreader.Seek(0);
-         ImgHeader.Read(binreader);
+         if (ImgHeader != null) {
+            // Header einlesen
+            binreader.Seek(0);
+            ImgHeader.Read(binreader);
 
-         List<FATBlock> root = new List<FATBlock>();
-         List<FATBlock> fat = new List<FATBlock>();
+            List<FATBlock> root = new List<FATBlock>();
+            List<FATBlock> fat = new List<FATBlock>();
 
-         // gesamte FAT einlesen
-         int sumfatblocks = -1;
-         while (sumfatblocks != 0) {
-            FATBlock bl = new FATBlock((uint)ImgHeader.FATBlockLength);
-            bl.Read(binreader);
-            if (sumfatblocks < 0)
-               sumfatblocks = ((int)bl.Filesize - ImgHeader.HeaderLength) / ImgHeader.FATBlockLength;     // Anzahl der FAT-Blocks aus dem 1. Block ("Dateigröße") ermitteln
+            // gesamte FAT einlesen
+            int sumfatblocks = -1;
+            while (sumfatblocks != 0) {
+               FATBlock bl = new FATBlock((uint)ImgHeader.FATBlockLength);
+               bl.Read(binreader);
+               if (sumfatblocks < 0)
+                  sumfatblocks = ((int)bl.Filesize - ImgHeader.HeaderLength) / ImgHeader.FATBlockLength;     // Anzahl der FAT-Blocks aus dem 1. Block ("Dateigröße") ermitteln
 
-            if (bl.FullName == ".")
-               root.Add(bl);
-            else
-               fat.Add(bl);
-            sumfatblocks--;
-         }
+               if (bl.FullName == ".")
+                  root.Add(bl);
+               else
+                  fat.Add(bl);
+               sumfatblocks--;
+            }
 
-         // Dateiliste erzeugen
-         file4block.Clear();
-         Files.Clear();
-         preblocks4read = (UInt16)(root[0].Filesize / ImgHeader.FileBlockLength);     // Anzahl der Datenblöcke bis zum Start des echten Dateiinhaltbereiches
-         if (root[0].Filesize % ImgHeader.FileBlockLength != 0)
-            preblocks4read++;
-         FATSize = (int)root[0].Filesize - ImgHeader.HeaderLength;
+            // Dateiliste erzeugen
+            file4block.Clear();
+            Files.Clear();
+            preblocks4read = (UInt16)(root[0].Filesize / ImgHeader.FileBlockLength);     // Anzahl der Datenblöcke bis zum Start des echten Dateiinhaltbereiches
+            if (root[0].Filesize % ImgHeader.FileBlockLength != 0)
+               preblocks4read++;
+            FATSize = (int)root[0].Filesize - ImgHeader.HeaderLength;
 
-         for (int block = 0; block < fat.Count; block++) {
-            FATBlock bl = fat[block];
-            if (bl.Used) {
-               FileProps fileprops;
-               if (bl.Part == 0) {
-                  string name = bl.FullName;
-                  if (name != ".") {
-                     fileprops = new FileProps(name, bl.Filesize);
-                     Files.Add(fileprops);
+            for (int block = 0; block < fat.Count; block++) {
+               FATBlock bl = fat[block];
+               if (bl.Used) {
+                  FileProps fileprops;
+                  if (bl.Part == 0) {
+                     string name = bl.FullName;
+                     if (name != ".") {
+                        fileprops = new FileProps(name, bl.Filesize);
+                        Files.Add(fileprops);
+                     }
                   }
-               }
-               int fileidx = Files.Count - 1;
-               fileprops = Files[fileidx];
-               for (int j = 0; j < bl.BlockNumberCount; j++) {             // alle Blocknummern registrieren
-                  UInt16 blockno = (UInt16)(bl.GetBlockNumber(j) - preblocks4read);
-                  fileprops.PseudoFileBlockAdd(blockno);                   // 0-basierte Blocknummern speichern
-                  file4block.Add(blockno, fileidx);
+                  int fileidx = Files.Count - 1;
+                  fileprops = Files[fileidx];
+                  for (int j = 0; j < bl.BlockNumberCount; j++) {             // alle Blocknummern registrieren
+                     UInt16 blockno = (UInt16)(bl.GetBlockNumber(j) - preblocks4read);
+                     fileprops.PseudoFileBlockAdd(blockno);                   // 0-basierte Blocknummern speichern
+                     file4block.Add(blockno, fileidx);
+                  }
                }
             }
          }
@@ -313,9 +315,11 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       /// <param name="filename"></param>
       /// <returns></returns>
-      public BinaryReaderWriter GetBinaryReaderWriter4File(string filename) {
+      public BinaryReaderWriter? GetBinaryReaderWriter4File(string filename) {
          int idx = FilenameIdx(filename);
-         if (idx >= 0) {
+         if (idx >= 0 &&
+             binreader != null &&
+             ImgHeader != null) {
             if (binreader.InMemoryData != null) {
                return new BinaryReaderWriter(binreader.InMemoryData,
                                              (int)ImgHeader.FileBlockLength * (preblocks4read + Files[idx].FirstPseudoBlockNo),

@@ -118,7 +118,7 @@ namespace GarminCore.DskImg {
          fullname = name.Trim() + "." + typ.Trim();
       }
 
-      string _Name;
+      string _Name = "";
 
       /// <summary>
       /// Datei-/Verzeichnisname (org., ohne Typ)
@@ -137,7 +137,7 @@ namespace GarminCore.DskImg {
          }
       }
 
-      string _Typ;
+      string _Typ = "";
 
       /// <summary>
       /// Typ (org.)

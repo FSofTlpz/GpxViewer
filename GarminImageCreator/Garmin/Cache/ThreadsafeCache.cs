@@ -40,10 +40,11 @@ namespace GarminImageCreator.Garmin.Cache {
 
       protected abstract bool found(T t, object obj);
 
-      int getPos(object obj) {
-         for (int i = cache.Count - 1; i >= 0; i--)
-            if (found(cache[i], obj))
-               return i;
+      int getPos(object? obj) {
+         if (obj != null)
+            for (int i = cache.Count - 1; i >= 0; i--)
+               if (found(cache[i], obj))
+                  return i;
          return -1;
       }
 
@@ -56,7 +57,7 @@ namespace GarminImageCreator.Garmin.Cache {
             int pos = getPos(t);
             if (pos < 0) { // sonst ist das Objekt schon vorhanden
                if (cache.Count == maxsize && maxsize > 0) {
-                  Debug.WriteLine("Cache is full: remove " + t.ToString());
+                  Debug.WriteLine("Cache is full: remove " + (t != null ? t.ToString() : "?"));
                   cache.RemoveAt(0);
                }
                if (cache.Count < maxsize)
@@ -70,8 +71,8 @@ namespace GarminImageCreator.Garmin.Cache {
       /// </summary>
       /// <param name="cmp"></param>
       /// <returns></returns>
-      protected T Get(object cmp) {
-         T t = default;
+      protected T? Get(object cmp) {
+         T? t = default;
          lock (access_lock) {
             int pos = getPos(cmp);
             if (pos < 0)

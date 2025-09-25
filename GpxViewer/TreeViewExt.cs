@@ -1,7 +1,4 @@
-﻿using System.Drawing;
-using System.Windows.Forms;
-
-namespace GpxViewer {
+﻿namespace GpxViewer {
    public partial class TreeViewExt : TreeView {
       public TreeViewExt() { }
 

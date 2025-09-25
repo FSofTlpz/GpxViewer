@@ -31,7 +31,6 @@ diesem Programm erhalten haben. Falls nicht, siehe
 */
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace GarminCore.Files.Typ {

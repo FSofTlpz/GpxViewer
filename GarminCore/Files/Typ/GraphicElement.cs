@@ -73,8 +73,8 @@ namespace GarminCore.Files.Typ {
       protected Color[] colNightColor;          // Vorder-, Hintergrund
       protected Color[] colFontColour;          // zusätzliche (Text-)Farben für Tag, Nacht
 
-      public PixMap XBitmapDay { get; protected set; }
-      public PixMap XBitmapNight { get; protected set; }
+      public PixMap? XBitmapDay { get; protected set; }
+      public PixMap? XBitmapNight { get; protected set; }
 
       public byte Options { get; protected set; }
       public byte ExtOptions { get; protected set; }
@@ -132,8 +132,10 @@ namespace GarminCore.Files.Typ {
          ExtOptions = ge.ExtOptions;
          FontType = ge.FontType;
          FontColType = ge.FontColType;
-         XBitmapDay = new PixMap(XBitmapDay);
-         XBitmapNight = new PixMap(XBitmapNight);
+         if (ge.XBitmapDay != null)
+            XBitmapDay = new PixMap(ge.XBitmapDay);
+         if (ge.XBitmapNight != null)
+            XBitmapNight = new PixMap(ge.XBitmapNight);
       }
 
       /// <summary>
@@ -176,7 +178,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="b4Day">für Tag oder Nacht</param>
       /// <param name="bExt">auch wenn intern nicht als Bitmap def.</param>
       /// <returns></returns>
-      public abstract Bitmap AsBitmap(bool b4Day, bool bExt);
+      public abstract Bitmap? AsBitmap(bool b4Day, bool bExt);
 
       /// <summary>
       /// Breite des Elements
@@ -193,12 +195,11 @@ namespace GarminCore.Files.Typ {
       /// <param name="txt"></param>
       public void SetText(MultiText txt) {
          bool bWithtxt = false;
-         if (txt != null)
-            for (int i = 0; i < txt.Count; i++)
-               if (txt.Get(i).Txt.Length > 0) {
-                  bWithtxt = true;
-                  break;
-               }
+         for (int i = 0; i < txt.Count; i++)
+            if (txt.Get(i).Txt.Length > 0) {
+               bWithtxt = true;
+               break;
+            }
          Text = new MultiText(txt);
          WithString = bWithtxt;
       }
@@ -267,8 +268,8 @@ namespace GarminCore.Files.Typ {
       /// <param name="bWithTransparent"></param>
       /// <param name="bWithAlpha"></param>
       /// <returns></returns>
-      public static Color[] GetBitmapColorInfo(Bitmap bm, out bool bWithTransparent, out bool bWithAlpha) {
-         Color[] colColorTable = null;
+      public static Color[]? GetBitmapColorInfo(Bitmap bm, out bool bWithTransparent, out bool bWithAlpha) {
+         Color[]? colColorTable = null;
          bWithTransparent = false;
          bWithAlpha = false;
 
@@ -372,7 +373,7 @@ namespace GarminCore.Files.Typ {
       /// </summary>
       /// <param name="obj"></param>
       /// <returns></returns>
-      public int CompareTo(object obj) {
+      public int CompareTo(object? obj) {
          if (obj is GraphicElement) {
             GraphicElement ge = (GraphicElement)obj;
             if (ge == null) return 1;

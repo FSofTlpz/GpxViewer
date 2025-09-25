@@ -1,9 +1,5 @@
 ﻿using FSofTUtils.Geography.Garmin;
 using SpecialMapCtrl;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 using Gpx = FSofTUtils.Geography.PoorGpx;
 
 namespace GpxViewer {
@@ -12,7 +8,7 @@ namespace GpxViewer {
       /// <summary>
       /// zu bearbeitender <see cref="Marker"/>
       /// </summary>
-      public Marker Marker;
+      public Marker? Marker;
 
       /// <summary>
       /// Wurden Daten geändert?
@@ -24,18 +20,39 @@ namespace GpxViewer {
       /// </summary>
       public bool MarkerIsReadOnly = false;
 
-      public string[] Proposals = null;
+      public string[]? Proposals = null;
 
-      public List<GarminSymbol> GarminMarkerSymbols;
+      public List<GarminSymbol>? GarminMarkerSymbols;
 
-      string symbolname;
+
+      string symbolname = string.Empty;
+
+      bool fromsavebutton = false;
+
+      bool isMarkerChanged {
+         get {
+            if (!MarkerIsReadOnly)
+               return isChanged(Marker.Waypoint.Name, comboBox_Name.Text.Trim()) ||                                   // Name geändert
+                      isChanged(Marker.Waypoint.Description, textBoxDescription.Text) ||
+                      isChanged(Marker.Waypoint.Comment, textBoxComment.Text) ||
+                      (Marker.Waypoint.Elevation != Gpx.BaseElement.NOTVALID_DOUBLE) != checkBox_Height.Checked ||    // Ungültigkeitsstatus für Höhe geändert
+                      (checkBox_Height.Checked && isChanged(Marker.Waypoint.Elevation, numericUpDownHeight.Value)) || // Höhe geändert
+                      (Marker.Waypoint.Time != Gpx.BaseElement.NOTVALID_TIME) != dateTimePickerDT.Checked ||          // Ungültigkeitsstatus für Zeitpunkt geändert
+                      (dateTimePickerDT.Checked && (Marker.Waypoint.Time != dateTimePickerDT.Value)) ||               // Zeit geändert
+                      isChanged(Marker.Waypoint.Lon, numericUpDownLon.Value) ||                                       // geogr. Länge geändert
+                      isChanged(Marker.Waypoint.Lat, numericUpDownLat.Value) ||                                       // geogr. Breite geändert
+                      Marker.Symbolname != symbolname;                                                                // Symbol geändert
+
+            return false;
+         }
+      }
 
 
       public FormMarkerEditing() {
          InitializeComponent();
       }
 
-      private void FormExtMarkerEditing_Load(object sender, EventArgs e) {
+      private void FormMarkerEditing_Load(object sender, EventArgs e) {
          if (Proposals != null &&
              Proposals.Length > 0) {
             comboBox_Name.Items.AddRange(Proposals);
@@ -68,11 +85,10 @@ namespace GpxViewer {
          numericUpDownLat.Value = (decimal)Marker.Waypoint.Lat;
 
          textBoxDescription.ReadOnly =
-         textBoxComment.ReadOnly =
-         numericUpDownHeight.ReadOnly =
-         numericUpDownLon.ReadOnly =
-         numericUpDownLat.ReadOnly = !Marker.IsEditable || MarkerIsReadOnly;
-
+         textBoxComment.ReadOnly = !Marker.IsEditable || MarkerIsReadOnly;
+         numericUpDownHeight.Enabled =
+         numericUpDownLon.Enabled =
+         numericUpDownLat.Enabled =
          checkBox_Height.Enabled =
          dateTimePickerDT.Enabled =
          button_Save.Enabled =
@@ -88,27 +104,18 @@ namespace GpxViewer {
                      "Eigenschaften des Markers";
       }
 
-      private void checkBox_Height_CheckedChanged(object sender, EventArgs e) {
-         CheckBox cb = sender as CheckBox;
-         numericUpDownHeight.Enabled = cb.Checked;
-      }
-
-      private void button_Save_Click(object sender, EventArgs e) {
-         if (IsMarkerChanged())
-            Save();
-         fromsavebutton = true;
-      }
-
-      bool fromsavebutton = false;
-
-      private void FormExtMarkerEditing_FormClosing(object sender, FormClosingEventArgs e) {
+      private void FormMarkerEditing_FormClosing(object sender, FormClosingEventArgs e) {
          base.OnClosing(e);
 
          if (!MarkerIsReadOnly &&
              e.CloseReason == CloseReason.UserClosing) {
             if (!fromsavebutton)
-               if (IsMarkerChanged())
-                  if (MessageBox.Show("Geänderte Daten übernehmen?", "Speichern", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+               if (isMarkerChanged)
+                  if (MessageBox.Show("Geänderte Daten übernehmen?",
+                                      "Speichern",
+                                      MessageBoxButtons.YesNo,
+                                      MessageBoxIcon.Question,
+                                      MessageBoxDefaultButton.Button1) == DialogResult.Yes)
                      Save();
          }
 
@@ -116,28 +123,17 @@ namespace GpxViewer {
             Owner.RemoveOwnedForm(this);     // Owner ist danach null !
       }
 
-      bool IsMarkerChanged() {
-         if (!MarkerIsReadOnly)
-            WaypointChanged = Marker.Waypoint.Name != comboBox_Name.Text.Trim() ||                                               // Name geändert
-                              Marker.Waypoint.Description != textBoxDescription.Text ||
-                              Marker.Waypoint.Comment != textBoxComment.Text ||
-                              (Marker.Waypoint.Elevation != Gpx.BaseElement.NOTVALID_DOUBLE) != checkBox_Height.Checked ||       // Ungültigkeitsstatus für Höhe geändert
-                              (checkBox_Height.Checked && Marker.Waypoint.Elevation != (double)numericUpDownHeight.Value) ||     // Höhe geändert
-                              (Marker.Waypoint.Time != Gpx.BaseElement.NOTVALID_TIME) != dateTimePickerDT.Checked ||             // Ungültigkeitsstatus für Zeitpunkt geändert
-                              (dateTimePickerDT.Checked && (Marker.Waypoint.Time != dateTimePickerDT.Value)) ||                  // Zeit geändert
-                              (decimal)Marker.Waypoint.Lon != numericUpDownLon.Value ||                                          // geogr. Länge geändert
-                              (decimal)Marker.Waypoint.Lat != numericUpDownLat.Value ||                                          // geogr. Breite geändert
-                              Marker.Symbolname != symbolname;                                                                   // Symbol geändert
-
-         return WaypointChanged;
+      private void checkBox_Height_CheckedChanged(object sender, EventArgs e) {
+         CheckBox? cb = sender as CheckBox;
+         if (cb != null)
+            numericUpDownHeight.Enabled = cb.Checked;
       }
 
       /// <summary>
       /// übernimmt die akt. Daten
       /// </summary>
       void Save() {
-         if (WaypointChanged &&
-             !MarkerIsReadOnly) {
+         if (!MarkerIsReadOnly) {
             if (Marker.GpxDataContainer != null)
                Marker.GpxDataContainer.GpxDataChanged = true;
 
@@ -154,12 +150,22 @@ namespace GpxViewer {
                                              dateTimePickerDT.Value :
                                              Gpx.BaseElement.NOTVALID_TIME;
             Marker.Waypoint.Symbol = symbolname;
+
+            WaypointChanged = true;
          }
       }
 
-      private void button_Cancel_Click(object sender, EventArgs e) {
-         Close();
+      bool isChanged(string txt1, string txt2) {
+         if (txt1 == null)
+            txt1 = "";
+         if (txt2 == null)
+            txt2 = "";
+         return txt1.Trim() != txt2.Trim();
       }
+
+      bool isChanged(decimal v1, decimal v2) => v1 != v2;
+
+      bool isChanged(double v1, decimal v2) => (decimal)v1 != v2;
 
       private void button_Marker_Click(object sender, EventArgs e) {
          FormChooseMarkerTyp dlg = new FormChooseMarkerTyp() {
@@ -175,6 +181,16 @@ namespace GpxViewer {
 
          }
 
+      }
+
+      private void button_Save_Click(object sender, EventArgs e) {
+         if (isMarkerChanged)
+            Save();
+         fromsavebutton = true;
+      }
+
+      private void button_Cancel_Click(object sender, EventArgs e) {
+         Close();
       }
    }
 }

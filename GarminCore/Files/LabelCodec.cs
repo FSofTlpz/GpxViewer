@@ -101,8 +101,8 @@ namespace GarminCore.Files {
       /// </summary>
       SortedDictionary<char, SpecialCodes> SpecialCode4Chars;
 
-      Encoder enc;
-      Decoder dec;
+      Encoder? enc;
+      Decoder? dec;
 
 
 
@@ -121,7 +121,7 @@ namespace GarminCore.Files {
          dec = null;
 
          if (Type != 0x06) {
-            Encoding encoding = null;
+            Encoding? encoding = null;
             if (codepage > 0)
                encoding = Encoding.GetEncoding((int)Codepage);
             else
@@ -145,7 +145,7 @@ namespace GarminCore.Files {
       public byte[] Encode(string txt) {
          byte[] buff;
          int charsUsed;
-         int bytesUsed;
+         int bytesUsed = 0;
          bool completed;
 
          switch (Type) {
@@ -154,7 +154,8 @@ namespace GarminCore.Files {
 
             case 0x09:
                buff = new byte[2 * txt.Length + 2];
-               enc.Convert(txt.ToCharArray(), 0, txt.Length, buff, 0, buff.Length, true, out charsUsed, out bytesUsed, out completed);
+               if (enc != null)
+                  enc.Convert(txt.ToCharArray(), 0, txt.Length, buff, 0, buff.Length, true, out charsUsed, out bytesUsed, out completed);
                buff[bytesUsed] = 0;
                return buff.Take(bytesUsed + 1).ToArray();
 
@@ -170,7 +171,7 @@ namespace GarminCore.Files {
       /// <param name="start">Startindex für die Dekodierung</param>
       /// <returns></returns>
       public string Decode(byte[] txt, int start = 0) {
-         string text = null;
+         string? text = null;
 
          int charsUsed;
          int bytesUsed;
@@ -189,16 +190,17 @@ namespace GarminCore.Files {
                int inbuffidx = start;
                DecodedBytes = 0;
                completed = false;
-               while (inbuffidx < txt.Length) {
-                  inbuff[0] = txt[inbuffidx++];
-                  dec.Convert(inbuff, 0, 1, outbuff, 0, 1, false, out bytesUsed, out charsUsed, out completed);
-                  DecodedBytes += bytesUsed;
-                  if (charsUsed > 0)
-                     if (inbuff[0] != 0x00)
-                        chars.Add(outbuff[0]);
-                     else
-                        break;
-               }
+               if (dec != null)
+                  while (inbuffidx < txt.Length) {
+                     inbuff[0] = txt[inbuffidx++];
+                     dec.Convert(inbuff, 0, 1, outbuff, 0, 1, false, out bytesUsed, out charsUsed, out completed);
+                     DecodedBytes += bytesUsed;
+                     if (charsUsed > 0)
+                        if (inbuff[0] != 0x00)
+                           chars.Add(outbuff[0]);
+                        else
+                           break;
+                  }
                return new string(chars.ToArray());
 
             default:
@@ -406,8 +408,8 @@ namespace GarminCore.Files {
                switch (spec) {
                   case SpecialCodes6Bit.NextIsSymbol:
                   case SpecialCodes6Bit.NextIsLower:
-                     text += spec == SpecialCodes6Bit.NextIsSymbol ? 
-                                       SymbolTable6Bit[code6] : 
+                     text += spec == SpecialCodes6Bit.NextIsSymbol ?
+                                       SymbolTable6Bit[code6] :
                                        LowerTable6Bit[code6];
                      spec = SpecialCodes6Bit.nothing;
                      break;

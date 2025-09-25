@@ -16,7 +16,7 @@ namespace GarminImageCreator {
       /// <summary>
       /// Kartenverzeichnis
       /// </summary>
-      protected readonly string mapDirectory;
+      protected readonly string? mapDirectory;
 
       OptimizedGeoDataReader geoDataReader;
 
@@ -33,7 +33,7 @@ namespace GarminImageCreator {
       /// <param name="maxsubdiv">max. Anzahl Subdivs je Bild (unbegrenzt wenn kleiner 1)</param>
       public DetailMapManager(string tdbfilename) {
          mapDirectory = Path.GetDirectoryName(tdbfilename);
-         geoDataReader = new OptimizedGeoDataReader(mapDirectory, Path.GetFileName(tdbfilename));
+         geoDataReader = new OptimizedGeoDataReader(mapDirectory != null ? mapDirectory : ".", Path.GetFileName(tdbfilename));
       }
 
       /// <summary>
@@ -142,7 +142,7 @@ namespace GarminImageCreator {
                              out SortedList<int, List<GeoPoint>> pointlst,
                              out SortedList<int, List<GeoPoly>> linelst,
                              out SortedList<int, List<GeoPoly>> arealst,
-                             CancellationToken cancellationToken) {
+                             CancellationToken? cancellationToken) {
          bool result = false;
 #if GETDATASEQUENTIEL
          lock (lock4getdatasequentiel) {

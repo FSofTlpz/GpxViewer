@@ -119,7 +119,7 @@ namespace FSofTUtils.Geography {
          /// <param name="kml"></param>
          /// <param name="xpath2placemark"></param>
          /// <returns></returns>
-         static public PoorGpx.GpxTrackPoint GetPoint4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) {
+         static public PoorGpx.GpxTrackPoint? GetPoint4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) {
             string coordinates = kml.ReadValue(xpathWithNamespace(xpath2placemark + "/Point/coordinates"), "");
             if (coordinates != "")
                return getPointFromText(coordinates, commasplitted, null);
@@ -132,11 +132,11 @@ namespace FSofTUtils.Geography {
          /// <param name="kml"></param>
          /// <param name="xpath2placemark"></param>
          /// <returns></returns>
-         static public List<List<PoorGpx.GpxTrackPoint>> GetPoints4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) {
-            List<List<PoorGpx.GpxTrackPoint>> lstlst = new List<List<PoorGpx.GpxTrackPoint>>();
+         static public PoorGpx.ListTS<PoorGpx.ListTS<PoorGpx.GpxTrackPoint>>? GetPoints4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) {
+            PoorGpx.ListTS<PoorGpx.ListTS<PoorGpx.GpxTrackPoint>> lstlst = new PoorGpx.ListTS<PoorGpx.ListTS<PoorGpx.GpxTrackPoint>>();
 
             for (int s = 0; ; s++) {
-               List<PoorGpx.GpxTrackPoint> lst = getPoints4Placemark(kml, xpath2placemark, s);
+               PoorGpx.ListTS<PoorGpx.GpxTrackPoint>? lst = getPoints4Placemark(kml, xpath2placemark, s);
                if (lst != null && lst.Count > 0)
                   lstlst.Add(lst);
                else
@@ -146,7 +146,7 @@ namespace FSofTUtils.Geography {
             return lstlst.Count > 0 ? lstlst : null;
          }
 
-         static List<PoorGpx.GpxTrackPoint> getPoints4Placemark(SimpleXmlDocument2 kml, string xpath2placemark, int segmentidx) {
+         static PoorGpx.ListTS<PoorGpx.GpxTrackPoint>? getPoints4Placemark(SimpleXmlDocument2 kml, string xpath2placemark, int segmentidx) {
             string coordinates = kml.ReadValue(xpathWithNamespace(xpath2placemark + "/LineString[" + (segmentidx + 1) + "]/coordinates"), "");
 
             if (coordinates == "")
@@ -155,8 +155,8 @@ namespace FSofTUtils.Geography {
             if (coordinates != "")
                return getPointsFromCoordinateList(coordinates);
 
-            string[] times;
-            string[] coords = kml.ReadString(xpathWithNamespace(xpath2placemark) + "/gx:Track/gx:coord");
+            string?[]? times;
+            string?[]? coords = kml.ReadString(xpathWithNamespace(xpath2placemark) + "/gx:Track/gx:coord");
             if (coords != null)
                times = kml.ReadString(xpathWithNamespace(xpath2placemark) + "/gx:Track" + xpathWithNamespace("/when"));
             else {
@@ -165,14 +165,18 @@ namespace FSofTUtils.Geography {
             }
 
             if (coords != null) {
-               List<PoorGpx.GpxTrackPoint> ptlst = new List<PoorGpx.GpxTrackPoint>();
+               PoorGpx.ListTS<PoorGpx.GpxTrackPoint> ptlst = new PoorGpx.ListTS<PoorGpx.GpxTrackPoint>();
                for (int i = 0; i < coords.Length; i++) {
-                  string time = times != null && times.Length > i ?
+                  string? time = times != null && times.Length > i ?
                                           times[i] :
                                           null;
-                  PoorGpx.GpxTrackPoint pt = getPointFromText(coords[i], commasplitted, time);  // auch spacesplitted möglich ?
-                  if (pt != null)
-                     ptlst.Add(pt);
+                  if (coords[i] != null) {
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
+                     PoorGpx.GpxTrackPoint? pt = getPointFromText(coords[i], commasplitted, time);  // auch spacesplitted möglich ?
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
+                     if (pt != null)
+                        ptlst.Add(pt);
+                  }
                }
                return ptlst;
             }
@@ -180,17 +184,17 @@ namespace FSofTUtils.Geography {
             return null;
          }
 
-         static List<PoorGpx.GpxTrackPoint> getPointsFromCoordinateList(string coordinates) {
-            List<PoorGpx.GpxTrackPoint> ptlst = new List<PoorGpx.GpxTrackPoint>();
+         static PoorGpx.ListTS<PoorGpx.GpxTrackPoint> getPointsFromCoordinateList(string coordinates) {
+            PoorGpx.ListTS<PoorGpx.GpxTrackPoint> ptlst = new PoorGpx.ListTS<PoorGpx.GpxTrackPoint>();
             foreach (string coord in coordinates.Split(spacesplitted, System.StringSplitOptions.RemoveEmptyEntries)) {
-               PoorGpx.GpxTrackPoint pt = getPointFromText(coord, commasplitted, null);
+               PoorGpx.GpxTrackPoint? pt = getPointFromText(coord, commasplitted, null);
                if (pt != null)
                   ptlst.Add(pt);
             }
             return ptlst;
          }
 
-         static PoorGpx.GpxTrackPoint getPointFromText(string ptstring, char[] splitchars, string timestring) {
+         static PoorGpx.GpxTrackPoint? getPointFromText(string ptstring, char[] splitchars, string? timestring) {
             string[] data = ptstring.Split(splitchars);
             switch (data.Length) {
                case 2:
@@ -210,18 +214,24 @@ namespace FSofTUtils.Geography {
 
 
          /// <summary>
-         /// liefert die Farbe für ein Placemark (oder Color.Transparent)
+         /// liefert die Farbe für ein Placemark (oder Color.Empty)
          /// </summary>
          /// <param name="kml"></param>
          /// <param name="xpath2placemark"></param>
-         /// <returns></returns>
-         static Color getColor4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) {
-            return hexToColor(kml.ReadValue(xpathWithNamespace(xpath2placemark + "/Style/LineStyle/color"), ""));
-         }
+         /// <returns>Farbe oder Color.Empty</returns>
+         static Color getColor4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) =>
+            hexToColor(kml.ReadValue(xpathWithNamespace(xpath2placemark + "/Style/LineStyle/color"), ""));
 
+         /// <summary>
+         /// liefert die Farbe (oder Color.Empty)
+         /// </summary>
+         /// <param name="kml"></param>
+         /// <param name="xpath2document"></param>
+         /// <param name="xpath2placemark"></param>
+         /// <returns></returns>
          static public Color GetColor4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2document, string xpath2placemark) {
             Color col = getColor4PlacemarkXPath(kml, xpath2placemark);
-            if (col == Color.Transparent) {
+            if (col == Color.Empty) {
                string stylemapname = getColorStylemap4PlacemarkXPath(kml, xpath2placemark);
                if (stylemapname != "") {
                   if (stylemapname[0] == '#')
@@ -243,16 +253,15 @@ namespace FSofTUtils.Geography {
          /// <param name="kml"></param>
          /// <param name="xpath2placemark"></param>
          /// <returns></returns>
-         static string getColorStylemap4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) {
-            return kml.ReadValue(xpathWithNamespace(xpath2placemark + "/styleUrl"), "");
-         }
+         static string getColorStylemap4PlacemarkXPath(SimpleXmlDocument2 kml, string xpath2placemark) =>
+            kml.ReadValue(xpathWithNamespace(xpath2placemark + "/styleUrl"), "");
 
          static string getColorStyle4NormalStylemapInDocumentXPath(SimpleXmlDocument2 kml, string xpath2document, string stylemapname) {
             /*
                      * /Document/StyleMap/@id=[STYLEMAPNAME]/Pair[IDX]/key == normal
                      * /Document/StyleMap/@id=[STYLEMAPNAME]/Pair[IDX]/styleUrl
              */
-            string[] pairkeys = kml.ReadString(xpathWithNamespace(xpath2document + "/StyleMap") + "[@id=\"" + stylemapname + "\"]" + xpathWithNamespace("/Pair/key"));
+            string?[]? pairkeys = kml.ReadString(xpathWithNamespace(xpath2document + "/StyleMap") + "[@id=\"" + stylemapname + "\"]" + xpathWithNamespace("/Pair/key"));
             if (pairkeys != null)
                for (int i = 0; i < pairkeys.Length; i++) {
                   if (pairkeys[i] == "normal")
@@ -261,16 +270,15 @@ namespace FSofTUtils.Geography {
             return "";
          }
 
-         static Color getColor4LinestyleInDocument(SimpleXmlDocument2 kml, string xpath2document, string stylename) {
-            return hexToColor(kml.ReadValue(xpathWithNamespace(xpath2document + "/Style[@id=\"" + stylename + "\"]/LineStyle/color"), ""));
-         }
+         static Color getColor4LinestyleInDocument(SimpleXmlDocument2 kml, string xpath2document, string stylename) =>
+            hexToColor(kml.ReadValue(xpathWithNamespace(xpath2document + "/Style[@id=\"" + stylename + "\"]/LineStyle/color"), ""));
 
 
          /// <summary>
          /// wandelt einen hexadezimalen Farbtext in eine Farbe um
          /// </summary>
          /// <param name="hexString">3 oder 4 Byte, auch mit führendem '#'</param>
-         /// <returns></returns>
+         /// <returns>wenn keine Farbe erkannt, dann Color.Empty</returns>
          static Color hexToColor(string hexString) {
             hexString = hexString.Trim();
 
@@ -291,14 +299,12 @@ namespace FSofTUtils.Geography {
                                      getInt4Hex(hexString.Substring(6, 2))
                                     );
 
-            return Color.Transparent;
+            return Color.Empty;
          }
 
-         static double getDouble(string txt) {
-            return Convert.ToDouble(txt, CultureInfo.InvariantCulture);
-         }
+         static double getDouble(string txt) => Convert.ToDouble(txt, CultureInfo.InvariantCulture);
 
-         static DateTime getDateTime(string txt) {
+         static DateTime getDateTime(string? txt) {
             if (txt == null)
                return PoorGpx.BaseElement.NOTVALID_TIME;
             txt = txt.Trim();
@@ -307,38 +313,35 @@ namespace FSofTUtils.Geography {
                         PoorGpx.BaseElement.NOTVALID_TIME;
          }
 
-         static int getInt4Hex(string hex) {
-            return int.Parse(hex, NumberStyles.HexNumber);
-         }
+         static int getInt4Hex(string hex) => int.Parse(hex, NumberStyles.HexNumber);
 
          /// <summary>
          /// fügt in den XPath den Namespace <see cref="PRIVATENAMESPACE"/> ein
          /// </summary>
          /// <param name="xpath"></param>
          /// <returns></returns>
-         static string xpathWithNamespace(string xpath) {
-            return xpath.Replace("/", "/" + PRIVATENAMESPACE + ":");
-         }
-
+         static string xpathWithNamespace(string xpath) => xpath.Replace("/", "/" + PRIVATENAMESPACE + ":");
       }
 
 
       public PoorGpx.GpxAll Read(string filename, out List<Color> trackcolors) {
-         SimpleXmlDocument2 kml = getXmlData(filename);
-         kml.RegisterDocumentNamespaces();
-         // i.A.:
-         //xmlns="http://www.opengis.net/kml/2.2"
-         //xmlns:gx="http://www.google.com/kml/ext/2.2"
-         //xmlns:kml="http://www.opengis.net/kml/2.2"
-         //xmlns:atom="http://www.w3.org/2005/Atom">
-
-         if (kml.GetNamespaces().Count > 0)
-            kml.AddNamespace(PRIVATENAMESPACE);
-
+         SimpleXmlDocument2? kml = getXmlData(filename);
          PoorGpx.GpxAll gpx = new PoorGpx.GpxAll();
          trackcolors = new List<Color>();
 
-         read(kml, gpx, trackcolors, "/kml", "");
+         if (kml != null) {
+            kml.RegisterDocumentNamespaces();
+            // i.A.:
+            //xmlns="http://www.opengis.net/kml/2.2"
+            //xmlns:gx="http://www.google.com/kml/ext/2.2"
+            //xmlns:kml="http://www.opengis.net/kml/2.2"
+            //xmlns:atom="http://www.w3.org/2005/Atom">
+
+            if (kml.GetNamespaces().Count > 0)
+               kml.AddNamespace(PRIVATENAMESPACE);
+
+            read(kml, gpx, trackcolors, "/kml", "");
+         }
 
          return gpx;
       }
@@ -349,7 +352,9 @@ namespace FSofTUtils.Geography {
       /// </summary>
       /// <param name="kml"></param>
       /// <param name="gpx"></param>
+      /// <param name="colors">Liste der Trackfarben</param>
       /// <param name="xpath"></param>
+      /// <param name="lastdocumentxpath"></param>
       void read(SimpleXmlDocument2 kml, PoorGpx.GpxAll gpx, List<Color> colors, string xpath, string lastdocumentxpath) {
 
          int documents = XPathHelper.GetDocumentkCount4XPath(kml, xpath);
@@ -369,7 +374,7 @@ namespace FSofTUtils.Geography {
                                                 out DateTime timestart,
                                                 out DateTime timeend);
 
-            PoorGpx.GpxTrackPoint pt = XPathHelper.GetPoint4PlacemarkXPath(kml, placemarkpath);
+            PoorGpx.GpxTrackPoint? pt = XPathHelper.GetPoint4PlacemarkXPath(kml, placemarkpath);
             if (pt != null) {          // Placemark ist ein Waypoint
 
                PoorGpx.GpxWaypoint gpxWaypoint = new PoorGpx.GpxWaypoint(pt.Lon, pt.Lat, pt.Elevation, pt.Time) {
@@ -386,7 +391,7 @@ namespace FSofTUtils.Geography {
 
             } else { // Placemark ist kein Waypoint, also als Track versuchen
 
-               List<List<PoorGpx.GpxTrackPoint>> lstlst = XPathHelper.GetPoints4PlacemarkXPath(kml, placemarkpath);
+               PoorGpx.ListTS<PoorGpx.ListTS<PoorGpx.GpxTrackPoint>>? lstlst = XPathHelper.GetPoints4PlacemarkXPath(kml, placemarkpath);
                if (lstlst != null && lstlst.Count > 0) { // Track mmit min. 1 Segment
                   PoorGpx.GpxTrack track = new PoorGpx.GpxTrack() {
                      Name = name,
@@ -420,19 +425,20 @@ namespace FSofTUtils.Geography {
       /// </summary>
       /// <param name="filename"></param>
       /// <returns></returns>
-      SimpleXmlDocument2 getXmlData(string filename) {
-         string kmltext = null;
+      SimpleXmlDocument2? getXmlData(string filename) {
+         string? kmltext = null;
 
          if (Path.GetExtension(filename).ToUpper() == ".KMZ") {
 
             using (FileStream zipstream = new FileStream(filename, FileMode.Open)) {
                using (ZipArchive archive = new ZipArchive(zipstream, ZipArchiveMode.Read)) {
-                  ZipArchiveEntry file = archive.GetEntry(defaultKmlFilename);
-                  using (Stream reader = file.Open()) {
-                     using (StreamReader streamReader = new StreamReader(reader)) {
-                        kmltext = streamReader.ReadToEnd();
+                  ZipArchiveEntry? file = archive.GetEntry(defaultKmlFilename);
+                  if (file != null)
+                     using (Stream reader = file.Open()) {
+                        using (StreamReader streamReader = new StreamReader(reader)) {
+                           kmltext = streamReader.ReadToEnd();
+                        }
                      }
-                  }
                }
             }
 
@@ -444,9 +450,12 @@ namespace FSofTUtils.Geography {
 
          }
 
-         SimpleXmlDocument2 xml = new SimpleXmlDocument2();
-         xml.LoadXml(kmltext);
-         return xml;
+         if (kmltext != null) {
+            SimpleXmlDocument2 xml = new SimpleXmlDocument2();
+            xml.LoadXml(kmltext);
+            return xml;
+         }
+         return null;
       }
 
 

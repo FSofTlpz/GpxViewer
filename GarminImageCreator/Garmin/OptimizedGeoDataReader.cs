@@ -1,4 +1,6 @@
-﻿using GarminCore;
+﻿//#define LOCALDEBUG
+
+using GarminCore;
 using GarminCore.DskImg;
 using GarminCore.Files;
 using GarminCore.OptimizedReader;
@@ -20,9 +22,9 @@ namespace GarminImageCreator.Garmin {
       /// <summary>
       /// erspart z.T. das Umrechnen der Raw-Daten und das Erzeugen der Geo-Objekte
       /// </summary>
-      SubdivMapDataCache sdcache;
+      SubdivMapDataCache? sdcache;
 
-      string overviewMapFilename;
+      string? overviewMapFilename;
 
       int overviewMaxBitLevel;
 
@@ -53,6 +55,9 @@ namespace GarminImageCreator.Garmin {
          registerOverviewData();
       }
 
+      bool isCancellationRequested(CancellationToken? cancellationToken) => cancellationToken != null && cancellationToken.Value.IsCancellationRequested;
+
+
       /// <summary>
       /// holt alle geografischen Daten für diesen Bereich
       /// </summary>
@@ -70,7 +75,7 @@ namespace GarminImageCreator.Garmin {
                        out List<GeoPoly> lines,
                        out List<GeoPoint> points,
                        bool imgreaddirect,
-                       CancellationToken cancellationToken) {
+                       CancellationToken? cancellationToken) {
          areas = new List<GeoPoly>();
          lines = new List<GeoPoly>();
          points = new List<GeoPoint>();
@@ -81,7 +86,10 @@ namespace GarminImageCreator.Garmin {
                                        tdb.Overviewmap.East,
                                        tdb.Overviewmap.South,
                                        tdb.Overviewmap.North);
-            if (cancellationToken.IsCancellationRequested)
+
+
+
+            if (isCancellationRequested(cancellationToken))
                return false;
             if (area.IsOverlapped(rectTile)) {
                read(uint.MaxValue,
@@ -101,7 +109,7 @@ namespace GarminImageCreator.Garmin {
                                           tdb.Tilemap[i].South,
                                           tdb.Tilemap[i].North);
                if (area.IsOverlapped(rectTile)) {
-                  if (cancellationToken.IsCancellationRequested)
+                  if (isCancellationRequested(cancellationToken))
                      return false;
                   read(tdb.Tilemap[i].Mapnumber,
                        area,
@@ -114,7 +122,7 @@ namespace GarminImageCreator.Garmin {
                }
             }
          }
-         return !cancellationToken.IsCancellationRequested;
+         return !isCancellationRequested(cancellationToken);
       }
 
       void registerOverviewData() {
@@ -149,12 +157,14 @@ namespace GarminImageCreator.Garmin {
                      for (int i = 0; i < img.FileCount; i++) {
                         string filename = img.Filename(i);
                         if (Path.GetExtension(filename).ToUpper() == ".TRE") {
-                           using (BinaryReaderWriter trereader = img.GetBinaryReaderWriter4File(filename)) {
-                              GarminCore.OptimizedReader.StdFile_TRE tre = new GarminCore.OptimizedReader.StdFile_TRE();
-                              tre.ReadMinimalData(trereader);
-                              overviewMaxBitLevel = 0;
-                              for (int m = 0; m < tre.MaplevelList.Count; m++)
-                                 overviewMaxBitLevel = Math.Max(overviewMaxBitLevel, tre.MaplevelList[m].CoordBits);
+                           using (BinaryReaderWriter? trereader = img.GetBinaryReaderWriter4File(filename)) {
+                              if (trereader != null) {
+                                 GarminCore.OptimizedReader.StdFile_TRE tre = new GarminCore.OptimizedReader.StdFile_TRE();
+                                 tre.ReadMinimalData(trereader);
+                                 overviewMaxBitLevel = 0;
+                                 for (int m = 0; m < tre.MaplevelList.Count; m++)
+                                    overviewMaxBitLevel = Math.Max(overviewMaxBitLevel, tre.MaplevelList[m].CoordBits);
+                              }
                            }
                            break;
                         }
@@ -183,10 +193,12 @@ namespace GarminImageCreator.Garmin {
          if (readdirect) {
             return new BinaryReaderWriter(File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read));
          } else {
-            byte[] buffer = null;
+            byte[]? buffer = null;
             using (FileStream stream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read)) {
                buffer = new byte[stream.Length];
-               stream.Read(buffer, 0, buffer.Length);
+               int len = stream.Read(buffer, 0, buffer.Length);
+               if (len != buffer.Length)
+                  throw new Exception(nameof(GarminGraphicData) + "." + nameof(getBinaryReaderWriter4File) + "(): Nicht genug Daten gelesen.");
             }
             return new BinaryReaderWriter(buffer, 0, buffer.Length, null, false);
          }
@@ -200,14 +212,16 @@ namespace GarminImageCreator.Garmin {
       /// <param name="extension"></param>
       /// <param name="readdirect">bei false wird explizit ein eigener Puffer im Hauptspeicher mit den Date erzeugt</param>
       /// <returns></returns>
-      BinaryReaderWriter getBinaryReaderWriter4PseudoFile(ImgReader img, uint mapnumber, string extension, bool readdirect) {
+      BinaryReaderWriter? getBinaryReaderWriter4PseudoFile(ImgReader img, uint mapnumber, string extension, bool readdirect) {
          if (readdirect)
             return img.GetBinaryReaderWriter4File(mapnumber.ToString() + extension);
          else {
-            byte[] buffer = null;
-            using (BinaryReaderWriter br = img.GetBinaryReaderWriter4File(mapnumber.ToString() + extension)) {
-               buffer = new byte[br.Length];
-               br.Read(buffer, 0, buffer.Length);
+            byte[] buffer = Array.Empty<byte>();
+            using (BinaryReaderWriter? br = img.GetBinaryReaderWriter4File(mapnumber.ToString() + extension)) {
+               if (br != null) {
+                  buffer = new byte[br.Length];
+                  br.Read(buffer, 0, buffer.Length);
+               }
             }
             return new BinaryReaderWriter(buffer, 0, buffer.Length, null, false);
          }
@@ -220,114 +234,138 @@ namespace GarminImageCreator.Garmin {
                 List<GeoPoly> lines,
                 List<GeoPoint> points,
                 bool imgreaddirect,
-                CancellationToken cancellationToken) {
+                CancellationToken? cancellationToken) {
          DateTime start = DateTime.Now;
 
          try {
-            string file = mapnumber < uint.MaxValue ?
+            string? file = mapnumber < uint.MaxValue ?
                               Path.Combine(mappath, mapnumber.ToString() + ".img") :
                               overviewMapFilename;
 
             if (mapnumber == uint.MaxValue)
                mapnumber = tdb.Overviewmap.Mapnumber;
-
+#if LOCALDEBUG
             Debug.WriteLine(nameof(OptimizedGeoDataReader) + "." + nameof(read) + ": " + file);
+#endif
+            if (file != null)
+               using (BinaryReaderWriter imgreader = getBinaryReaderWriter4File(file, imgreaddirect)) {
+                  // liest das Dateisystem, aber nicht die Dateien ein
+                  ImgReader img = new ImgReader(imgreader);
 
-            using (BinaryReaderWriter imgreader = getBinaryReaderWriter4File(file, imgreaddirect)) {
-               // liest das Dateisystem, aber nicht die Dateien ein
-               ImgReader img = new ImgReader(imgreader);
+                  GarminCore.OptimizedReader.StdFile_TRE tre = new GarminCore.OptimizedReader.StdFile_TRE();
+                  GarminCore.OptimizedReader.StdFile_TRE.SubdivInfoBasic[]? tresubdiv = null;
 
-               GarminCore.OptimizedReader.StdFile_TRE tre = new GarminCore.OptimizedReader.StdFile_TRE();
-               GarminCore.OptimizedReader.StdFile_TRE.SubdivInfoBasic[] tresubdiv = null;
+                  using (BinaryReaderWriter? trereader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".TRE", true)) {
+                     if (trereader != null) {
+                        tre.ReadMinimalData(trereader);
 
-               using (BinaryReaderWriter trereader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".TRE", true)) {
-                  tre.ReadMinimalData(trereader);
+                        // passenden maplevel suchen
+                        GarminCore.OptimizedReader.StdFile_TRE.MapLevel ml = tre.MaplevelList[tre.MaplevelList.Count - 1];
+                        for (int m = 1; m < tre.MaplevelList.Count; m++) {  // Level 0 hat die niedrigste Bitanzahl und ist i.A. (immer ?) leer
+                           if (tre.MaplevelList[m].CoordBits >= bits) {
+                              ml = tre.MaplevelList[m];
+                              break;
+                           }
+                        }
 
-                  // passenden maplevel suchen
-                  GarminCore.OptimizedReader.StdFile_TRE.MapLevel ml = tre.MaplevelList[tre.MaplevelList.Count - 1];
-                  for (int m = 1; m < tre.MaplevelList.Count; m++) {  // Level 0 hat die niedrigste Bitanzahl und ist i.A. (immer ?) leer
-                     if (tre.MaplevelList[m].CoordBits >= bits) {
-                        ml = tre.MaplevelList[m];
-                        break;
-                     }
-                  }
-
-                  if (cancellationToken.IsCancellationRequested) {
-                     Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": A " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
-                     return;
-                  } // else Thread.Sleep(1000);
-
-                  // Index-Liste der betroffenen Subdivs ermitteln
-                  List<int> subdividxlst = tre.GetSubdivIdxList(ml.FirstSubdivInfoNumber - 1,
-                                                             ml.SubdivInfos,
-                                                             area,
-                                                             ml.CoordBits);
-                  tresubdiv = tre.GetSubdivs(subdividxlst);
-                  if (tresubdiv.Length > 0) {
-                     GarminCore.OptimizedReader.StdFile_RGN rgn = new GarminCore.OptimizedReader.StdFile_RGN(tre);
-                     GarminCore.OptimizedReader.StdFile_RGN.SubdivData[] rgnsubdivdata;
-
-                     if (cancellationToken.IsCancellationRequested) {
-                        Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": B " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
-                        return;
-                     } // else Thread.Sleep(1000);
-
-                     BinaryReaderWriter rgnreader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".RGN", true);
-                     rgn.SetValidSubdivIdx(subdividxlst);
-                     rgn.ReadMinimalData(rgnreader);
-
-                     if (cancellationToken.IsCancellationRequested) {
-                        Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": C " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
-                        return;
-                     } // else Thread.Sleep(1000);
-
-                     rgn.ReadGeoData(rgnreader);
-                     rgnsubdivdata = rgn.GetSubdivs(subdividxlst);
-                     rgn.ReadExtData(rgnreader);
-
-                     if (cancellationToken.IsCancellationRequested) {
-                        Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": D " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
-                        return;
-                     } // else Thread.Sleep(1000);
-
-                     GarminCore.OptimizedReader.StdFile_LBL lbl = new GarminCore.OptimizedReader.StdFile_LBL();
-                     BinaryReaderWriter lblreader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".LBL", true);
-                     // lblreader muss ex. bis ALLE Daten eigelesen sind.
-                     lbl.ReadMinimalData(lblreader);
-
-                     if (cancellationToken.IsCancellationRequested) {
-                        Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": E " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
-                        return;
-                     } // else Thread.Sleep(1000);
-
-                     GarminCore.OptimizedReader.StdFile_NET net = new GarminCore.OptimizedReader.StdFile_NET();
-                     net.Lbl = lbl;
-                     BinaryReaderWriter netreader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".NET", true);
-                     // netreader muss ex. bis ALLE Daten eigelesen sind.
-                     if (netreader != null)     // in Overview-Map i.A. NICHT vorhanden
-                        net.ReadMinimalData(netreader);
-
-                     // Raw-Daten umrechnen und die Geo-Objekte erzeugen
-                     for (int i = 0; i < tresubdiv.Length && i < rgnsubdivdata.Length; i++) {
-                        if (cancellationToken.IsCancellationRequested) {
-                           Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": F " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
+                        if (isCancellationRequested(cancellationToken)) {
+#if LOCALDEBUG
+                           Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": A " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
+#endif
                            return;
                         } // else Thread.Sleep(1000);
 
-                        SubdivMapData smd = sdcache?.Get(mapnumber, subdividxlst[i]);
-                        if (smd == null) {
-                           smd = new SubdivMapData();
-                           smd.ReadData(tresubdiv[i], rgnsubdivdata[i], ml.CoordBits, lbl, rgn, net);
-                           sdcache?.Add(smd, mapnumber, subdividxlst[i]);
-                        }
+                        // Index-Liste der betroffenen Subdivs ermitteln
+                        List<int> subdividxlst = tre.GetSubdivIdxList(ml.FirstSubdivInfoNumber - 1,
+                                                                   ml.SubdivInfos,
+                                                                   area,
+                                                                   ml.CoordBits);
+                        tresubdiv = tre.GetSubdivs(subdividxlst);
+                        if (tresubdiv.Length > 0) {
+                           GarminCore.OptimizedReader.StdFile_RGN rgn = new GarminCore.OptimizedReader.StdFile_RGN(tre);
 
-                        areas.AddRange(smd.Areas);
-                        lines.AddRange(smd.Lines);
-                        points.AddRange(smd.Points);
+                           if (isCancellationRequested(cancellationToken)) {
+#if LOCALDEBUG
+                              Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": B " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
+#endif
+                              return;
+                           } // else Thread.Sleep(1000);
+
+                           BinaryReaderWriter? rgnreader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".RGN", true);
+                           if (rgnreader != null) {
+                              rgn.SetValidSubdivIdx(subdividxlst);
+                              rgn.ReadMinimalData(rgnreader);
+
+                              if (isCancellationRequested(cancellationToken)) {
+#if LOCALDEBUG
+                                 Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": C " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
+#endif
+                                 return;
+                              } // else Thread.Sleep(1000);
+
+                              rgn.ReadGeoData(rgnreader);
+                              rgn.ReadExtData(rgnreader);
+                              GarminCore.OptimizedReader.StdFile_RGN.SubdivData?[] rgnsubdivdata = rgn.GetSubdivs(subdividxlst);
+
+                              if (isCancellationRequested(cancellationToken)) {
+#if LOCALDEBUG
+                                 Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": D " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
+#endif
+                                 return;
+                              } // else Thread.Sleep(1000);
+
+                              GarminCore.OptimizedReader.StdFile_LBL lbl = new GarminCore.OptimizedReader.StdFile_LBL();
+                              BinaryReaderWriter? lblreader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".LBL", true);
+                              // lblreader muss ex. bis ALLE Daten eigelesen sind.
+                              if (lblreader != null)
+                                 lbl.ReadMinimalData(lblreader);
+
+                              if (isCancellationRequested(cancellationToken)) {
+#if LOCALDEBUG
+                                 Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": E " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
+#endif
+                                 return;
+                              } // else Thread.Sleep(1000);
+
+                              GarminCore.OptimizedReader.StdFile_NET net = new GarminCore.OptimizedReader.StdFile_NET();
+                              net.Lbl = lbl;
+                              BinaryReaderWriter? netreader = getBinaryReaderWriter4PseudoFile(img, mapnumber, ".NET", true);
+                              // netreader muss ex. bis ALLE Daten eigelesen sind.
+                              if (netreader != null)     // in Overview-Map i.A. NICHT vorhanden
+                                 net.ReadMinimalData(netreader);
+
+                              // Raw-Daten umrechnen und die Geo-Objekte erzeugen
+                              for (int i = 0; i < tresubdiv.Length && i < rgnsubdivdata.Length; i++) {
+                                 if (isCancellationRequested(cancellationToken)) {
+#if LOCALDEBUG
+                                    Debug.WriteLine("GARMIN READ CANCEL " + mapnumber + ": F " + DateTime.Now.Subtract(start).TotalMilliseconds + "ms");
+#endif
+                                    return;
+                                 } // else Thread.Sleep(1000);
+
+                                 SubdivMapData? smd = sdcache?.Get(mapnumber, subdividxlst[i]);
+                                 if (smd == null && rgnsubdivdata[i] != null) {
+                                    smd = new SubdivMapData();
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
+                                    smd.ReadData(tresubdiv[i], rgnsubdivdata[i], ml.CoordBits, lbl, rgn, net);
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
+                                    sdcache?.Add(smd, mapnumber, subdividxlst[i]);
+                                 }
+
+                                 if (smd != null) {
+                                    if (smd.Areas != null)
+                                       areas.AddRange(smd.Areas);
+                                    if (smd.Lines != null)
+                                       lines.AddRange(smd.Lines);
+                                    if (smd.Points != null)
+                                       points.AddRange(smd.Points);
+                                 }
+                              }
+                           }
+                        }
                      }
                   }
                }
-            }
          } catch (Exception ex) {
             throw new Exception("Fehler beim Ermitteln der Geodaten aus " + mapnumber + ".IMG", ex);
          }

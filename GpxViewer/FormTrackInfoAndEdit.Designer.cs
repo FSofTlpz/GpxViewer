@@ -23,479 +23,496 @@
       /// the contents of this method with the code editor.
       /// </summary>
       private void InitializeComponent() {
-         this.components = new System.ComponentModel.Container();
-         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
-         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
-         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-         System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle10 = new System.Windows.Forms.DataGridViewCellStyle();
-         this.contextMenuStripText = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.ToolStripMenuItem_CopyText = new System.Windows.Forms.ToolStripMenuItem();
-         this.contextMenuStripPicture = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.ToolStripMenuItem_CopyPicture = new System.Windows.Forms.ToolStripMenuItem();
-         this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-         this.dataGridViewPoints = new System.Windows.Forms.DataGridView();
-         this.columnIdxDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-         this.ColumnLat = new System.Windows.Forms.DataGridViewTextBoxColumn();
-         this.columnLonDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-         this.columnElevationDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-         this.columnTimeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-         this.columnDistanceDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-         this.columnLengthDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-         this.contextMenuStripPoints = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.ToolStripMenuItem_PointsRemoving = new System.Windows.Forms.ToolStripMenuItem();
-         this.dataSet1 = new System.Data.DataSet();
-         this.dataTablePoints = new System.Data.DataTable();
-         this.dataColumnIdx = new System.Data.DataColumn();
-         this.dataColumnLat = new System.Data.DataColumn();
-         this.dataColumnLon = new System.Data.DataColumn();
-         this.dataColumnElevation = new System.Data.DataColumn();
-         this.dataColumnDistance = new System.Data.DataColumn();
-         this.dataColumnLength = new System.Data.DataColumn();
-         this.dataColumnTime = new System.Data.DataColumn();
-         this.labelProfile1 = new System.Windows.Forms.Label();
-         this.pictureBoxProfile1 = new System.Windows.Forms.PictureBox();
-         this.label_TrackLength = new System.Windows.Forms.Label();
-         this.label5 = new System.Windows.Forms.Label();
-         this.label2 = new System.Windows.Forms.Label();
-         this.textBoxSource = new System.Windows.Forms.TextBox();
-         this.label7 = new System.Windows.Forms.Label();
-         this.label6 = new System.Windows.Forms.Label();
-         this.textBoxComment = new System.Windows.Forms.TextBox();
-         this.textBoxDescription = new System.Windows.Forms.TextBox();
-         this.label4 = new System.Windows.Forms.Label();
-         this.textBoxName = new System.Windows.Forms.TextBox();
-         this.button_Save = new System.Windows.Forms.Button();
-         this.colorDialog1 = new System.Windows.Forms.ColorDialog();
-         this.contextMenuStripText.SuspendLayout();
-         this.contextMenuStripPicture.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-         this.splitContainer1.Panel1.SuspendLayout();
-         this.splitContainer1.Panel2.SuspendLayout();
-         this.splitContainer1.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.dataGridViewPoints)).BeginInit();
-         this.contextMenuStripPoints.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.dataSet1)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.dataTablePoints)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProfile1)).BeginInit();
-         this.SuspendLayout();
+         components = new System.ComponentModel.Container();
+         DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+         DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+         DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+         DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+         DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
+         System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormTrackInfoAndEdit));
+         contextMenuStripText = new ContextMenuStrip(components);
+         ToolStripMenuItem_CopyText = new ToolStripMenuItem();
+         ToolStripMenuItem_CopyMarkedText = new ToolStripMenuItem();
+         contextMenuStripPicture = new ContextMenuStrip(components);
+         ToolStripMenuItem_CopyPicture = new ToolStripMenuItem();
+         splitContainer1 = new SplitContainer();
+         dataGridViewPoints = new DataGridView();
+         columnIdxDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+         ColumnLat = new DataGridViewTextBoxColumn();
+         columnLonDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+         columnElevationDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+         columnTimeDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+         columnDistanceDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+         columnLengthDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+         contextMenuStripPoints = new ContextMenuStrip(components);
+         ToolStripMenuItem_PointsRemoving = new ToolStripMenuItem();
+         dataSet1 = new System.Data.DataSet();
+         dataTablePoints = new System.Data.DataTable();
+         dataColumnIdx = new System.Data.DataColumn();
+         dataColumnLat = new System.Data.DataColumn();
+         dataColumnLon = new System.Data.DataColumn();
+         dataColumnElevation = new System.Data.DataColumn();
+         dataColumnDistance = new System.Data.DataColumn();
+         dataColumnLength = new System.Data.DataColumn();
+         dataColumnTime = new System.Data.DataColumn();
+         richTextBoxInfo1 = new RichTextBox();
+         pictureBoxProfile1 = new PictureBox();
+         label_TrackLength = new Label();
+         label5 = new Label();
+         label2 = new Label();
+         textBoxSource = new TextBox();
+         label7 = new Label();
+         label6 = new Label();
+         textBoxComment = new TextBox();
+         textBoxDescription = new TextBox();
+         label4 = new Label();
+         textBoxName = new TextBox();
+         button_Save = new Button();
+         colorDialog1 = new ColorDialog();
+         contextMenuStripText.SuspendLayout();
+         contextMenuStripPicture.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+         splitContainer1.Panel1.SuspendLayout();
+         splitContainer1.Panel2.SuspendLayout();
+         splitContainer1.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)dataGridViewPoints).BeginInit();
+         contextMenuStripPoints.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)dataSet1).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)dataTablePoints).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)pictureBoxProfile1).BeginInit();
+         SuspendLayout();
          // 
          // contextMenuStripText
          // 
-         this.contextMenuStripText.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItem_CopyText});
-         this.contextMenuStripText.Name = "contextMenuStripText";
-         this.contextMenuStripText.Size = new System.Drawing.Size(265, 26);
+         contextMenuStripText.Items.AddRange(new ToolStripItem[] { ToolStripMenuItem_CopyText, ToolStripMenuItem_CopyMarkedText });
+         contextMenuStripText.Name = "contextMenuStripText";
+         contextMenuStripText.Size = new Size(325, 48);
+         contextMenuStripText.Opening += contextMenuStripText_Opening;
          // 
          // ToolStripMenuItem_CopyText
          // 
-         this.ToolStripMenuItem_CopyText.Name = "ToolStripMenuItem_CopyText";
-         this.ToolStripMenuItem_CopyText.Size = new System.Drawing.Size(264, 22);
-         this.ToolStripMenuItem_CopyText.Text = "Text in die Zwischenablage kopieren";
-         this.ToolStripMenuItem_CopyText.Click += new System.EventHandler(this.ToolStripMenuItem_CopyText_Click);
+         ToolStripMenuItem_CopyText.Name = "ToolStripMenuItem_CopyText";
+         ToolStripMenuItem_CopyText.Size = new Size(324, 22);
+         ToolStripMenuItem_CopyText.Text = "Text in die Zwischenablage kopieren";
+         ToolStripMenuItem_CopyText.Click += ToolStripMenuItem_CopyText_Click;
+         // 
+         // ToolStripMenuItem_CopyMarkedText
+         // 
+         ToolStripMenuItem_CopyMarkedText.Name = "ToolStripMenuItem_CopyMarkedText";
+         ToolStripMenuItem_CopyMarkedText.Size = new Size(324, 22);
+         ToolStripMenuItem_CopyMarkedText.Text = "markierten Text in die Zwischenablage kopieren";
+         ToolStripMenuItem_CopyMarkedText.Click += ToolStripMenuItem_CopyMarkedText_Click;
          // 
          // contextMenuStripPicture
          // 
-         this.contextMenuStripPicture.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItem_CopyPicture});
-         this.contextMenuStripPicture.Name = "contextMenuStripPicture";
-         this.contextMenuStripPicture.Size = new System.Drawing.Size(275, 26);
+         contextMenuStripPicture.Items.AddRange(new ToolStripItem[] { ToolStripMenuItem_CopyPicture });
+         contextMenuStripPicture.Name = "contextMenuStripPicture";
+         contextMenuStripPicture.Size = new Size(275, 26);
          // 
          // ToolStripMenuItem_CopyPicture
          // 
-         this.ToolStripMenuItem_CopyPicture.Name = "ToolStripMenuItem_CopyPicture";
-         this.ToolStripMenuItem_CopyPicture.Size = new System.Drawing.Size(274, 22);
-         this.ToolStripMenuItem_CopyPicture.Text = "Grafik in die Zwischenablage kopieren";
-         this.ToolStripMenuItem_CopyPicture.Click += new System.EventHandler(this.ToolStripMenuItem_CopyPicture_Click);
+         ToolStripMenuItem_CopyPicture.Name = "ToolStripMenuItem_CopyPicture";
+         ToolStripMenuItem_CopyPicture.Size = new Size(274, 22);
+         ToolStripMenuItem_CopyPicture.Text = "Grafik in die Zwischenablage kopieren";
+         ToolStripMenuItem_CopyPicture.Click += ToolStripMenuItem_CopyPicture_Click;
          // 
          // splitContainer1
          // 
-         this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.splitContainer1.Location = new System.Drawing.Point(12, 151);
-         this.splitContainer1.Name = "splitContainer1";
-         this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
+         splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+         splitContainer1.Location = new Point(14, 174);
+         splitContainer1.Margin = new Padding(4, 3, 4, 3);
+         splitContainer1.Name = "splitContainer1";
+         splitContainer1.Orientation = Orientation.Horizontal;
          // 
          // splitContainer1.Panel1
          // 
-         this.splitContainer1.Panel1.Controls.Add(this.dataGridViewPoints);
+         splitContainer1.Panel1.Controls.Add(dataGridViewPoints);
          // 
          // splitContainer1.Panel2
          // 
-         this.splitContainer1.Panel2.AutoScroll = true;
-         this.splitContainer1.Panel2.Controls.Add(this.labelProfile1);
-         this.splitContainer1.Panel2.Controls.Add(this.pictureBoxProfile1);
-         this.splitContainer1.Size = new System.Drawing.Size(602, 518);
-         this.splitContainer1.SplitterDistance = 164;
-         this.splitContainer1.TabIndex = 14;
+         splitContainer1.Panel2.AutoScroll = true;
+         splitContainer1.Panel2.Controls.Add(richTextBoxInfo1);
+         splitContainer1.Panel2.Controls.Add(pictureBoxProfile1);
+         splitContainer1.Size = new Size(707, 484);
+         splitContainer1.SplitterDistance = 153;
+         splitContainer1.SplitterWidth = 5;
+         splitContainer1.TabIndex = 14;
          // 
          // dataGridViewPoints
          // 
-         this.dataGridViewPoints.AllowUserToAddRows = false;
-         this.dataGridViewPoints.AllowUserToDeleteRows = false;
-         this.dataGridViewPoints.AllowUserToOrderColumns = true;
-         dataGridViewCellStyle6.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(192)))), ((int)(((byte)(255)))));
-         this.dataGridViewPoints.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle6;
-         this.dataGridViewPoints.AutoGenerateColumns = false;
-         this.dataGridViewPoints.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
-         this.dataGridViewPoints.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-         this.dataGridViewPoints.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.columnIdxDataGridViewTextBoxColumn,
-            this.ColumnLat,
-            this.columnLonDataGridViewTextBoxColumn,
-            this.columnElevationDataGridViewTextBoxColumn,
-            this.columnTimeDataGridViewTextBoxColumn,
-            this.columnDistanceDataGridViewTextBoxColumn,
-            this.columnLengthDataGridViewTextBoxColumn});
-         this.dataGridViewPoints.ContextMenuStrip = this.contextMenuStripPoints;
-         this.dataGridViewPoints.DataMember = "PointsTable";
-         this.dataGridViewPoints.DataSource = this.dataSet1;
-         this.dataGridViewPoints.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.dataGridViewPoints.Location = new System.Drawing.Point(0, 0);
-         this.dataGridViewPoints.Name = "dataGridViewPoints";
-         this.dataGridViewPoints.ReadOnly = true;
-         this.dataGridViewPoints.RowHeadersVisible = false;
-         this.dataGridViewPoints.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-         this.dataGridViewPoints.Size = new System.Drawing.Size(602, 164);
-         this.dataGridViewPoints.TabIndex = 0;
-         this.dataGridViewPoints.SelectionChanged += new System.EventHandler(this.dataGridViewPoints_SelectionChanged);
-         this.dataGridViewPoints.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dataGridViewPoints_KeyDown);
+         dataGridViewPoints.AllowUserToAddRows = false;
+         dataGridViewPoints.AllowUserToDeleteRows = false;
+         dataGridViewPoints.AllowUserToOrderColumns = true;
+         dataGridViewCellStyle1.BackColor = Color.FromArgb(192, 192, 255);
+         dataGridViewPoints.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+         dataGridViewPoints.AutoGenerateColumns = false;
+         dataGridViewPoints.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+         dataGridViewPoints.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+         dataGridViewPoints.Columns.AddRange(new DataGridViewColumn[] { columnIdxDataGridViewTextBoxColumn, ColumnLat, columnLonDataGridViewTextBoxColumn, columnElevationDataGridViewTextBoxColumn, columnTimeDataGridViewTextBoxColumn, columnDistanceDataGridViewTextBoxColumn, columnLengthDataGridViewTextBoxColumn });
+         dataGridViewPoints.ContextMenuStrip = contextMenuStripPoints;
+         dataGridViewPoints.DataMember = "PointsTable";
+         dataGridViewPoints.DataSource = dataSet1;
+         dataGridViewPoints.Dock = DockStyle.Fill;
+         dataGridViewPoints.Location = new Point(0, 0);
+         dataGridViewPoints.Margin = new Padding(4, 3, 4, 3);
+         dataGridViewPoints.Name = "dataGridViewPoints";
+         dataGridViewPoints.ReadOnly = true;
+         dataGridViewPoints.RowHeadersVisible = false;
+         dataGridViewPoints.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+         dataGridViewPoints.Size = new Size(707, 153);
+         dataGridViewPoints.TabIndex = 0;
+         dataGridViewPoints.SelectionChanged += dataGridViewPoints_SelectionChanged;
+         dataGridViewPoints.KeyDown += dataGridViewPoints_KeyDown;
          // 
          // columnIdxDataGridViewTextBoxColumn
          // 
-         this.columnIdxDataGridViewTextBoxColumn.DataPropertyName = "ColumnIdx";
-         this.columnIdxDataGridViewTextBoxColumn.HeaderText = "Nummer";
-         this.columnIdxDataGridViewTextBoxColumn.Name = "columnIdxDataGridViewTextBoxColumn";
-         this.columnIdxDataGridViewTextBoxColumn.ReadOnly = true;
-         this.columnIdxDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-         this.columnIdxDataGridViewTextBoxColumn.Width = 52;
+         columnIdxDataGridViewTextBoxColumn.DataPropertyName = "ColumnIdx";
+         columnIdxDataGridViewTextBoxColumn.HeaderText = "Nummer";
+         columnIdxDataGridViewTextBoxColumn.Name = "columnIdxDataGridViewTextBoxColumn";
+         columnIdxDataGridViewTextBoxColumn.ReadOnly = true;
+         columnIdxDataGridViewTextBoxColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
+         columnIdxDataGridViewTextBoxColumn.Width = 61;
          // 
          // ColumnLat
          // 
-         this.ColumnLat.DataPropertyName = "ColumnLat";
-         this.ColumnLat.HeaderText = "geogr. Länge";
-         this.ColumnLat.Name = "ColumnLat";
-         this.ColumnLat.ReadOnly = true;
-         this.ColumnLat.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-         this.ColumnLat.Width = 68;
+         ColumnLat.DataPropertyName = "ColumnLat";
+         ColumnLat.HeaderText = "geogr. Länge";
+         ColumnLat.Name = "ColumnLat";
+         ColumnLat.ReadOnly = true;
+         ColumnLat.SortMode = DataGridViewColumnSortMode.NotSortable;
+         ColumnLat.Width = 74;
          // 
          // columnLonDataGridViewTextBoxColumn
          // 
-         this.columnLonDataGridViewTextBoxColumn.DataPropertyName = "ColumnLon";
-         this.columnLonDataGridViewTextBoxColumn.HeaderText = "geogr. Breite";
-         this.columnLonDataGridViewTextBoxColumn.Name = "columnLonDataGridViewTextBoxColumn";
-         this.columnLonDataGridViewTextBoxColumn.ReadOnly = true;
-         this.columnLonDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-         this.columnLonDataGridViewTextBoxColumn.Width = 66;
+         columnLonDataGridViewTextBoxColumn.DataPropertyName = "ColumnLon";
+         columnLonDataGridViewTextBoxColumn.HeaderText = "geogr. Breite";
+         columnLonDataGridViewTextBoxColumn.Name = "columnLonDataGridViewTextBoxColumn";
+         columnLonDataGridViewTextBoxColumn.ReadOnly = true;
+         columnLonDataGridViewTextBoxColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
+         columnLonDataGridViewTextBoxColumn.Width = 72;
          // 
          // columnElevationDataGridViewTextBoxColumn
          // 
-         this.columnElevationDataGridViewTextBoxColumn.DataPropertyName = "ColumnElevation";
-         dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-         this.columnElevationDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle7;
-         this.columnElevationDataGridViewTextBoxColumn.HeaderText = "Höhe (m)";
-         this.columnElevationDataGridViewTextBoxColumn.Name = "columnElevationDataGridViewTextBoxColumn";
-         this.columnElevationDataGridViewTextBoxColumn.ReadOnly = true;
-         this.columnElevationDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-         this.columnElevationDataGridViewTextBoxColumn.Width = 50;
+         columnElevationDataGridViewTextBoxColumn.DataPropertyName = "ColumnElevation";
+         dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleRight;
+         columnElevationDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+         columnElevationDataGridViewTextBoxColumn.HeaderText = "Höhe (m)";
+         columnElevationDataGridViewTextBoxColumn.Name = "columnElevationDataGridViewTextBoxColumn";
+         columnElevationDataGridViewTextBoxColumn.ReadOnly = true;
+         columnElevationDataGridViewTextBoxColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
+         columnElevationDataGridViewTextBoxColumn.Width = 58;
          // 
          // columnTimeDataGridViewTextBoxColumn
          // 
-         this.columnTimeDataGridViewTextBoxColumn.DataPropertyName = "ColumnTime";
-         dataGridViewCellStyle8.Format = "G";
-         dataGridViewCellStyle8.NullValue = null;
-         this.columnTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle8;
-         this.columnTimeDataGridViewTextBoxColumn.HeaderText = "Zeitpunkt (UTC)";
-         this.columnTimeDataGridViewTextBoxColumn.Name = "columnTimeDataGridViewTextBoxColumn";
-         this.columnTimeDataGridViewTextBoxColumn.ReadOnly = true;
-         this.columnTimeDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-         this.columnTimeDataGridViewTextBoxColumn.Width = 80;
+         columnTimeDataGridViewTextBoxColumn.DataPropertyName = "ColumnTime";
+         dataGridViewCellStyle3.Format = "G";
+         dataGridViewCellStyle3.NullValue = null;
+         columnTimeDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle3;
+         columnTimeDataGridViewTextBoxColumn.HeaderText = "Zeitpunkt (UTC)";
+         columnTimeDataGridViewTextBoxColumn.Name = "columnTimeDataGridViewTextBoxColumn";
+         columnTimeDataGridViewTextBoxColumn.ReadOnly = true;
+         columnTimeDataGridViewTextBoxColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
+         columnTimeDataGridViewTextBoxColumn.Width = 87;
          // 
          // columnDistanceDataGridViewTextBoxColumn
          // 
-         this.columnDistanceDataGridViewTextBoxColumn.DataPropertyName = "ColumnDistance";
-         dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-         this.columnDistanceDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle9;
-         this.columnDistanceDataGridViewTextBoxColumn.HeaderText = "Entfernung (m)";
-         this.columnDistanceDataGridViewTextBoxColumn.Name = "columnDistanceDataGridViewTextBoxColumn";
-         this.columnDistanceDataGridViewTextBoxColumn.ReadOnly = true;
-         this.columnDistanceDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-         this.columnDistanceDataGridViewTextBoxColumn.Width = 74;
+         columnDistanceDataGridViewTextBoxColumn.DataPropertyName = "ColumnDistance";
+         dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleRight;
+         columnDistanceDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
+         columnDistanceDataGridViewTextBoxColumn.HeaderText = "Entfernung (m)";
+         columnDistanceDataGridViewTextBoxColumn.Name = "columnDistanceDataGridViewTextBoxColumn";
+         columnDistanceDataGridViewTextBoxColumn.ReadOnly = true;
+         columnDistanceDataGridViewTextBoxColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
+         columnDistanceDataGridViewTextBoxColumn.Width = 85;
          // 
          // columnLengthDataGridViewTextBoxColumn
          // 
-         this.columnLengthDataGridViewTextBoxColumn.DataPropertyName = "ColumnLength";
-         dataGridViewCellStyle10.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-         this.columnLengthDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle10;
-         this.columnLengthDataGridViewTextBoxColumn.HeaderText = "Streckenlänge (m)";
-         this.columnLengthDataGridViewTextBoxColumn.Name = "columnLengthDataGridViewTextBoxColumn";
-         this.columnLengthDataGridViewTextBoxColumn.ReadOnly = true;
-         this.columnLengthDataGridViewTextBoxColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-         this.columnLengthDataGridViewTextBoxColumn.Width = 89;
+         columnLengthDataGridViewTextBoxColumn.DataPropertyName = "ColumnLength";
+         dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleRight;
+         columnLengthDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle5;
+         columnLengthDataGridViewTextBoxColumn.HeaderText = "Streckenlänge (m)";
+         columnLengthDataGridViewTextBoxColumn.Name = "columnLengthDataGridViewTextBoxColumn";
+         columnLengthDataGridViewTextBoxColumn.ReadOnly = true;
+         columnLengthDataGridViewTextBoxColumn.SortMode = DataGridViewColumnSortMode.NotSortable;
+         columnLengthDataGridViewTextBoxColumn.Width = 98;
          // 
          // contextMenuStripPoints
          // 
-         this.contextMenuStripPoints.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItem_PointsRemoving});
-         this.contextMenuStripPoints.Name = "contextMenuStripPoints";
-         this.contextMenuStripPoints.Size = new System.Drawing.Size(209, 26);
-         this.contextMenuStripPoints.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripPoints_Opening);
+         contextMenuStripPoints.Items.AddRange(new ToolStripItem[] { ToolStripMenuItem_PointsRemoving });
+         contextMenuStripPoints.Name = "contextMenuStripPoints";
+         contextMenuStripPoints.Size = new Size(209, 26);
+         contextMenuStripPoints.Opening += contextMenuStripPoints_Opening;
          // 
          // ToolStripMenuItem_PointsRemoving
          // 
-         this.ToolStripMenuItem_PointsRemoving.Image = global::GpxViewer.Properties.Resources.delete;
-         this.ToolStripMenuItem_PointsRemoving.Name = "ToolStripMenuItem_PointsRemoving";
-         this.ToolStripMenuItem_PointsRemoving.Size = new System.Drawing.Size(208, 22);
-         this.ToolStripMenuItem_PointsRemoving.Text = "markierte Punkte löschen";
-         this.ToolStripMenuItem_PointsRemoving.Click += new System.EventHandler(this.ToolStripMenuItem_PointsRemoving_Click);
+         ToolStripMenuItem_PointsRemoving.Image = Properties.Resources.delete;
+         ToolStripMenuItem_PointsRemoving.Name = "ToolStripMenuItem_PointsRemoving";
+         ToolStripMenuItem_PointsRemoving.Size = new Size(208, 22);
+         ToolStripMenuItem_PointsRemoving.Text = "markierte Punkte löschen";
+         ToolStripMenuItem_PointsRemoving.Click += ToolStripMenuItem_PointsRemoving_Click;
          // 
          // dataSet1
          // 
-         this.dataSet1.DataSetName = "NewDataSet";
-         this.dataSet1.Tables.AddRange(new System.Data.DataTable[] {
-            this.dataTablePoints});
+         dataSet1.DataSetName = "NewDataSet";
+         dataSet1.Tables.AddRange(new System.Data.DataTable[] { dataTablePoints });
          // 
          // dataTablePoints
          // 
-         this.dataTablePoints.Columns.AddRange(new System.Data.DataColumn[] {
-            this.dataColumnIdx,
-            this.dataColumnLat,
-            this.dataColumnLon,
-            this.dataColumnElevation,
-            this.dataColumnDistance,
-            this.dataColumnLength,
-            this.dataColumnTime});
-         this.dataTablePoints.Constraints.AddRange(new System.Data.Constraint[] {
-            new System.Data.UniqueConstraint("Constraint1", new string[] {
-                        "ColumnIdx"}, false)});
-         this.dataTablePoints.TableName = "PointsTable";
+         dataTablePoints.Columns.AddRange(new System.Data.DataColumn[] { dataColumnIdx, dataColumnLat, dataColumnLon, dataColumnElevation, dataColumnDistance, dataColumnLength, dataColumnTime });
+         dataTablePoints.Constraints.AddRange(new System.Data.Constraint[] { new System.Data.UniqueConstraint("Constraint1", new string[] { "ColumnIdx" }, false) });
+         dataTablePoints.Namespace = "";
+         dataTablePoints.TableName = "PointsTable";
          // 
          // dataColumnIdx
          // 
-         this.dataColumnIdx.Caption = "ColumnIdx";
-         this.dataColumnIdx.ColumnName = "ColumnIdx";
-         this.dataColumnIdx.DataType = typeof(int);
-         this.dataColumnIdx.ReadOnly = true;
+         dataColumnIdx.Caption = "ColumnIdx";
+         dataColumnIdx.ColumnName = "ColumnIdx";
+         dataColumnIdx.DataType = typeof(int);
+         dataColumnIdx.DefaultValue = resources.GetObject("dataColumnIdx.DefaultValue");
+         dataColumnIdx.Namespace = "";
+         dataColumnIdx.ReadOnly = true;
          // 
          // dataColumnLat
          // 
-         this.dataColumnLat.Caption = "ColumnLat";
-         this.dataColumnLat.ColumnName = "ColumnLat";
-         this.dataColumnLat.DataType = typeof(double);
-         this.dataColumnLat.ReadOnly = true;
+         dataColumnLat.Caption = "ColumnLat";
+         dataColumnLat.ColumnName = "ColumnLat";
+         dataColumnLat.DataType = typeof(double);
+         dataColumnLat.DefaultValue = resources.GetObject("dataColumnLat.DefaultValue");
+         dataColumnLat.Namespace = "";
+         dataColumnLat.ReadOnly = true;
          // 
          // dataColumnLon
          // 
-         this.dataColumnLon.Caption = "ColumnLon";
-         this.dataColumnLon.ColumnName = "ColumnLon";
-         this.dataColumnLon.DataType = typeof(double);
-         this.dataColumnLon.ReadOnly = true;
+         dataColumnLon.Caption = "ColumnLon";
+         dataColumnLon.ColumnName = "ColumnLon";
+         dataColumnLon.DataType = typeof(double);
+         dataColumnLon.DefaultValue = resources.GetObject("dataColumnLon.DefaultValue");
+         dataColumnLon.Namespace = "";
+         dataColumnLon.ReadOnly = true;
          // 
          // dataColumnElevation
          // 
-         this.dataColumnElevation.Caption = "ColumnElevation";
-         this.dataColumnElevation.ColumnName = "ColumnElevation";
-         this.dataColumnElevation.DataType = typeof(double);
-         this.dataColumnElevation.ReadOnly = true;
+         dataColumnElevation.Caption = "ColumnElevation";
+         dataColumnElevation.ColumnName = "ColumnElevation";
+         dataColumnElevation.DataType = typeof(double);
+         dataColumnElevation.DefaultValue = resources.GetObject("dataColumnElevation.DefaultValue");
+         dataColumnElevation.Namespace = "";
+         dataColumnElevation.ReadOnly = true;
          // 
          // dataColumnDistance
          // 
-         this.dataColumnDistance.Caption = "ColumnDistance";
-         this.dataColumnDistance.ColumnName = "ColumnDistance";
-         this.dataColumnDistance.DataType = typeof(double);
-         this.dataColumnDistance.ReadOnly = true;
+         dataColumnDistance.Caption = "ColumnDistance";
+         dataColumnDistance.ColumnName = "ColumnDistance";
+         dataColumnDistance.DataType = typeof(double);
+         dataColumnDistance.DefaultValue = resources.GetObject("dataColumnDistance.DefaultValue");
+         dataColumnDistance.Namespace = "";
+         dataColumnDistance.ReadOnly = true;
          // 
          // dataColumnLength
          // 
-         this.dataColumnLength.Caption = "ColumnLength";
-         this.dataColumnLength.ColumnName = "ColumnLength";
-         this.dataColumnLength.DataType = typeof(double);
-         this.dataColumnLength.ReadOnly = true;
+         dataColumnLength.Caption = "ColumnLength";
+         dataColumnLength.ColumnName = "ColumnLength";
+         dataColumnLength.DataType = typeof(double);
+         dataColumnLength.DefaultValue = resources.GetObject("dataColumnLength.DefaultValue");
+         dataColumnLength.Namespace = "";
+         dataColumnLength.ReadOnly = true;
          // 
          // dataColumnTime
          // 
-         this.dataColumnTime.Caption = "ColumnTime";
-         this.dataColumnTime.ColumnName = "ColumnTime";
-         this.dataColumnTime.DataType = typeof(System.DateTime);
-         this.dataColumnTime.ReadOnly = true;
+         dataColumnTime.Caption = "ColumnTime";
+         dataColumnTime.ColumnName = "ColumnTime";
+         dataColumnTime.DataType = typeof(DateTime);
+         dataColumnTime.DefaultValue = resources.GetObject("dataColumnTime.DefaultValue");
+         dataColumnTime.Namespace = "";
+         dataColumnTime.ReadOnly = true;
          // 
-         // labelProfile1
+         // richTextBoxInfo1
          // 
-         this.labelProfile1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.labelProfile1.BackColor = System.Drawing.Color.Gainsboro;
-         this.labelProfile1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-         this.labelProfile1.ContextMenuStrip = this.contextMenuStripText;
-         this.labelProfile1.Location = new System.Drawing.Point(0, 0);
-         this.labelProfile1.Name = "labelProfile1";
-         this.labelProfile1.Size = new System.Drawing.Size(602, 26);
-         this.labelProfile1.TabIndex = 1;
-         this.labelProfile1.Text = "text";
+         richTextBoxInfo1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+         richTextBoxInfo1.ContextMenuStrip = contextMenuStripText;
+         richTextBoxInfo1.DetectUrls = false;
+         richTextBoxInfo1.HideSelection = false;
+         richTextBoxInfo1.Location = new Point(0, 0);
+         richTextBoxInfo1.Margin = new Padding(4, 3, 4, 3);
+         richTextBoxInfo1.Name = "richTextBoxInfo1";
+         richTextBoxInfo1.ReadOnly = true;
+         richTextBoxInfo1.ScrollBars = RichTextBoxScrollBars.Horizontal;
+         richTextBoxInfo1.Size = new Size(707, 28);
+         richTextBoxInfo1.TabIndex = 2;
+         richTextBoxInfo1.Text = "";
+         richTextBoxInfo1.WordWrap = false;
          // 
          // pictureBoxProfile1
          // 
-         this.pictureBoxProfile1.ContextMenuStrip = this.contextMenuStripPicture;
-         this.pictureBoxProfile1.Location = new System.Drawing.Point(8, 40);
-         this.pictureBoxProfile1.Name = "pictureBoxProfile1";
-         this.pictureBoxProfile1.Size = new System.Drawing.Size(100, 50);
-         this.pictureBoxProfile1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-         this.pictureBoxProfile1.TabIndex = 0;
-         this.pictureBoxProfile1.TabStop = false;
+         pictureBoxProfile1.ContextMenuStrip = contextMenuStripPicture;
+         pictureBoxProfile1.Location = new Point(9, 46);
+         pictureBoxProfile1.Margin = new Padding(4, 3, 4, 3);
+         pictureBoxProfile1.Name = "pictureBoxProfile1";
+         pictureBoxProfile1.Size = new Size(117, 58);
+         pictureBoxProfile1.SizeMode = PictureBoxSizeMode.Zoom;
+         pictureBoxProfile1.TabIndex = 0;
+         pictureBoxProfile1.TabStop = false;
          // 
          // label_TrackLength
          // 
-         this.label_TrackLength.AutoSize = true;
-         this.label_TrackLength.Location = new System.Drawing.Point(105, 124);
-         this.label_TrackLength.Name = "label_TrackLength";
-         this.label_TrackLength.Size = new System.Drawing.Size(13, 13);
-         this.label_TrackLength.TabIndex = 9;
-         this.label_TrackLength.Text = "0";
+         label_TrackLength.AutoSize = true;
+         label_TrackLength.Location = new Point(122, 143);
+         label_TrackLength.Margin = new Padding(4, 0, 4, 0);
+         label_TrackLength.Name = "label_TrackLength";
+         label_TrackLength.Size = new Size(13, 15);
+         label_TrackLength.TabIndex = 9;
+         label_TrackLength.Text = "0";
          // 
          // label5
          // 
-         this.label5.AutoSize = true;
-         this.label5.Location = new System.Drawing.Point(9, 124);
-         this.label5.Name = "label5";
-         this.label5.Size = new System.Drawing.Size(40, 13);
-         this.label5.TabIndex = 8;
-         this.label5.Text = "Länge:";
+         label5.AutoSize = true;
+         label5.Location = new Point(10, 143);
+         label5.Margin = new Padding(4, 0, 4, 0);
+         label5.Name = "label5";
+         label5.Size = new Size(42, 15);
+         label5.TabIndex = 8;
+         label5.Text = "Länge:";
          // 
          // label2
          // 
-         this.label2.AutoSize = true;
-         this.label2.Location = new System.Drawing.Point(9, 93);
-         this.label2.Name = "label2";
-         this.label2.Size = new System.Drawing.Size(40, 13);
-         this.label2.TabIndex = 6;
-         this.label2.Text = "Quelle:";
+         label2.AutoSize = true;
+         label2.Location = new Point(10, 107);
+         label2.Margin = new Padding(4, 0, 4, 0);
+         label2.Name = "label2";
+         label2.Size = new Size(44, 15);
+         label2.TabIndex = 6;
+         label2.Text = "Quelle:";
          // 
          // textBoxSource
          // 
-         this.textBoxSource.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.textBoxSource.Location = new System.Drawing.Point(106, 90);
-         this.textBoxSource.Name = "textBoxSource";
-         this.textBoxSource.Size = new System.Drawing.Size(508, 20);
-         this.textBoxSource.TabIndex = 7;
+         textBoxSource.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+         textBoxSource.Location = new Point(124, 104);
+         textBoxSource.Margin = new Padding(4, 3, 4, 3);
+         textBoxSource.Name = "textBoxSource";
+         textBoxSource.Size = new Size(597, 23);
+         textBoxSource.TabIndex = 7;
          // 
          // label7
          // 
-         this.label7.AutoSize = true;
-         this.label7.Location = new System.Drawing.Point(9, 67);
-         this.label7.Name = "label7";
-         this.label7.Size = new System.Drawing.Size(63, 13);
-         this.label7.TabIndex = 4;
-         this.label7.Text = "Kommentar:";
+         label7.AutoSize = true;
+         label7.Location = new Point(10, 77);
+         label7.Margin = new Padding(4, 0, 4, 0);
+         label7.Name = "label7";
+         label7.Size = new Size(73, 15);
+         label7.TabIndex = 4;
+         label7.Text = "Kommentar:";
          // 
          // label6
          // 
-         this.label6.AutoSize = true;
-         this.label6.Location = new System.Drawing.Point(9, 41);
-         this.label6.Name = "label6";
-         this.label6.Size = new System.Drawing.Size(75, 13);
-         this.label6.TabIndex = 2;
-         this.label6.Text = "Beschreibung:";
+         label6.AutoSize = true;
+         label6.Location = new Point(10, 47);
+         label6.Margin = new Padding(4, 0, 4, 0);
+         label6.Name = "label6";
+         label6.Size = new Size(82, 15);
+         label6.TabIndex = 2;
+         label6.Text = "Beschreibung:";
          // 
          // textBoxComment
          // 
-         this.textBoxComment.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.textBoxComment.Location = new System.Drawing.Point(106, 64);
-         this.textBoxComment.Name = "textBoxComment";
-         this.textBoxComment.Size = new System.Drawing.Size(508, 20);
-         this.textBoxComment.TabIndex = 5;
+         textBoxComment.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+         textBoxComment.Location = new Point(124, 74);
+         textBoxComment.Margin = new Padding(4, 3, 4, 3);
+         textBoxComment.Name = "textBoxComment";
+         textBoxComment.Size = new Size(597, 23);
+         textBoxComment.TabIndex = 5;
          // 
          // textBoxDescription
          // 
-         this.textBoxDescription.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.textBoxDescription.Location = new System.Drawing.Point(106, 38);
-         this.textBoxDescription.Name = "textBoxDescription";
-         this.textBoxDescription.Size = new System.Drawing.Size(508, 20);
-         this.textBoxDescription.TabIndex = 3;
+         textBoxDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+         textBoxDescription.Location = new Point(124, 44);
+         textBoxDescription.Margin = new Padding(4, 3, 4, 3);
+         textBoxDescription.Name = "textBoxDescription";
+         textBoxDescription.Size = new Size(597, 23);
+         textBoxDescription.TabIndex = 3;
          // 
          // label4
          // 
-         this.label4.AutoSize = true;
-         this.label4.Location = new System.Drawing.Point(9, 15);
-         this.label4.Name = "label4";
-         this.label4.Size = new System.Drawing.Size(38, 13);
-         this.label4.TabIndex = 0;
-         this.label4.Text = "Name:";
+         label4.AutoSize = true;
+         label4.Location = new Point(10, 17);
+         label4.Margin = new Padding(4, 0, 4, 0);
+         label4.Name = "label4";
+         label4.Size = new Size(42, 15);
+         label4.TabIndex = 0;
+         label4.Text = "Name:";
          // 
          // textBoxName
          // 
-         this.textBoxName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.textBoxName.Location = new System.Drawing.Point(106, 12);
-         this.textBoxName.Name = "textBoxName";
-         this.textBoxName.Size = new System.Drawing.Size(508, 20);
-         this.textBoxName.TabIndex = 1;
+         textBoxName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+         textBoxName.Location = new Point(124, 14);
+         textBoxName.Margin = new Padding(4, 3, 4, 3);
+         textBoxName.Name = "textBoxName";
+         textBoxName.Size = new Size(597, 23);
+         textBoxName.TabIndex = 1;
          // 
          // button_Save
          // 
-         this.button_Save.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-         this.button_Save.DialogResult = System.Windows.Forms.DialogResult.OK;
-         this.button_Save.Image = global::GpxViewer.Properties.Resources.speichern;
-         this.button_Save.Location = new System.Drawing.Point(12, 675);
-         this.button_Save.Name = "button_Save";
-         this.button_Save.Size = new System.Drawing.Size(120, 32);
-         this.button_Save.TabIndex = 10;
-         this.button_Save.Text = "speichern";
-         this.button_Save.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
-         this.button_Save.UseVisualStyleBackColor = true;
-         this.button_Save.Click += new System.EventHandler(this.button_Save_Click);
+         button_Save.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+         button_Save.DialogResult = DialogResult.OK;
+         button_Save.Image = Properties.Resources.speichern;
+         button_Save.Location = new Point(14, 665);
+         button_Save.Margin = new Padding(4, 3, 4, 3);
+         button_Save.Name = "button_Save";
+         button_Save.Size = new Size(140, 37);
+         button_Save.TabIndex = 10;
+         button_Save.Text = "speichern";
+         button_Save.TextImageRelation = TextImageRelation.TextBeforeImage;
+         button_Save.UseVisualStyleBackColor = true;
+         button_Save.Click += button_Save_Click;
          // 
          // FormTrackInfoAndEdit
          // 
-         this.AcceptButton = this.button_Save;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.AutoScroll = true;
-         this.ClientSize = new System.Drawing.Size(626, 719);
-         this.Controls.Add(this.button_Save);
-         this.Controls.Add(this.splitContainer1);
-         this.Controls.Add(this.label5);
-         this.Controls.Add(this.label7);
-         this.Controls.Add(this.label2);
-         this.Controls.Add(this.textBoxSource);
-         this.Controls.Add(this.label6);
-         this.Controls.Add(this.textBoxName);
-         this.Controls.Add(this.textBoxComment);
-         this.Controls.Add(this.label4);
-         this.Controls.Add(this.textBoxDescription);
-         this.Controls.Add(this.label_TrackLength);
-         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
-         this.KeyPreview = true;
-         this.MinimumSize = new System.Drawing.Size(507, 449);
-         this.Name = "FormTrackInfoAndEdit";
-         this.ShowIcon = false;
-         this.ShowInTaskbar = false;
-         this.Text = "FormExteRouteInfo";
-         this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormExtTrackInfoAndEdit_FormClosing);
-         this.Load += new System.EventHandler(this.FormExtTrackInfoAndEdit_Load);
-         this.Shown += new System.EventHandler(this.FormExtTrackInfoAndEdit_Shown);
-         this.ClientSizeChanged += new System.EventHandler(this.FormExtTrackInfoAndEdit_ClientSizeChanged);
-         this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormExtTrackInfoAndEdit_KeyDown);
-         this.contextMenuStripText.ResumeLayout(false);
-         this.contextMenuStripPicture.ResumeLayout(false);
-         this.splitContainer1.Panel1.ResumeLayout(false);
-         this.splitContainer1.Panel2.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-         this.splitContainer1.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.dataGridViewPoints)).EndInit();
-         this.contextMenuStripPoints.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.dataSet1)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.dataTablePoints)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProfile1)).EndInit();
-         this.ResumeLayout(false);
-         this.PerformLayout();
-
+         AcceptButton = button_Save;
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         AutoScroll = true;
+         ClientSize = new Size(735, 716);
+         Controls.Add(button_Save);
+         Controls.Add(splitContainer1);
+         Controls.Add(label5);
+         Controls.Add(label7);
+         Controls.Add(label2);
+         Controls.Add(textBoxSource);
+         Controls.Add(label6);
+         Controls.Add(textBoxName);
+         Controls.Add(textBoxComment);
+         Controls.Add(label4);
+         Controls.Add(textBoxDescription);
+         Controls.Add(label_TrackLength);
+         FormBorderStyle = FormBorderStyle.SizableToolWindow;
+         KeyPreview = true;
+         Margin = new Padding(4, 3, 4, 3);
+         MinimumSize = new Size(589, 512);
+         Name = "FormTrackInfoAndEdit";
+         ShowIcon = false;
+         ShowInTaskbar = false;
+         Text = "FormExteRouteInfo";
+         FormClosing += FormExtTrackInfoAndEdit_FormClosing;
+         Load += FormExtTrackInfoAndEdit_Load;
+         Shown += FormExtTrackInfoAndEdit_Shown;
+         ClientSizeChanged += FormExtTrackInfoAndEdit_ClientSizeChanged;
+         KeyDown += FormExtTrackInfoAndEdit_KeyDown;
+         contextMenuStripText.ResumeLayout(false);
+         contextMenuStripPicture.ResumeLayout(false);
+         splitContainer1.Panel1.ResumeLayout(false);
+         splitContainer1.Panel2.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+         splitContainer1.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)dataGridViewPoints).EndInit();
+         contextMenuStripPoints.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)dataSet1).EndInit();
+         ((System.ComponentModel.ISupportInitialize)dataTablePoints).EndInit();
+         ((System.ComponentModel.ISupportInitialize)pictureBoxProfile1).EndInit();
+         ResumeLayout(false);
+         PerformLayout();
       }
 
       #endregion
-        private System.Windows.Forms.ContextMenuStrip contextMenuStripText;
+      private System.Windows.Forms.ContextMenuStrip contextMenuStripText;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_CopyText;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripPicture;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_CopyPicture;
@@ -532,6 +549,7 @@
       private System.Windows.Forms.Label label5;
       private System.Windows.Forms.SplitContainer splitContainer1;
       private System.Windows.Forms.PictureBox pictureBoxProfile1;
-      private System.Windows.Forms.Label labelProfile1;
+      private System.Windows.Forms.RichTextBox richTextBoxInfo1;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_CopyMarkedText;
    }
 }

@@ -1,4 +1,6 @@
-﻿namespace GpxViewer {
+﻿using GpxViewer.PictureEdit;
+
+namespace GpxViewer {
    partial class FormMain {
       /// <summary>
       /// Erforderliche Designervariable.
@@ -23,1225 +25,1397 @@
       /// Der Inhalt der Methode darf nicht mit dem Code-Editor geändert werden.
       /// </summary>
       private void InitializeComponent() {
-         this.components = new System.ComponentModel.Container();
+         components = new System.ComponentModel.Container();
          System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-         this.panelMap = new System.Windows.Forms.Panel();
-         this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-         this.tabControl1 = new System.Windows.Forms.TabControl();
-         this.tabPageFiles = new System.Windows.Forms.TabPage();
-         this.readOnlyTracklistControl1 = new GpxViewer.ReadOnlyTracklistControl();
-         this.contextMenuStripReadOnlyTracks = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.toolStripMenuItem_ReadOnlyTrackShow = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyTrackZoom = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyTrackInfo = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyTrackExtInfo = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripMenuItem_ReadOnlyTracksHide = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator10 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripMenuItem_ReadOnlyTrackColor = new System.Windows.Forms.ToolStripMenuItem();
-         this.numericUpDownMenuItem_ReadOnlyLineThickness = new GpxViewer.NumericUpDownMenuItem();
-         this.toolStripSeparator11 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripMenuItem_ReadOnlyTrackClone = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_ReadOnlyGpxRemove = new System.Windows.Forms.ToolStripMenuItem();
-         this.tabPageEditable = new System.Windows.Forms.TabPage();
-         this.toolStripContainer2 = new System.Windows.Forms.ToolStripContainer();
-         this.editableTracklistControl1 = new GpxViewer.EditableTracklistControl();
-         this.toolStrip_Edit = new System.Windows.Forms.ToolStrip();
-         this.toolStripButton_ViewerMode = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_SetMarker = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_TrackDraw = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_TrackDrawEnd = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_ClearEditable = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_UniqueNames = new System.Windows.Forms.ToolStripButton();
-         this.mapControl1 = new GpxViewer.MapControl();
-         this.contextMenuStripEditableTracks = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.toolStripMenuItem_EditableTrackDraw = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackSplit = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackAppend = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackReverse = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackClone = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackDelete = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator15 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripMenuItem_EditableTrackShow = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackShowSlope = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackZoom = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackInfo = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_EditableTrackExtInfo = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator12 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripMenuItem_EditableTrackColor = new System.Windows.Forms.ToolStripMenuItem();
-         this.numericUpDownMenuItem_EditableLineThickness = new GpxViewer.NumericUpDownMenuItem();
-         this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-         this.ToolStripMenuItem_EditableTrackSimplify = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-         this.ToolStripMenuItem_ShowAllEditableTracks = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_HideAllEditableTracks = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_RemoveVisibleEditableTracks = new System.Windows.Forms.ToolStripMenuItem();
-         this.contextMenuStripMarker = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.ToolStripMenuItem_WaypointZoom = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_WaypointShow = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_WaypointEdit = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_WaypointClone = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_WaypointSet = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_WaypointDelete = new System.Windows.Forms.ToolStripMenuItem();
-         this.xToolStripMenuItem = new System.Windows.Forms.ToolStripSeparator();
-         this.ToolStripMenuItem_ShowAllEditableMarkers = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_HideAllEditableMarkers = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_RemoveVisibleEditableMarkers = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolTipRouteInfo = new System.Windows.Forms.ToolTip(this.components);
-         this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
-         this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-         this.toolStripStatusLabel_MapLoad = new System.Windows.Forms.ToolStripStatusLabel();
-         this.toolStripStatusLabel_Zoom = new System.Windows.Forms.ToolStripStatusLabel();
-         this.toolStripStatusLabel_Pos = new System.Windows.Forms.ToolStripStatusLabel();
-         this.toolStripStatusLabel_TrackMiniInfo = new System.Windows.Forms.ToolStripStatusLabel();
-         this.toolStripStatusLabel_TrackInfo = new System.Windows.Forms.ToolStripStatusLabel();
-         this.toolStripStatusLabel_GpxLoad = new System.Windows.Forms.ToolStripStatusLabel();
-         this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-         this.ToolStripMenuItemMaps = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItemExtra = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuIemConfig = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStrip_Standard = new System.Windows.Forms.ToolStrip();
-         this.toolStripButton_CancelMapLoading = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_ReloadMap = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_ClearCache = new System.Windows.Forms.ToolStripButton();
-         this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripButton_OpenGpxfile = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_SaveGpxFileExt = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_SaveGpxFiles = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_SaveWithGarminExt = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_CopyMap = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_PrintMap = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_GeoTagging = new System.Windows.Forms.ToolStripButton();
-         this.toolStripSeparator20 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripButton_ZoomIn = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_ZoomOut = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_TrackZoom = new System.Windows.Forms.ToolStripButton();
-         this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripButton_LocationForm = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_GoToPos = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_GeoSearch = new System.Windows.Forms.ToolStripButton();
-         this.toolStripButton_TrackSearch = new System.Windows.Forms.ToolStripButton();
-         this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
-         this.toolStripButton_MiniHelp = new System.Windows.Forms.ToolStripButton();
-         this.colorDialog1 = new System.Windows.Forms.ColorDialog();
-         this.openFileDialogGpx = new System.Windows.Forms.OpenFileDialog();
-         this.saveFileDialogGpx = new System.Windows.Forms.SaveFileDialog();
-         this.panelMap.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
-         this.splitContainer1.Panel1.SuspendLayout();
-         this.splitContainer1.Panel2.SuspendLayout();
-         this.splitContainer1.SuspendLayout();
-         this.tabControl1.SuspendLayout();
-         this.tabPageFiles.SuspendLayout();
-         this.contextMenuStripReadOnlyTracks.SuspendLayout();
-         this.tabPageEditable.SuspendLayout();
-         this.toolStripContainer2.ContentPanel.SuspendLayout();
-         this.toolStripContainer2.TopToolStripPanel.SuspendLayout();
-         this.toolStripContainer2.SuspendLayout();
-         this.toolStrip_Edit.SuspendLayout();
-         this.contextMenuStripEditableTracks.SuspendLayout();
-         this.contextMenuStripMarker.SuspendLayout();
-         this.toolStripContainer1.BottomToolStripPanel.SuspendLayout();
-         this.toolStripContainer1.ContentPanel.SuspendLayout();
-         this.toolStripContainer1.TopToolStripPanel.SuspendLayout();
-         this.toolStripContainer1.SuspendLayout();
-         this.statusStrip1.SuspendLayout();
-         this.menuStrip1.SuspendLayout();
-         this.toolStrip_Standard.SuspendLayout();
-         this.SuspendLayout();
+         panelMap = new Panel();
+         trackBarZoom = new TrackBar();
+         splitContainer1 = new SplitContainer();
+         tabControl1 = new TabControl();
+         tabPageFiles = new TabPage();
+         readOnlyTracklistControl1 = new ReadOnlyGpxControl();
+         contextMenuStripReadOnlyTracks = new ContextMenuStrip(components);
+         toolStripMenuItem_ReadOnlyTrackShow = new ToolStripMenuItem();
+         toolStripMenuItem_ReadOnlyTrackShowSlope = new ToolStripMenuItem();
+         toolStripMenuItem_ReadOnlyTrackZoom = new ToolStripMenuItem();
+         toolStripMenuItem_ReadOnlyGpxShowMarker = new ToolStripMenuItem();
+         toolStripMenuItem_ReadOnlyGpxShowPictureMarker = new ToolStripMenuItem();
+         toolStripMenuItem_ReadOnlyTrackInfo = new ToolStripMenuItem();
+         toolStripMenuItem_ReadOnlyTrackExtInfo = new ToolStripMenuItem();
+         toolStripSeparator1 = new ToolStripSeparator();
+         toolStripMenuItem_ReadOnlyTracksHide = new ToolStripMenuItem();
+         toolStripSeparator10 = new ToolStripSeparator();
+         toolStripMenuItem_ReadOnlyTrackColor = new ToolStripMenuItem();
+         numericUpDownMenuItem_ReadOnlyLineThickness = new NumericUpDownMenuItem();
+         toolStripSeparator11 = new ToolStripSeparator();
+         toolStripMenuItem_ReadOnlyTrackClone = new ToolStripMenuItem();
+         toolStripMenuItem_ReadOnlyGpxRemove = new ToolStripMenuItem();
+         tabPageEditable = new TabPage();
+         toolStripContainer2 = new ToolStripContainer();
+         editableTracklistControl1 = new EditableGpxControl();
+         toolStrip_Edit = new ToolStrip();
+         toolStripButton_ViewerMode = new ToolStripButton();
+         toolStripButton_SetMarker = new ToolStripButton();
+         toolStripButton_TrackDraw = new ToolStripButton();
+         toolStripButton_EditEnd = new ToolStripButton();
+         toolStripButton_EditCancel = new ToolStripButton();
+         toolStripButton_ClearEditable = new ToolStripButton();
+         toolStripButton_UniqueNames = new ToolStripButton();
+         tabPageSearch = new TabPage();
+         searchControl1 = new SearchControl();
+         tabPageLocation = new TabPage();
+         splitContainer2 = new SplitContainer();
+         locationControl1 = new LocationControl();
+         geoLocationControl1 = new GeoLocationControl();
+         tabPageFoto = new TabPage();
+         pictureManager1 = new PictureManager();
+         mapCtrl = new SpecialMapCtrl.SpecialMapCtrl();
+         contextMenuStripEditableTracks = new ContextMenuStrip(components);
+         toolStripMenuItem_EditableTrackDraw = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackSplit = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackAppend = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackPointRemove = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackReverse = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackClone = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackDelete = new ToolStripMenuItem();
+         toolStripSeparator15 = new ToolStripSeparator();
+         toolStripMenuItem_EditableTrackShow = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackShowSlope = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackZoom = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackInfo = new ToolStripMenuItem();
+         toolStripMenuItem_EditableTrackExtInfo = new ToolStripMenuItem();
+         toolStripSeparator12 = new ToolStripSeparator();
+         toolStripMenuItem_EditableTrackColor = new ToolStripMenuItem();
+         numericUpDownMenuItem_EditableLineThickness = new NumericUpDownMenuItem();
+         toolStripSeparator4 = new ToolStripSeparator();
+         ToolStripMenuItem_EditableTrackSimplify = new ToolStripMenuItem();
+         toolStripSeparator2 = new ToolStripSeparator();
+         ToolStripMenuItem_EditableGroupInsert1 = new ToolStripMenuItem();
+         ToolStripMenuItem_EditableGroupDelete1 = new ToolStripMenuItem();
+         toolStripSeparator5 = new ToolStripSeparator();
+         ToolStripMenuItem_ShowAllEditableObjects1 = new ToolStripMenuItem();
+         ToolStripMenuItem_HideAllEditableObjects1 = new ToolStripMenuItem();
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects1 = new ToolStripMenuItem();
+         contextMenuStripEditableMarker = new ContextMenuStrip(components);
+         ToolStripMenuItem_WaypointZoom = new ToolStripMenuItem();
+         ToolStripMenuItem_WaypointShow = new ToolStripMenuItem();
+         ToolStripMenuItem_WaypointEdit = new ToolStripMenuItem();
+         ToolStripMenuItem_WaypointClone = new ToolStripMenuItem();
+         ToolStripMenuItem_WaypointSet = new ToolStripMenuItem();
+         ToolStripMenuItem_WaypointDelete = new ToolStripMenuItem();
+         xToolStripMenuItem = new ToolStripSeparator();
+         ToolStripMenuItem_EditableGroupInsert3 = new ToolStripMenuItem();
+         ToolStripMenuItem_EditableGroupDelete3 = new ToolStripMenuItem();
+         toolStripSeparator7 = new ToolStripSeparator();
+         ToolStripMenuItem_ShowAllEditableObjects3 = new ToolStripMenuItem();
+         ToolStripMenuItem_HideAllEditableObjects3 = new ToolStripMenuItem();
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects3 = new ToolStripMenuItem();
+         toolTipRouteInfo = new ToolTip(components);
+         toolStripContainer1 = new ToolStripContainer();
+         statusStrip1 = new StatusStrip();
+         toolStripStatusLabel_MapLoad = new ToolStripStatusLabel();
+         toolStripStatusLabel_Zoom = new ToolStripStatusLabel();
+         toolStripStatusLabel_Pos = new ToolStripStatusLabel();
+         toolStripStatusLabel_TrackMiniInfo = new ToolStripStatusLabel();
+         toolStripStatusLabel_TrackInfo = new ToolStripStatusLabel();
+         toolStripStatusLabel_GpxLoad = new ToolStripStatusLabel();
+         menuStrip1 = new MenuStrip();
+         ToolStripMenuItemMaps = new ToolStripMenuItem();
+         toolStrip_Standard = new ToolStrip();
+         toolStripButton_Config = new ToolStripButton();
+         toolStripSeparator9 = new ToolStripSeparator();
+         toolStripButton_CancelMapLoading = new ToolStripButton();
+         toolStripButton_ReloadMap = new ToolStripButton();
+         toolStripButton_ClearCache = new ToolStripButton();
+         toolStripSeparator3 = new ToolStripSeparator();
+         toolStripButton_OpenGpxfile = new ToolStripButton();
+         toolStripButton_SaveGpxFileExt = new ToolStripButton();
+         toolStripButton_SaveGpxFiles = new ToolStripButton();
+         toolStripButton_SaveWithGarminExt = new ToolStripButton();
+         toolStripButton_CopyMap = new ToolStripButton();
+         toolStripButton_PrintMap = new ToolStripButton();
+         toolStripSeparator20 = new ToolStripSeparator();
+         toolStripButton_ZoomIn = new ToolStripButton();
+         toolStripButton_ZoomOut = new ToolStripButton();
+         toolStripButton_TrackZoom = new ToolStripButton();
+         toolStripSeparator8 = new ToolStripSeparator();
+         toolStripButton_TrackSearch = new ToolStripButton();
+         toolStripSeparator6 = new ToolStripSeparator();
+         toolStripButton_MiniHelp = new ToolStripButton();
+         colorDialog1 = new ColorDialog();
+         openFileDialogGpx = new OpenFileDialog();
+         saveFileDialogGpx = new SaveFileDialog();
+         contextMenuStripEditableGroupOrNothing = new ContextMenuStrip(components);
+         ToolStripMenuItem_EditableGroupInsert2 = new ToolStripMenuItem();
+         ToolStripMenuItem_EditableGroupDelete2 = new ToolStripMenuItem();
+         toolStripSeparator17 = new ToolStripSeparator();
+         ToolStripMenuItem_ShowAllEditableObjects2 = new ToolStripMenuItem();
+         ToolStripMenuItem_HideAllEditableObjects2 = new ToolStripMenuItem();
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects2 = new ToolStripMenuItem();
+         contextMenuStripReadOnlyMarker = new ContextMenuStrip(components);
+         toolStripMenuItem_ShowMarkerProperties = new ToolStripMenuItem();
+         toolStripMenuItem_CloneMarker = new ToolStripMenuItem();
+         toolStripContainer3 = new ToolStripContainer();
+         panelMap.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)trackBarZoom).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+         splitContainer1.Panel1.SuspendLayout();
+         splitContainer1.Panel2.SuspendLayout();
+         splitContainer1.SuspendLayout();
+         tabControl1.SuspendLayout();
+         tabPageFiles.SuspendLayout();
+         contextMenuStripReadOnlyTracks.SuspendLayout();
+         tabPageEditable.SuspendLayout();
+         toolStripContainer2.ContentPanel.SuspendLayout();
+         toolStripContainer2.TopToolStripPanel.SuspendLayout();
+         toolStripContainer2.SuspendLayout();
+         toolStrip_Edit.SuspendLayout();
+         tabPageSearch.SuspendLayout();
+         tabPageLocation.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
+         splitContainer2.Panel1.SuspendLayout();
+         splitContainer2.Panel2.SuspendLayout();
+         splitContainer2.SuspendLayout();
+         tabPageFoto.SuspendLayout();
+         contextMenuStripEditableTracks.SuspendLayout();
+         contextMenuStripEditableMarker.SuspendLayout();
+         toolStripContainer1.BottomToolStripPanel.SuspendLayout();
+         toolStripContainer1.ContentPanel.SuspendLayout();
+         toolStripContainer1.TopToolStripPanel.SuspendLayout();
+         toolStripContainer1.SuspendLayout();
+         statusStrip1.SuspendLayout();
+         menuStrip1.SuspendLayout();
+         toolStrip_Standard.SuspendLayout();
+         contextMenuStripEditableGroupOrNothing.SuspendLayout();
+         contextMenuStripReadOnlyMarker.SuspendLayout();
+         toolStripContainer3.SuspendLayout();
+         SuspendLayout();
          // 
          // panelMap
          // 
-         this.panelMap.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-         this.panelMap.Controls.Add(this.splitContainer1);
-         this.panelMap.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.panelMap.Location = new System.Drawing.Point(0, 0);
-         this.panelMap.Name = "panelMap";
-         this.panelMap.Size = new System.Drawing.Size(1318, 729);
-         this.panelMap.TabIndex = 2;
+         panelMap.BorderStyle = BorderStyle.FixedSingle;
+         panelMap.Controls.Add(trackBarZoom);
+         panelMap.Controls.Add(splitContainer1);
+         panelMap.Dock = DockStyle.Fill;
+         panelMap.Location = new Point(0, 0);
+         panelMap.Margin = new Padding(4, 3, 4, 3);
+         panelMap.Name = "panelMap";
+         panelMap.Size = new Size(1058, 610);
+         panelMap.TabIndex = 2;
+         // 
+         // trackBarZoom
+         // 
+         trackBarZoom.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+         trackBarZoom.LargeChange = 10;
+         trackBarZoom.Location = new Point(1012, -1);
+         trackBarZoom.Maximum = 240;
+         trackBarZoom.Name = "trackBarZoom";
+         trackBarZoom.Orientation = Orientation.Vertical;
+         trackBarZoom.Size = new Size(45, 610);
+         trackBarZoom.TabIndex = 1;
+         trackBarZoom.TickFrequency = 10;
+         trackBarZoom.Value = 120;
          // 
          // splitContainer1
          // 
-         this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.splitContainer1.Location = new System.Drawing.Point(0, 0);
-         this.splitContainer1.Name = "splitContainer1";
+         splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+         splitContainer1.Location = new Point(0, 0);
+         splitContainer1.Margin = new Padding(4, 3, 4, 3);
+         splitContainer1.Name = "splitContainer1";
          // 
          // splitContainer1.Panel1
          // 
-         this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
+         splitContainer1.Panel1.Controls.Add(tabControl1);
          // 
          // splitContainer1.Panel2
          // 
-         this.splitContainer1.Panel2.Controls.Add(this.mapControl1);
-         this.splitContainer1.Size = new System.Drawing.Size(1316, 727);
-         this.splitContainer1.SplitterDistance = 338;
-         this.splitContainer1.TabIndex = 0;
+         splitContainer1.Panel2.Controls.Add(mapCtrl);
+         splitContainer1.Size = new Size(1005, 608);
+         splitContainer1.SplitterDistance = 246;
+         splitContainer1.SplitterWidth = 5;
+         splitContainer1.TabIndex = 0;
          // 
          // tabControl1
          // 
-         this.tabControl1.Controls.Add(this.tabPageFiles);
-         this.tabControl1.Controls.Add(this.tabPageEditable);
-         this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.tabControl1.Location = new System.Drawing.Point(0, 0);
-         this.tabControl1.Name = "tabControl1";
-         this.tabControl1.SelectedIndex = 0;
-         this.tabControl1.Size = new System.Drawing.Size(338, 727);
-         this.tabControl1.TabIndex = 8;
+         tabControl1.Controls.Add(tabPageFiles);
+         tabControl1.Controls.Add(tabPageEditable);
+         tabControl1.Controls.Add(tabPageSearch);
+         tabControl1.Controls.Add(tabPageLocation);
+         tabControl1.Controls.Add(tabPageFoto);
+         tabControl1.Dock = DockStyle.Fill;
+         tabControl1.Location = new Point(0, 0);
+         tabControl1.Margin = new Padding(4, 3, 4, 3);
+         tabControl1.Multiline = true;
+         tabControl1.Name = "tabControl1";
+         tabControl1.SelectedIndex = 0;
+         tabControl1.Size = new Size(246, 608);
+         tabControl1.TabIndex = 8;
+         tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
          // 
          // tabPageFiles
          // 
-         this.tabPageFiles.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
-         this.tabPageFiles.Controls.Add(this.readOnlyTracklistControl1);
-         this.tabPageFiles.Location = new System.Drawing.Point(4, 22);
-         this.tabPageFiles.Name = "tabPageFiles";
-         this.tabPageFiles.Padding = new System.Windows.Forms.Padding(3);
-         this.tabPageFiles.Size = new System.Drawing.Size(330, 701);
-         this.tabPageFiles.TabIndex = 0;
-         this.tabPageFiles.Text = "Dateien";
+         tabPageFiles.BackColor = Color.FromArgb(224, 224, 224);
+         tabPageFiles.Controls.Add(readOnlyTracklistControl1);
+         tabPageFiles.Location = new Point(4, 44);
+         tabPageFiles.Margin = new Padding(4, 3, 4, 3);
+         tabPageFiles.Name = "tabPageFiles";
+         tabPageFiles.Padding = new Padding(4, 3, 4, 3);
+         tabPageFiles.Size = new Size(238, 560);
+         tabPageFiles.TabIndex = 0;
+         tabPageFiles.Text = "Dateien";
          // 
          // readOnlyTracklistControl1
          // 
-         this.readOnlyTracklistControl1.AllowDrop = true;
-         this.readOnlyTracklistControl1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-         this.readOnlyTracklistControl1.ContextMenuStrip = this.contextMenuStripReadOnlyTracks;
-         this.readOnlyTracklistControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.readOnlyTracklistControl1.LoadGpxfilesCancel = false;
-         this.readOnlyTracklistControl1.Location = new System.Drawing.Point(3, 3);
-         this.readOnlyTracklistControl1.Margin = new System.Windows.Forms.Padding(4);
-         this.readOnlyTracklistControl1.Name = "readOnlyTracklistControl1";
-         this.readOnlyTracklistControl1.Size = new System.Drawing.Size(324, 695);
-         this.readOnlyTracklistControl1.TabIndex = 8;
-         this.readOnlyTracklistControl1.SelectGpxEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ChooseEventArgs>(this.readOnlyTracklistControl1_SelectGpxEvent);
-         this.readOnlyTracklistControl1.SelectTrackEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ChooseEventArgs>(this.readOnlyTracklistControl1_SelectTrackEvent);
-         this.readOnlyTracklistControl1.ChooseGpxEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ChooseEventArgs>(this.readOnlyTracklistControl1_ChooseGpxEvent);
-         this.readOnlyTracklistControl1.ChooseTrackEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ChooseEventArgs>(this.readOnlyTracklistControl1_ChooseTrackEvent);
-         this.readOnlyTracklistControl1.LoadinfoEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.SendStringEventArgs>(this.readOnlyTracklistControl1_LoadinfoEvent);
-         this.readOnlyTracklistControl1.ShowTrackEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ShowTrackEventArgs>(this.readOnlyTracklistControl1_ShowTrackEvent);
-         this.readOnlyTracklistControl1.ShowAllMarkerEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ShowMarkerEventArgs>(this.readOnlyTracklistControl1_ShowAllMarkerEvent);
-         this.readOnlyTracklistControl1.ShowAllFotoMarkerEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.ShowMarkerEventArgs>(this.readOnlyTracklistControl1_ShowAllFotoMarkerEvent);
-         this.readOnlyTracklistControl1.RefreshProgramStateEvent += new System.EventHandler<System.EventArgs>(this.readOnlyTracklistControl1_RefreshProgramStateEvent);
-         this.readOnlyTracklistControl1.ShowExceptionEvent += new System.EventHandler<GpxViewer.ReadOnlyTracklistControl.SendExceptionEventArgs>(this.readOnlyTracklistControl1_ShowExceptionEvent);
+         readOnlyTracklistControl1.AllowDrop = true;
+         readOnlyTracklistControl1.BorderStyle = BorderStyle.FixedSingle;
+         readOnlyTracklistControl1.ContextMenuStrip = contextMenuStripReadOnlyTracks;
+         readOnlyTracklistControl1.Dock = DockStyle.Fill;
+         readOnlyTracklistControl1.LoadGpxfilesCancel = false;
+         readOnlyTracklistControl1.Location = new Point(4, 3);
+         readOnlyTracklistControl1.Margin = new Padding(5);
+         readOnlyTracklistControl1.Name = "readOnlyTracklistControl1";
+         readOnlyTracklistControl1.Size = new Size(230, 554);
+         readOnlyTracklistControl1.TabIndex = 8;
          // 
          // contextMenuStripReadOnlyTracks
          // 
-         this.contextMenuStripReadOnlyTracks.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.contextMenuStripReadOnlyTracks.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem_ReadOnlyTrackShow,
-            this.toolStripMenuItem_ReadOnlyTrackShowSlope,
-            this.toolStripMenuItem_ReadOnlyTrackZoom,
-            this.toolStripMenuItem_ReadOnlyGpxShowMarker,
-            this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker,
-            this.toolStripMenuItem_ReadOnlyTrackInfo,
-            this.toolStripMenuItem_ReadOnlyTrackExtInfo,
-            this.toolStripSeparator1,
-            this.toolStripMenuItem_ReadOnlyTracksHide,
-            this.toolStripSeparator10,
-            this.toolStripMenuItem_ReadOnlyTrackColor,
-            this.numericUpDownMenuItem_ReadOnlyLineThickness,
-            this.toolStripSeparator11,
-            this.toolStripMenuItem_ReadOnlyTrackClone,
-            this.toolStripMenuItem_ReadOnlyGpxRemove});
-         this.contextMenuStripReadOnlyTracks.Name = "contextMenuStripTrack";
-         this.contextMenuStripReadOnlyTracks.Size = new System.Drawing.Size(269, 341);
-         this.contextMenuStripReadOnlyTracks.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenuStripReadOnlyTracks_Closed);
-         this.contextMenuStripReadOnlyTracks.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripReadOnlyTracks_Opening);
+         contextMenuStripReadOnlyTracks.ImageScalingSize = new Size(20, 20);
+         contextMenuStripReadOnlyTracks.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_ReadOnlyTrackShow, toolStripMenuItem_ReadOnlyTrackShowSlope, toolStripMenuItem_ReadOnlyTrackZoom, toolStripMenuItem_ReadOnlyGpxShowMarker, toolStripMenuItem_ReadOnlyGpxShowPictureMarker, toolStripMenuItem_ReadOnlyTrackInfo, toolStripMenuItem_ReadOnlyTrackExtInfo, toolStripSeparator1, toolStripMenuItem_ReadOnlyTracksHide, toolStripSeparator10, toolStripMenuItem_ReadOnlyTrackColor, numericUpDownMenuItem_ReadOnlyLineThickness, toolStripSeparator11, toolStripMenuItem_ReadOnlyTrackClone, toolStripMenuItem_ReadOnlyGpxRemove });
+         contextMenuStripReadOnlyTracks.Name = "contextMenuStripTrack";
+         contextMenuStripReadOnlyTracks.Size = new Size(270, 344);
+         contextMenuStripReadOnlyTracks.Closed += contextMenuStripReadOnlyTracks_Closed;
+         contextMenuStripReadOnlyTracks.Opening += contextMenuStripReadOnlyTracks_Opening;
          // 
          // toolStripMenuItem_ReadOnlyTrackShow
          // 
-         this.toolStripMenuItem_ReadOnlyTrackShow.Image = global::GpxViewer.Properties.Resources.Track;
-         this.toolStripMenuItem_ReadOnlyTrackShow.Name = "toolStripMenuItem_ReadOnlyTrackShow";
-         this.toolStripMenuItem_ReadOnlyTrackShow.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackShow.Text = "Track &anzeigen";
-         this.toolStripMenuItem_ReadOnlyTrackShow.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackShow_Click);
+         toolStripMenuItem_ReadOnlyTrackShow.Image = Properties.Resources.Track;
+         toolStripMenuItem_ReadOnlyTrackShow.Name = "toolStripMenuItem_ReadOnlyTrackShow";
+         toolStripMenuItem_ReadOnlyTrackShow.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTrackShow.Text = "Track &anzeigen";
+         toolStripMenuItem_ReadOnlyTrackShow.Click += toolStripMenuItem_ReadOnlyTrackShow_Click;
          // 
          // toolStripMenuItem_ReadOnlyTrackShowSlope
          // 
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Name = "toolStripMenuItem_ReadOnlyTrackShowSlope";
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Text = "Anstiegssymbole anzeigen";
-         this.toolStripMenuItem_ReadOnlyTrackShowSlope.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackShowSlope_Click);
+         toolStripMenuItem_ReadOnlyTrackShowSlope.Name = "toolStripMenuItem_ReadOnlyTrackShowSlope";
+         toolStripMenuItem_ReadOnlyTrackShowSlope.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTrackShowSlope.Text = "Anstiegssymbole anzeigen";
+         toolStripMenuItem_ReadOnlyTrackShowSlope.Click += toolStripMenuItem_ReadOnlyTrackShowSlope_Click;
          // 
          // toolStripMenuItem_ReadOnlyTrackZoom
          // 
-         this.toolStripMenuItem_ReadOnlyTrackZoom.Image = global::GpxViewer.Properties.Resources.zoom1;
-         this.toolStripMenuItem_ReadOnlyTrackZoom.Name = "toolStripMenuItem_ReadOnlyTrackZoom";
-         this.toolStripMenuItem_ReadOnlyTrackZoom.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackZoom.Text = "&Zoom auf diesen Track";
-         this.toolStripMenuItem_ReadOnlyTrackZoom.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackZoom_Click);
+         toolStripMenuItem_ReadOnlyTrackZoom.Image = Properties.Resources.zoom1;
+         toolStripMenuItem_ReadOnlyTrackZoom.Name = "toolStripMenuItem_ReadOnlyTrackZoom";
+         toolStripMenuItem_ReadOnlyTrackZoom.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTrackZoom.Text = "&Zoom auf diesen Track";
+         toolStripMenuItem_ReadOnlyTrackZoom.Click += toolStripMenuItem_ReadOnlyTrackZoom_Click;
          // 
          // toolStripMenuItem_ReadOnlyGpxShowMarker
          // 
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker.Checked = true;
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker.CheckOnClick = true;
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker.Name = "toolStripMenuItem_ReadOnlyGpxShowMarker";
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker.Text = "&Wegpunkte auch anzeigen";
-         this.toolStripMenuItem_ReadOnlyGpxShowMarker.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyGpxShowMarker_Click);
+         toolStripMenuItem_ReadOnlyGpxShowMarker.Checked = true;
+         toolStripMenuItem_ReadOnlyGpxShowMarker.CheckOnClick = true;
+         toolStripMenuItem_ReadOnlyGpxShowMarker.CheckState = CheckState.Checked;
+         toolStripMenuItem_ReadOnlyGpxShowMarker.Name = "toolStripMenuItem_ReadOnlyGpxShowMarker";
+         toolStripMenuItem_ReadOnlyGpxShowMarker.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyGpxShowMarker.Text = "&Wegpunkte auch anzeigen";
+         toolStripMenuItem_ReadOnlyGpxShowMarker.Click += toolStripMenuItem_ReadOnlyGpxShowMarker_Click;
          // 
          // toolStripMenuItem_ReadOnlyGpxShowPictureMarker
          // 
-         this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker.CheckOnClick = true;
-         this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Image = global::GpxViewer.Properties.Resources.Foto;
-         this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Name = "toolStripMenuItem_ReadOnlyGpxShowPictureMarker";
-         this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Text = "&Bildwegpunkte auch anzeigen";
-         this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyGpxShowPictureMarker_Click);
+         toolStripMenuItem_ReadOnlyGpxShowPictureMarker.CheckOnClick = true;
+         toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Image = Properties.Resources.Foto;
+         toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Name = "toolStripMenuItem_ReadOnlyGpxShowPictureMarker";
+         toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Text = "&Bildwegpunkte auch anzeigen";
+         toolStripMenuItem_ReadOnlyGpxShowPictureMarker.Click += toolStripMenuItem_ReadOnlyGpxShowPictureMarker_Click;
          // 
          // toolStripMenuItem_ReadOnlyTrackInfo
          // 
-         this.toolStripMenuItem_ReadOnlyTrackInfo.Image = global::GpxViewer.Properties.Resources.info;
-         this.toolStripMenuItem_ReadOnlyTrackInfo.Name = "toolStripMenuItem_ReadOnlyTrackInfo";
-         this.toolStripMenuItem_ReadOnlyTrackInfo.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackInfo.Text = "&Info anzeigen";
-         this.toolStripMenuItem_ReadOnlyTrackInfo.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackInfo_Click);
+         toolStripMenuItem_ReadOnlyTrackInfo.Image = Properties.Resources.info;
+         toolStripMenuItem_ReadOnlyTrackInfo.Name = "toolStripMenuItem_ReadOnlyTrackInfo";
+         toolStripMenuItem_ReadOnlyTrackInfo.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTrackInfo.Text = "&Info anzeigen";
+         toolStripMenuItem_ReadOnlyTrackInfo.Click += toolStripMenuItem_ReadOnlyTrackInfo_Click;
          // 
          // toolStripMenuItem_ReadOnlyTrackExtInfo
          // 
-         this.toolStripMenuItem_ReadOnlyTrackExtInfo.Image = global::GpxViewer.Properties.Resources.edit;
-         this.toolStripMenuItem_ReadOnlyTrackExtInfo.Name = "toolStripMenuItem_ReadOnlyTrackExtInfo";
-         this.toolStripMenuItem_ReadOnlyTrackExtInfo.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackExtInfo.Text = "&erweiterte Infos anzeigen";
-         this.toolStripMenuItem_ReadOnlyTrackExtInfo.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackExtInfo_Click);
+         toolStripMenuItem_ReadOnlyTrackExtInfo.Image = Properties.Resources.edit;
+         toolStripMenuItem_ReadOnlyTrackExtInfo.Name = "toolStripMenuItem_ReadOnlyTrackExtInfo";
+         toolStripMenuItem_ReadOnlyTrackExtInfo.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTrackExtInfo.Text = "&erweiterte Infos anzeigen";
+         toolStripMenuItem_ReadOnlyTrackExtInfo.Click += toolStripMenuItem_ReadOnlyTrackExtInfo_Click;
          // 
          // toolStripSeparator1
          // 
-         this.toolStripSeparator1.Name = "toolStripSeparator1";
-         this.toolStripSeparator1.Size = new System.Drawing.Size(265, 6);
+         toolStripSeparator1.Name = "toolStripSeparator1";
+         toolStripSeparator1.Size = new Size(266, 6);
          // 
          // toolStripMenuItem_ReadOnlyTracksHide
          // 
-         this.toolStripMenuItem_ReadOnlyTracksHide.Name = "toolStripMenuItem_ReadOnlyTracksHide";
-         this.toolStripMenuItem_ReadOnlyTracksHide.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTracksHide.Text = "alle (!) angezeigten Tracks &verbergen";
-         this.toolStripMenuItem_ReadOnlyTracksHide.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTracksHide_Click);
+         toolStripMenuItem_ReadOnlyTracksHide.Name = "toolStripMenuItem_ReadOnlyTracksHide";
+         toolStripMenuItem_ReadOnlyTracksHide.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTracksHide.Text = "alle (!) angezeigten Tracks &verbergen";
+         toolStripMenuItem_ReadOnlyTracksHide.Click += toolStripMenuItem_ReadOnlyTracksHide_Click;
          // 
          // toolStripSeparator10
          // 
-         this.toolStripSeparator10.Name = "toolStripSeparator10";
-         this.toolStripSeparator10.Size = new System.Drawing.Size(265, 6);
+         toolStripSeparator10.Name = "toolStripSeparator10";
+         toolStripSeparator10.Size = new Size(266, 6);
          // 
          // toolStripMenuItem_ReadOnlyTrackColor
          // 
-         this.toolStripMenuItem_ReadOnlyTrackColor.BackColor = System.Drawing.SystemColors.Control;
-         this.toolStripMenuItem_ReadOnlyTrackColor.Name = "toolStripMenuItem_ReadOnlyTrackColor";
-         this.toolStripMenuItem_ReadOnlyTrackColor.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackColor.Text = "&Trackfarbe ändern";
-         this.toolStripMenuItem_ReadOnlyTrackColor.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackColor_Click);
+         toolStripMenuItem_ReadOnlyTrackColor.BackColor = SystemColors.Control;
+         toolStripMenuItem_ReadOnlyTrackColor.Name = "toolStripMenuItem_ReadOnlyTrackColor";
+         toolStripMenuItem_ReadOnlyTrackColor.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTrackColor.Text = "&Trackfarbe ändern";
+         toolStripMenuItem_ReadOnlyTrackColor.Click += toolStripMenuItem_ReadOnlyTrackColor_Click;
          // 
          // numericUpDownMenuItem_ReadOnlyLineThickness
          // 
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.BackColor = System.Drawing.SystemColors.Control;
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Increment = new decimal(new int[] {
-            5,
-            0,
-            0,
-            65536});
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Maximum = new decimal(new int[] {
-            20,
-            0,
-            0,
-            0});
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Name = "numericUpDownMenuItem_ReadOnlyLineThickness";
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Size = new System.Drawing.Size(133, 30);
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Text = "Liniendicke";
-         this.numericUpDownMenuItem_ReadOnlyLineThickness.Value = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
+         numericUpDownMenuItem_ReadOnlyLineThickness.BackColor = SystemColors.Control;
+         numericUpDownMenuItem_ReadOnlyLineThickness.Increment = new decimal(new int[] { 5, 0, 0, 65536 });
+         numericUpDownMenuItem_ReadOnlyLineThickness.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
+         numericUpDownMenuItem_ReadOnlyLineThickness.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+         numericUpDownMenuItem_ReadOnlyLineThickness.Name = "numericUpDownMenuItem_ReadOnlyLineThickness";
+         numericUpDownMenuItem_ReadOnlyLineThickness.Size = new Size(139, 33);
+         numericUpDownMenuItem_ReadOnlyLineThickness.Text = "Liniendicke";
+         numericUpDownMenuItem_ReadOnlyLineThickness.Value = new decimal(new int[] { 5, 0, 0, 0 });
          // 
          // toolStripSeparator11
          // 
-         this.toolStripSeparator11.Name = "toolStripSeparator11";
-         this.toolStripSeparator11.Size = new System.Drawing.Size(265, 6);
+         toolStripSeparator11.Name = "toolStripSeparator11";
+         toolStripSeparator11.Size = new Size(266, 6);
          // 
          // toolStripMenuItem_ReadOnlyTrackClone
          // 
-         this.toolStripMenuItem_ReadOnlyTrackClone.Image = global::GpxViewer.Properties.Resources.kopie;
-         this.toolStripMenuItem_ReadOnlyTrackClone.Name = "toolStripMenuItem_ReadOnlyTrackClone";
-         this.toolStripMenuItem_ReadOnlyTrackClone.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyTrackClone.Text = "&bearbeitbare Kopie erzeugen";
-         this.toolStripMenuItem_ReadOnlyTrackClone.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyTrackClone_Click);
+         toolStripMenuItem_ReadOnlyTrackClone.Image = Properties.Resources.kopie;
+         toolStripMenuItem_ReadOnlyTrackClone.Name = "toolStripMenuItem_ReadOnlyTrackClone";
+         toolStripMenuItem_ReadOnlyTrackClone.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyTrackClone.Text = "&bearbeitbare Kopie erzeugen";
+         toolStripMenuItem_ReadOnlyTrackClone.Click += toolStripMenuItem_ReadOnlyTrackClone_Click;
          // 
          // toolStripMenuItem_ReadOnlyGpxRemove
          // 
-         this.toolStripMenuItem_ReadOnlyGpxRemove.Image = global::GpxViewer.Properties.Resources.delete;
-         this.toolStripMenuItem_ReadOnlyGpxRemove.Name = "toolStripMenuItem_ReadOnlyGpxRemove";
-         this.toolStripMenuItem_ReadOnlyGpxRemove.Size = new System.Drawing.Size(268, 26);
-         this.toolStripMenuItem_ReadOnlyGpxRemove.Text = "GPX-Datei aus der Liste entfernen";
-         this.toolStripMenuItem_ReadOnlyGpxRemove.Click += new System.EventHandler(this.toolStripMenuItem_ReadOnlyGpxRemove_Click);
+         toolStripMenuItem_ReadOnlyGpxRemove.Image = Properties.Resources.delete;
+         toolStripMenuItem_ReadOnlyGpxRemove.Name = "toolStripMenuItem_ReadOnlyGpxRemove";
+         toolStripMenuItem_ReadOnlyGpxRemove.Size = new Size(269, 26);
+         toolStripMenuItem_ReadOnlyGpxRemove.Text = "GPX-Datei aus der Liste entfernen";
+         toolStripMenuItem_ReadOnlyGpxRemove.Click += toolStripMenuItem_ReadOnlyGpxRemove_Click;
          // 
          // tabPageEditable
          // 
-         this.tabPageEditable.Controls.Add(this.toolStripContainer2);
-         this.tabPageEditable.Location = new System.Drawing.Point(4, 22);
-         this.tabPageEditable.Name = "tabPageEditable";
-         this.tabPageEditable.Size = new System.Drawing.Size(330, 701);
-         this.tabPageEditable.TabIndex = 3;
-         this.tabPageEditable.Text = "neue Tracks/Marker";
-         this.tabPageEditable.UseVisualStyleBackColor = true;
+         tabPageEditable.Controls.Add(toolStripContainer2);
+         tabPageEditable.Location = new Point(4, 44);
+         tabPageEditable.Margin = new Padding(4, 3, 4, 3);
+         tabPageEditable.Name = "tabPageEditable";
+         tabPageEditable.Size = new Size(238, 560);
+         tabPageEditable.TabIndex = 3;
+         tabPageEditable.Text = "bearbeitbare Tracks/Marker";
+         tabPageEditable.UseVisualStyleBackColor = true;
          // 
          // toolStripContainer2
          // 
          // 
          // toolStripContainer2.ContentPanel
          // 
-         this.toolStripContainer2.ContentPanel.Controls.Add(this.editableTracklistControl1);
-         this.toolStripContainer2.ContentPanel.Size = new System.Drawing.Size(330, 674);
-         this.toolStripContainer2.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.toolStripContainer2.Location = new System.Drawing.Point(0, 0);
-         this.toolStripContainer2.Name = "toolStripContainer2";
-         this.toolStripContainer2.Size = new System.Drawing.Size(330, 701);
-         this.toolStripContainer2.TabIndex = 1;
-         this.toolStripContainer2.Text = "toolStripContainer2";
+         toolStripContainer2.ContentPanel.Controls.Add(editableTracklistControl1);
+         toolStripContainer2.ContentPanel.Margin = new Padding(4, 3, 4, 3);
+         toolStripContainer2.ContentPanel.Size = new Size(238, 533);
+         toolStripContainer2.Dock = DockStyle.Fill;
+         toolStripContainer2.Location = new Point(0, 0);
+         toolStripContainer2.Margin = new Padding(4, 3, 4, 3);
+         toolStripContainer2.Name = "toolStripContainer2";
+         toolStripContainer2.Size = new Size(238, 560);
+         toolStripContainer2.TabIndex = 1;
+         toolStripContainer2.Text = "toolStripContainer2";
          // 
          // toolStripContainer2.TopToolStripPanel
          // 
-         this.toolStripContainer2.TopToolStripPanel.Controls.Add(this.toolStrip_Edit);
+         toolStripContainer2.TopToolStripPanel.Controls.Add(toolStrip_Edit);
          // 
          // editableTracklistControl1
          // 
-         this.editableTracklistControl1.AllowDrop = true;
-         this.editableTracklistControl1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-         this.editableTracklistControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.editableTracklistControl1.Location = new System.Drawing.Point(0, 0);
-         this.editableTracklistControl1.Margin = new System.Windows.Forms.Padding(4);
-         this.editableTracklistControl1.Name = "editableTracklistControl1";
-         this.editableTracklistControl1.Size = new System.Drawing.Size(330, 674);
-         this.editableTracklistControl1.TabIndex = 0;
+         editableTracklistControl1.AllowDrop = true;
+         editableTracklistControl1.BorderStyle = BorderStyle.Fixed3D;
+         editableTracklistControl1.Dock = DockStyle.Fill;
+         editableTracklistControl1.GpxWorkbench = null;
+         editableTracklistControl1.ListBackColor = Color.FromArgb(192, 255, 192);
+         editableTracklistControl1.Location = new Point(0, 0);
+         editableTracklistControl1.Margin = new Padding(5);
+         editableTracklistControl1.Name = "editableTracklistControl1";
+         editableTracklistControl1.Size = new Size(238, 533);
+         editableTracklistControl1.TabIndex = 0;
          // 
          // toolStrip_Edit
          // 
-         this.toolStrip_Edit.Dock = System.Windows.Forms.DockStyle.None;
-         this.toolStrip_Edit.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.toolStrip_Edit.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton_ViewerMode,
-            this.toolStripButton_SetMarker,
-            this.toolStripButton_TrackDraw,
-            this.toolStripButton_TrackDrawEnd,
-            this.toolStripButton_ClearEditable,
-            this.toolStripButton_UniqueNames});
-         this.toolStrip_Edit.Location = new System.Drawing.Point(3, 0);
-         this.toolStrip_Edit.Name = "toolStrip_Edit";
-         this.toolStrip_Edit.Size = new System.Drawing.Size(156, 27);
-         this.toolStrip_Edit.TabIndex = 1;
+         toolStrip_Edit.Dock = DockStyle.None;
+         toolStrip_Edit.ImageScalingSize = new Size(20, 20);
+         toolStrip_Edit.Items.AddRange(new ToolStripItem[] { toolStripButton_ViewerMode, toolStripButton_SetMarker, toolStripButton_TrackDraw, toolStripButton_EditEnd, toolStripButton_EditCancel, toolStripButton_ClearEditable, toolStripButton_UniqueNames });
+         toolStrip_Edit.Location = new Point(3, 0);
+         toolStrip_Edit.Name = "toolStrip_Edit";
+         toolStrip_Edit.Size = new Size(180, 27);
+         toolStrip_Edit.TabIndex = 1;
          // 
          // toolStripButton_ViewerMode
          // 
-         this.toolStripButton_ViewerMode.Checked = true;
-         this.toolStripButton_ViewerMode.CheckOnClick = true;
-         this.toolStripButton_ViewerMode.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.toolStripButton_ViewerMode.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_ViewerMode.Image = global::GpxViewer.Properties.Resources.Hand;
-         this.toolStripButton_ViewerMode.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_ViewerMode.Name = "toolStripButton_ViewerMode";
-         this.toolStripButton_ViewerMode.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ViewerMode.Text = "Karte verschieben";
-         this.toolStripButton_ViewerMode.Click += new System.EventHandler(this.toolStripButton_ViewerMode_Click);
+         toolStripButton_ViewerMode.Checked = true;
+         toolStripButton_ViewerMode.CheckOnClick = true;
+         toolStripButton_ViewerMode.CheckState = CheckState.Checked;
+         toolStripButton_ViewerMode.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_ViewerMode.Image = Properties.Resources.Hand;
+         toolStripButton_ViewerMode.ImageTransparentColor = Color.Magenta;
+         toolStripButton_ViewerMode.Name = "toolStripButton_ViewerMode";
+         toolStripButton_ViewerMode.Size = new Size(24, 24);
+         toolStripButton_ViewerMode.Text = "Karte verschieben";
+         toolStripButton_ViewerMode.Click += toolStripButton_ViewerMode_Click;
          // 
          // toolStripButton_SetMarker
          // 
-         this.toolStripButton_SetMarker.CheckOnClick = true;
-         this.toolStripButton_SetMarker.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_SetMarker.Image = global::GpxViewer.Properties.Resources.Flag16x16;
-         this.toolStripButton_SetMarker.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_SetMarker.Name = "toolStripButton_SetMarker";
-         this.toolStripButton_SetMarker.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_SetMarker.Text = "neue Markierung setzen";
-         this.toolStripButton_SetMarker.Click += new System.EventHandler(this.toolStripButton_SetMarker_Click);
+         toolStripButton_SetMarker.CheckOnClick = true;
+         toolStripButton_SetMarker.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_SetMarker.Image = Properties.Resources.Flag16x16;
+         toolStripButton_SetMarker.ImageTransparentColor = Color.Magenta;
+         toolStripButton_SetMarker.Name = "toolStripButton_SetMarker";
+         toolStripButton_SetMarker.Size = new Size(24, 24);
+         toolStripButton_SetMarker.Text = "neue Markierung setzen";
+         toolStripButton_SetMarker.Click += toolStripButton_SetMarker_Click;
          // 
          // toolStripButton_TrackDraw
          // 
-         this.toolStripButton_TrackDraw.CheckOnClick = true;
-         this.toolStripButton_TrackDraw.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_TrackDraw.Image = global::GpxViewer.Properties.Resources.TrackDraw;
-         this.toolStripButton_TrackDraw.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_TrackDraw.Name = "toolStripButton_TrackDraw";
-         this.toolStripButton_TrackDraw.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_TrackDraw.Text = "neuen Track zeichnen";
-         this.toolStripButton_TrackDraw.Click += new System.EventHandler(this.toolStripButton_TrackDraw_Click);
+         toolStripButton_TrackDraw.CheckOnClick = true;
+         toolStripButton_TrackDraw.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_TrackDraw.Image = Properties.Resources.TrackDraw;
+         toolStripButton_TrackDraw.ImageTransparentColor = Color.Magenta;
+         toolStripButton_TrackDraw.Name = "toolStripButton_TrackDraw";
+         toolStripButton_TrackDraw.Size = new Size(24, 24);
+         toolStripButton_TrackDraw.Text = "neuen Track zeichnen";
+         toolStripButton_TrackDraw.Click += toolStripButton_TrackDraw_Click;
          // 
-         // toolStripButton_TrackDrawEnd
+         // toolStripButton_EditEnd
          // 
-         this.toolStripButton_TrackDrawEnd.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_TrackDrawEnd.Enabled = false;
-         this.toolStripButton_TrackDrawEnd.Image = global::GpxViewer.Properties.Resources.ok;
-         this.toolStripButton_TrackDrawEnd.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_TrackDrawEnd.Name = "toolStripButton_TrackDrawEnd";
-         this.toolStripButton_TrackDrawEnd.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_TrackDrawEnd.Text = "Track zeichnen beenden";
-         this.toolStripButton_TrackDrawEnd.Click += new System.EventHandler(this.toolStripButton_TrackDrawEnd_Click);
+         toolStripButton_EditEnd.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_EditEnd.Enabled = false;
+         toolStripButton_EditEnd.Image = Properties.Resources.ok;
+         toolStripButton_EditEnd.ImageTransparentColor = Color.Magenta;
+         toolStripButton_EditEnd.Name = "toolStripButton_EditEnd";
+         toolStripButton_EditEnd.Size = new Size(24, 24);
+         toolStripButton_EditEnd.Text = "Track zeichnen beenden";
+         toolStripButton_EditEnd.Click += toolStripButton_EditEnd_Click;
+         // 
+         // toolStripButton_EditCancel
+         // 
+         toolStripButton_EditCancel.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_EditCancel.Enabled = false;
+         toolStripButton_EditCancel.Image = Properties.Resources.cancel;
+         toolStripButton_EditCancel.ImageTransparentColor = Color.Magenta;
+         toolStripButton_EditCancel.Name = "toolStripButton_EditCancel";
+         toolStripButton_EditCancel.Size = new Size(24, 24);
+         toolStripButton_EditCancel.Text = "Trackbearbeitung abbrechen";
+         toolStripButton_EditCancel.Click += toolStripButton_EditCancel_Click;
          // 
          // toolStripButton_ClearEditable
          // 
-         this.toolStripButton_ClearEditable.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_ClearEditable.Image = global::GpxViewer.Properties.Resources.delete;
-         this.toolStripButton_ClearEditable.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_ClearEditable.Name = "toolStripButton_ClearEditable";
-         this.toolStripButton_ClearEditable.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ClearEditable.Text = "alle editierbaren Tracks und Markierungen löschen";
-         this.toolStripButton_ClearEditable.Click += new System.EventHandler(this.toolStripButton_ClearEditable_Click);
+         toolStripButton_ClearEditable.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_ClearEditable.Image = Properties.Resources.delete;
+         toolStripButton_ClearEditable.ImageTransparentColor = Color.Magenta;
+         toolStripButton_ClearEditable.Name = "toolStripButton_ClearEditable";
+         toolStripButton_ClearEditable.Size = new Size(24, 24);
+         toolStripButton_ClearEditable.Text = "alle editierbaren Tracks und Markierungen löschen";
+         toolStripButton_ClearEditable.Click += toolStripButton_ClearEditable_Click;
          // 
          // toolStripButton_UniqueNames
          // 
-         this.toolStripButton_UniqueNames.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_UniqueNames.Image = global::GpxViewer.Properties.Resources.list_numbers;
-         this.toolStripButton_UniqueNames.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_UniqueNames.Name = "toolStripButton_UniqueNames";
-         this.toolStripButton_UniqueNames.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_UniqueNames.Text = "Namen der Tracks und Marker eindeutig machen";
-         this.toolStripButton_UniqueNames.Click += new System.EventHandler(this.toolStripButton_UniqueNames_Click);
+         toolStripButton_UniqueNames.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_UniqueNames.Image = Properties.Resources.list_numbers;
+         toolStripButton_UniqueNames.ImageTransparentColor = Color.Magenta;
+         toolStripButton_UniqueNames.Name = "toolStripButton_UniqueNames";
+         toolStripButton_UniqueNames.Size = new Size(24, 24);
+         toolStripButton_UniqueNames.Text = "Namen der Tracks und Marker eindeutig machen";
+         toolStripButton_UniqueNames.Click += toolStripButton_UniqueNames_Click;
          // 
-         // mapControl1
+         // tabPageSearch
          // 
-         this.mapControl1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-         this.mapControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.mapControl1.Location = new System.Drawing.Point(0, 0);
-         this.mapControl1.MapClickTolerance4Tracks = 1F;
-         this.mapControl1.MapCursor = System.Windows.Forms.Cursors.Default;
-         this.mapControl1.MapDragButton = System.Windows.Forms.MouseButtons.Right;
-         this.mapControl1.MapMinZoom = 3;
-         this.mapControl1.Margin = new System.Windows.Forms.Padding(4);
-         this.mapControl1.Name = "mapControl1";
-         this.mapControl1.Size = new System.Drawing.Size(974, 727);
-         this.mapControl1.TabIndex = 1;
+         tabPageSearch.Controls.Add(searchControl1);
+         tabPageSearch.Location = new Point(4, 44);
+         tabPageSearch.Name = "tabPageSearch";
+         tabPageSearch.Size = new Size(238, 560);
+         tabPageSearch.TabIndex = 7;
+         tabPageSearch.Text = "Suche";
+         tabPageSearch.UseVisualStyleBackColor = true;
+         // 
+         // searchControl1
+         // 
+         searchControl1.BackColor = SystemColors.Control;
+         searchControl1.Dock = DockStyle.Fill;
+         searchControl1.Location = new Point(0, 0);
+         searchControl1.Name = "searchControl1";
+         searchControl1.Size = new Size(238, 560);
+         searchControl1.TabIndex = 0;
+         // 
+         // tabPageLocation
+         // 
+         tabPageLocation.BackColor = SystemColors.Control;
+         tabPageLocation.Controls.Add(splitContainer2);
+         tabPageLocation.Location = new Point(4, 44);
+         tabPageLocation.Name = "tabPageLocation";
+         tabPageLocation.Padding = new Padding(3);
+         tabPageLocation.Size = new Size(238, 560);
+         tabPageLocation.TabIndex = 6;
+         tabPageLocation.Text = "geografische Positionen";
+         // 
+         // splitContainer2
+         // 
+         splitContainer2.Dock = DockStyle.Fill;
+         splitContainer2.Location = new Point(3, 3);
+         splitContainer2.Name = "splitContainer2";
+         splitContainer2.Orientation = Orientation.Horizontal;
+         // 
+         // splitContainer2.Panel1
+         // 
+         splitContainer2.Panel1.Controls.Add(locationControl1);
+         // 
+         // splitContainer2.Panel2
+         // 
+         splitContainer2.Panel2.Controls.Add(geoLocationControl1);
+         splitContainer2.Size = new Size(232, 554);
+         splitContainer2.SplitterDistance = 351;
+         splitContainer2.TabIndex = 14;
+         // 
+         // locationControl1
+         // 
+         locationControl1.Dock = DockStyle.Fill;
+         locationControl1.Location = new Point(0, 0);
+         locationControl1.Name = "locationControl1";
+         locationControl1.Size = new Size(232, 351);
+         locationControl1.TabIndex = 0;
+         // 
+         // geoLocationControl1
+         // 
+         geoLocationControl1.Location = new Point(0, 2);
+         geoLocationControl1.Name = "geoLocationControl1";
+         geoLocationControl1.Size = new Size(424, 166);
+         geoLocationControl1.TabIndex = 0;
+         // 
+         // tabPageFoto
+         // 
+         tabPageFoto.Controls.Add(pictureManager1);
+         tabPageFoto.Location = new Point(4, 44);
+         tabPageFoto.Name = "tabPageFoto";
+         tabPageFoto.Size = new Size(238, 560);
+         tabPageFoto.TabIndex = 4;
+         tabPageFoto.Text = "Fotos";
+         tabPageFoto.UseVisualStyleBackColor = true;
+         // 
+         // pictureManager1
+         // 
+         pictureManager1.ActualPicturePath = "C:\\Users\\Petra und Frank\\Pictures";
+         pictureManager1.Dock = DockStyle.Fill;
+         pictureManager1.Location = new Point(0, 0);
+         pictureManager1.Margin = new Padding(4, 3, 4, 3);
+         pictureManager1.Name = "pictureManager1";
+         pictureManager1.Size = new Size(238, 560);
+         pictureManager1.TabIndex = 0;
+         // 
+         // mapCtrl
+         // 
+         mapCtrl.Dock = DockStyle.Fill;
+         mapCtrl.ForeColor = SystemColors.ControlDark;
+         mapCtrl.Location = new Point(0, 0);
+         mapCtrl.M_CacheLocation = "C:\\Users\\Petra und Frank\\AppData\\Local\\GMap.NET\\";
+         mapCtrl.M_CanDragMap = true;
+         mapCtrl.M_ClickTolerance4Tracks = 1F;
+         mapCtrl.M_CopyrightFont = new Font("Microsoft Sans Serif", 7F);
+         mapCtrl.M_Cursor = Cursors.Default;
+         mapCtrl.M_DeviceZoom = 1D;
+         mapCtrl.M_DragButton = MouseButtons.Right;
+         mapCtrl.M_EmptyMapBackgroundColor = Color.LightGray;
+         mapCtrl.M_EmptyTileColor = Color.DarkGray;
+         mapCtrl.M_EmptyTileText = "keine Daten";
+         mapCtrl.M_FillEmptyTiles = false;
+         mapCtrl.M_LevelsKeepInMemory = 5;
+         mapCtrl.M_MarkersEnabled = true;
+         mapCtrl.M_MinZoom = 0;
+         mapCtrl.M_MouseWheelZoomEnabled = true;
+         mapCtrl.M_MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
+         mapCtrl.M_PolygonsEnabled = true;
+         mapCtrl.M_RetryLoadTile = 0;
+         mapCtrl.M_ScaleAlpha = 180;
+         mapCtrl.M_ScaleKind = SpecialMapCtrl.Scale4Map.ScaleKind.Around;
+         mapCtrl.M_ScaleMode = SpecialMapCtrl.SpecialMapCtrl.ScaleModes.Fractional;
+         mapCtrl.M_SelectedAreaFillColor = Color.FromArgb(33, 65, 105, 225);
+         mapCtrl.M_ShowCenter = false;
+         mapCtrl.M_ShowTileGridLines = true;
+         mapCtrl.M_TracksEnabled = true;
+         mapCtrl.Margin = new Padding(0);
+         mapCtrl.Name = "mapCtrl";
+         mapCtrl.Size = new Size(754, 608);
+         mapCtrl.TabIndex = 1;
          // 
          // contextMenuStripEditableTracks
          // 
-         this.contextMenuStripEditableTracks.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.contextMenuStripEditableTracks.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem_EditableTrackDraw,
-            this.toolStripMenuItem_EditableTrackSplit,
-            this.toolStripMenuItem_EditableTrackAppend,
-            this.toolStripMenuItem_EditableTrackReverse,
-            this.toolStripMenuItem_EditableTrackClone,
-            this.toolStripMenuItem_EditableTrackDelete,
-            this.toolStripSeparator15,
-            this.toolStripMenuItem_EditableTrackShow,
-            this.toolStripMenuItem_EditableTrackShowSlope,
-            this.toolStripMenuItem_EditableTrackZoom,
-            this.toolStripMenuItem_EditableTrackInfo,
-            this.toolStripMenuItem_EditableTrackExtInfo,
-            this.toolStripSeparator12,
-            this.toolStripMenuItem_EditableTrackColor,
-            this.numericUpDownMenuItem_EditableLineThickness,
-            this.toolStripSeparator4,
-            this.ToolStripMenuItem_EditableTrackSimplify,
-            this.toolStripSeparator2,
-            this.ToolStripMenuItem_ShowAllEditableTracks,
-            this.ToolStripMenuItem_HideAllEditableTracks,
-            this.ToolStripMenuItem_RemoveVisibleEditableTracks});
-         this.contextMenuStripEditableTracks.Name = "contextMenuStripTrack";
-         this.contextMenuStripEditableTracks.Size = new System.Drawing.Size(257, 477);
-         this.contextMenuStripEditableTracks.Closed += new System.Windows.Forms.ToolStripDropDownClosedEventHandler(this.contextMenuStripEditableTracks_Closed);
-         this.contextMenuStripEditableTracks.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripEditableTracks_Opening);
+         contextMenuStripEditableTracks.ImageScalingSize = new Size(20, 20);
+         contextMenuStripEditableTracks.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_EditableTrackDraw, toolStripMenuItem_EditableTrackSplit, toolStripMenuItem_EditableTrackAppend, toolStripMenuItem_EditableTrackPointRemove, toolStripMenuItem_EditableTrackReverse, toolStripMenuItem_EditableTrackClone, toolStripMenuItem_EditableTrackDelete, toolStripSeparator15, toolStripMenuItem_EditableTrackShow, toolStripMenuItem_EditableTrackShowSlope, toolStripMenuItem_EditableTrackZoom, toolStripMenuItem_EditableTrackInfo, toolStripMenuItem_EditableTrackExtInfo, toolStripSeparator12, toolStripMenuItem_EditableTrackColor, numericUpDownMenuItem_EditableLineThickness, toolStripSeparator4, ToolStripMenuItem_EditableTrackSimplify, toolStripSeparator2, ToolStripMenuItem_EditableGroupInsert1, ToolStripMenuItem_EditableGroupDelete1, toolStripSeparator5, ToolStripMenuItem_ShowAllEditableObjects1, ToolStripMenuItem_HideAllEditableObjects1, ToolStripMenuItem_DeleteAllVisibleEditableObjects1 });
+         contextMenuStripEditableTracks.Name = "contextMenuStripTrack";
+         contextMenuStripEditableTracks.Size = new Size(266, 564);
+         contextMenuStripEditableTracks.Closed += contextMenuStripEditableTracks_Closed;
+         contextMenuStripEditableTracks.Opening += contextMenuStripEditableTracks_Opening;
          // 
          // toolStripMenuItem_EditableTrackDraw
          // 
-         this.toolStripMenuItem_EditableTrackDraw.Image = global::GpxViewer.Properties.Resources.TrackDraw;
-         this.toolStripMenuItem_EditableTrackDraw.Name = "toolStripMenuItem_EditableTrackDraw";
-         this.toolStripMenuItem_EditableTrackDraw.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackDraw.Text = "Track &weiter zeichnen";
-         this.toolStripMenuItem_EditableTrackDraw.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackDraw_Click);
+         toolStripMenuItem_EditableTrackDraw.Image = Properties.Resources.TrackDraw;
+         toolStripMenuItem_EditableTrackDraw.Name = "toolStripMenuItem_EditableTrackDraw";
+         toolStripMenuItem_EditableTrackDraw.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackDraw.Text = "Track &weiter zeichnen";
+         toolStripMenuItem_EditableTrackDraw.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackSplit
          // 
-         this.toolStripMenuItem_EditableTrackSplit.Image = global::GpxViewer.Properties.Resources.TrackSplit;
-         this.toolStripMenuItem_EditableTrackSplit.Name = "toolStripMenuItem_EditableTrackSplit";
-         this.toolStripMenuItem_EditableTrackSplit.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackSplit.Text = "Track &trennen";
-         this.toolStripMenuItem_EditableTrackSplit.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackSplit_Click);
+         toolStripMenuItem_EditableTrackSplit.Image = Properties.Resources.TrackSplit;
+         toolStripMenuItem_EditableTrackSplit.Name = "toolStripMenuItem_EditableTrackSplit";
+         toolStripMenuItem_EditableTrackSplit.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackSplit.Text = "Track &trennen";
+         toolStripMenuItem_EditableTrackSplit.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackAppend
          // 
-         this.toolStripMenuItem_EditableTrackAppend.Image = global::GpxViewer.Properties.Resources.TrackConcat;
-         this.toolStripMenuItem_EditableTrackAppend.Name = "toolStripMenuItem_EditableTrackAppend";
-         this.toolStripMenuItem_EditableTrackAppend.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackAppend.Text = "anderen Track &anhängen";
-         this.toolStripMenuItem_EditableTrackAppend.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackAppend_Click);
+         toolStripMenuItem_EditableTrackAppend.Image = Properties.Resources.TrackConcat;
+         toolStripMenuItem_EditableTrackAppend.Name = "toolStripMenuItem_EditableTrackAppend";
+         toolStripMenuItem_EditableTrackAppend.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackAppend.Text = "anderen Track &anhängen";
+         toolStripMenuItem_EditableTrackAppend.Click += toolStripMenuItem_EditableForOneTrack;
+         // 
+         // toolStripMenuItem_EditableTrackPointRemove
+         // 
+         toolStripMenuItem_EditableTrackPointRemove.Image = Properties.Resources.TrackPointRemove;
+         toolStripMenuItem_EditableTrackPointRemove.Name = "toolStripMenuItem_EditableTrackPointRemove";
+         toolStripMenuItem_EditableTrackPointRemove.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackPointRemove.Text = "Trackpunkt entfernen";
+         toolStripMenuItem_EditableTrackPointRemove.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackReverse
          // 
-         this.toolStripMenuItem_EditableTrackReverse.Image = global::GpxViewer.Properties.Resources.arrow_undo;
-         this.toolStripMenuItem_EditableTrackReverse.Name = "toolStripMenuItem_EditableTrackReverse";
-         this.toolStripMenuItem_EditableTrackReverse.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackReverse.Text = "Track &umkehren";
-         this.toolStripMenuItem_EditableTrackReverse.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackReverse_Click);
+         toolStripMenuItem_EditableTrackReverse.Image = Properties.Resources.arrow_undo;
+         toolStripMenuItem_EditableTrackReverse.Name = "toolStripMenuItem_EditableTrackReverse";
+         toolStripMenuItem_EditableTrackReverse.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackReverse.Text = "Track &umkehren";
+         toolStripMenuItem_EditableTrackReverse.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackClone
          // 
-         this.toolStripMenuItem_EditableTrackClone.Image = global::GpxViewer.Properties.Resources.kopie;
-         this.toolStripMenuItem_EditableTrackClone.Name = "toolStripMenuItem_EditableTrackClone";
-         this.toolStripMenuItem_EditableTrackClone.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackClone.Text = "&Kopie erzeugen";
-         this.toolStripMenuItem_EditableTrackClone.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackClone_Click);
+         toolStripMenuItem_EditableTrackClone.Image = Properties.Resources.kopie;
+         toolStripMenuItem_EditableTrackClone.Name = "toolStripMenuItem_EditableTrackClone";
+         toolStripMenuItem_EditableTrackClone.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackClone.Text = "&Kopie erzeugen";
+         toolStripMenuItem_EditableTrackClone.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackDelete
          // 
-         this.toolStripMenuItem_EditableTrackDelete.Image = global::GpxViewer.Properties.Resources.delete;
-         this.toolStripMenuItem_EditableTrackDelete.Name = "toolStripMenuItem_EditableTrackDelete";
-         this.toolStripMenuItem_EditableTrackDelete.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackDelete.Text = "Track &löschen";
-         this.toolStripMenuItem_EditableTrackDelete.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackDelete_Click);
+         toolStripMenuItem_EditableTrackDelete.Image = Properties.Resources.delete;
+         toolStripMenuItem_EditableTrackDelete.Name = "toolStripMenuItem_EditableTrackDelete";
+         toolStripMenuItem_EditableTrackDelete.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackDelete.Text = "Track &löschen";
+         toolStripMenuItem_EditableTrackDelete.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripSeparator15
          // 
-         this.toolStripSeparator15.Name = "toolStripSeparator15";
-         this.toolStripSeparator15.Size = new System.Drawing.Size(253, 6);
+         toolStripSeparator15.Name = "toolStripSeparator15";
+         toolStripSeparator15.Size = new Size(262, 6);
          // 
          // toolStripMenuItem_EditableTrackShow
          // 
-         this.toolStripMenuItem_EditableTrackShow.Image = global::GpxViewer.Properties.Resources.Track;
-         this.toolStripMenuItem_EditableTrackShow.Name = "toolStripMenuItem_EditableTrackShow";
-         this.toolStripMenuItem_EditableTrackShow.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackShow.Text = "&Track anzeigen";
-         this.toolStripMenuItem_EditableTrackShow.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackShow_Click);
+         toolStripMenuItem_EditableTrackShow.Image = Properties.Resources.Track;
+         toolStripMenuItem_EditableTrackShow.Name = "toolStripMenuItem_EditableTrackShow";
+         toolStripMenuItem_EditableTrackShow.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackShow.Text = "&Track anzeigen";
+         toolStripMenuItem_EditableTrackShow.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackShowSlope
          // 
-         this.toolStripMenuItem_EditableTrackShowSlope.Name = "toolStripMenuItem_EditableTrackShowSlope";
-         this.toolStripMenuItem_EditableTrackShowSlope.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackShowSlope.Text = "Anstiegssymbole anzeigen";
-         this.toolStripMenuItem_EditableTrackShowSlope.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackShowSlope_Click);
+         toolStripMenuItem_EditableTrackShowSlope.Name = "toolStripMenuItem_EditableTrackShowSlope";
+         toolStripMenuItem_EditableTrackShowSlope.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackShowSlope.Text = "Anstiegssymbole anzeigen";
+         toolStripMenuItem_EditableTrackShowSlope.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackZoom
          // 
-         this.toolStripMenuItem_EditableTrackZoom.Image = global::GpxViewer.Properties.Resources.zoom1;
-         this.toolStripMenuItem_EditableTrackZoom.Name = "toolStripMenuItem_EditableTrackZoom";
-         this.toolStripMenuItem_EditableTrackZoom.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackZoom.Text = "&Zoom auf diesen Track";
-         this.toolStripMenuItem_EditableTrackZoom.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackZoom_Click);
+         toolStripMenuItem_EditableTrackZoom.Image = Properties.Resources.zoom1;
+         toolStripMenuItem_EditableTrackZoom.Name = "toolStripMenuItem_EditableTrackZoom";
+         toolStripMenuItem_EditableTrackZoom.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackZoom.Text = "&Zoom auf diesen Track";
+         toolStripMenuItem_EditableTrackZoom.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackInfo
          // 
-         this.toolStripMenuItem_EditableTrackInfo.Image = global::GpxViewer.Properties.Resources.info;
-         this.toolStripMenuItem_EditableTrackInfo.Name = "toolStripMenuItem_EditableTrackInfo";
-         this.toolStripMenuItem_EditableTrackInfo.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackInfo.Text = "&Info anzeigen";
-         this.toolStripMenuItem_EditableTrackInfo.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackInfo_Click);
+         toolStripMenuItem_EditableTrackInfo.Image = Properties.Resources.info;
+         toolStripMenuItem_EditableTrackInfo.Name = "toolStripMenuItem_EditableTrackInfo";
+         toolStripMenuItem_EditableTrackInfo.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackInfo.Text = "&Info anzeigen";
+         toolStripMenuItem_EditableTrackInfo.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripMenuItem_EditableTrackExtInfo
          // 
-         this.toolStripMenuItem_EditableTrackExtInfo.Image = global::GpxViewer.Properties.Resources.edit;
-         this.toolStripMenuItem_EditableTrackExtInfo.Name = "toolStripMenuItem_EditableTrackExtInfo";
-         this.toolStripMenuItem_EditableTrackExtInfo.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackExtInfo.Text = "&erweiterte Infos";
-         this.toolStripMenuItem_EditableTrackExtInfo.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackExtInfo_Click);
+         toolStripMenuItem_EditableTrackExtInfo.Image = Properties.Resources.edit;
+         toolStripMenuItem_EditableTrackExtInfo.Name = "toolStripMenuItem_EditableTrackExtInfo";
+         toolStripMenuItem_EditableTrackExtInfo.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackExtInfo.Text = "&erweiterte Infos";
+         toolStripMenuItem_EditableTrackExtInfo.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripSeparator12
          // 
-         this.toolStripSeparator12.Name = "toolStripSeparator12";
-         this.toolStripSeparator12.Size = new System.Drawing.Size(253, 6);
+         toolStripSeparator12.Name = "toolStripSeparator12";
+         toolStripSeparator12.Size = new Size(262, 6);
          // 
          // toolStripMenuItem_EditableTrackColor
          // 
-         this.toolStripMenuItem_EditableTrackColor.BackColor = System.Drawing.SystemColors.Control;
-         this.toolStripMenuItem_EditableTrackColor.Name = "toolStripMenuItem_EditableTrackColor";
-         this.toolStripMenuItem_EditableTrackColor.Size = new System.Drawing.Size(256, 26);
-         this.toolStripMenuItem_EditableTrackColor.Text = "Track&farbe ändern";
-         this.toolStripMenuItem_EditableTrackColor.Click += new System.EventHandler(this.toolStripMenuItem_EditableTrackColor_Click);
+         toolStripMenuItem_EditableTrackColor.BackColor = SystemColors.Control;
+         toolStripMenuItem_EditableTrackColor.Name = "toolStripMenuItem_EditableTrackColor";
+         toolStripMenuItem_EditableTrackColor.Size = new Size(265, 26);
+         toolStripMenuItem_EditableTrackColor.Text = "Track&farbe ändern";
+         toolStripMenuItem_EditableTrackColor.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // numericUpDownMenuItem_EditableLineThickness
          // 
-         this.numericUpDownMenuItem_EditableLineThickness.BackColor = System.Drawing.SystemColors.Control;
-         this.numericUpDownMenuItem_EditableLineThickness.Increment = new decimal(new int[] {
-            5,
-            0,
-            0,
-            65536});
-         this.numericUpDownMenuItem_EditableLineThickness.Maximum = new decimal(new int[] {
-            20,
-            0,
-            0,
-            0});
-         this.numericUpDownMenuItem_EditableLineThickness.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-         this.numericUpDownMenuItem_EditableLineThickness.Name = "numericUpDownMenuItem_EditableLineThickness";
-         this.numericUpDownMenuItem_EditableLineThickness.Size = new System.Drawing.Size(157, 30);
-         this.numericUpDownMenuItem_EditableLineThickness.Text = "Trackliniendicke";
-         this.numericUpDownMenuItem_EditableLineThickness.Value = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
+         numericUpDownMenuItem_EditableLineThickness.BackColor = SystemColors.Control;
+         numericUpDownMenuItem_EditableLineThickness.Increment = new decimal(new int[] { 5, 0, 0, 65536 });
+         numericUpDownMenuItem_EditableLineThickness.Maximum = new decimal(new int[] { 20, 0, 0, 0 });
+         numericUpDownMenuItem_EditableLineThickness.Minimum = new decimal(new int[] { 0, 0, 0, 0 });
+         numericUpDownMenuItem_EditableLineThickness.Name = "numericUpDownMenuItem_EditableLineThickness";
+         numericUpDownMenuItem_EditableLineThickness.Size = new Size(164, 33);
+         numericUpDownMenuItem_EditableLineThickness.Text = "Trackliniendicke";
+         numericUpDownMenuItem_EditableLineThickness.Value = new decimal(new int[] { 5, 0, 0, 0 });
          // 
          // toolStripSeparator4
          // 
-         this.toolStripSeparator4.Name = "toolStripSeparator4";
-         this.toolStripSeparator4.Size = new System.Drawing.Size(253, 6);
+         toolStripSeparator4.Name = "toolStripSeparator4";
+         toolStripSeparator4.Size = new Size(262, 6);
          // 
          // ToolStripMenuItem_EditableTrackSimplify
          // 
-         this.ToolStripMenuItem_EditableTrackSimplify.Image = global::GpxViewer.Properties.Resources.TrackSimpl;
-         this.ToolStripMenuItem_EditableTrackSimplify.Name = "ToolStripMenuItem_EditableTrackSimplify";
-         this.ToolStripMenuItem_EditableTrackSimplify.Size = new System.Drawing.Size(256, 26);
-         this.ToolStripMenuItem_EditableTrackSimplify.Text = "Track &vereinfachen";
-         this.ToolStripMenuItem_EditableTrackSimplify.Click += new System.EventHandler(this.ToolStripMenuItem_EditableTrackSimplify_Click);
+         ToolStripMenuItem_EditableTrackSimplify.Image = Properties.Resources.TrackSimpl;
+         ToolStripMenuItem_EditableTrackSimplify.Name = "ToolStripMenuItem_EditableTrackSimplify";
+         ToolStripMenuItem_EditableTrackSimplify.Size = new Size(265, 26);
+         ToolStripMenuItem_EditableTrackSimplify.Text = "Track &vereinfachen";
+         ToolStripMenuItem_EditableTrackSimplify.Click += toolStripMenuItem_EditableForOneTrack;
          // 
          // toolStripSeparator2
          // 
-         this.toolStripSeparator2.Name = "toolStripSeparator2";
-         this.toolStripSeparator2.Size = new System.Drawing.Size(253, 6);
+         toolStripSeparator2.Name = "toolStripSeparator2";
+         toolStripSeparator2.Size = new Size(262, 6);
          // 
-         // ToolStripMenuItem_ShowAllEditableTracks
+         // ToolStripMenuItem_EditableGroupInsert1
          // 
-         this.ToolStripMenuItem_ShowAllEditableTracks.Name = "ToolStripMenuItem_ShowAllEditableTracks";
-         this.ToolStripMenuItem_ShowAllEditableTracks.Size = new System.Drawing.Size(256, 26);
-         this.ToolStripMenuItem_ShowAllEditableTracks.Text = "alle Tracks anzeigen";
-         this.ToolStripMenuItem_ShowAllEditableTracks.Click += new System.EventHandler(this.ToolStripMenuItem_ShowAllEditableTracks_Click);
+         ToolStripMenuItem_EditableGroupInsert1.Image = Properties.Resources.Open;
+         ToolStripMenuItem_EditableGroupInsert1.Name = "ToolStripMenuItem_EditableGroupInsert1";
+         ToolStripMenuItem_EditableGroupInsert1.Size = new Size(265, 26);
+         ToolStripMenuItem_EditableGroupInsert1.Text = "neue Gruppe anlegen";
+         ToolStripMenuItem_EditableGroupInsert1.Click += ToolStripMenuItem_EditableGroupInsert_Click;
          // 
-         // ToolStripMenuItem_HideAllEditableTracks
+         // ToolStripMenuItem_EditableGroupDelete1
          // 
-         this.ToolStripMenuItem_HideAllEditableTracks.Name = "ToolStripMenuItem_HideAllEditableTracks";
-         this.ToolStripMenuItem_HideAllEditableTracks.Size = new System.Drawing.Size(256, 26);
-         this.ToolStripMenuItem_HideAllEditableTracks.Text = "alle Tracks verbergen";
-         this.ToolStripMenuItem_HideAllEditableTracks.Click += new System.EventHandler(this.ToolStripMenuItem_HideAllEditableTracks_Click);
+         ToolStripMenuItem_EditableGroupDelete1.ForeColor = Color.FromArgb(192, 0, 0);
+         ToolStripMenuItem_EditableGroupDelete1.Image = Properties.Resources.delete;
+         ToolStripMenuItem_EditableGroupDelete1.Name = "ToolStripMenuItem_EditableGroupDelete1";
+         ToolStripMenuItem_EditableGroupDelete1.Size = new Size(265, 26);
+         ToolStripMenuItem_EditableGroupDelete1.Text = "gesamte (!) Gruppe löschen";
+         ToolStripMenuItem_EditableGroupDelete1.Click += ToolStripMenuItem_EditableGroupDelete_Click;
          // 
-         // ToolStripMenuItem_RemoveVisibleEditableTracks
+         // toolStripSeparator5
          // 
-         this.ToolStripMenuItem_RemoveVisibleEditableTracks.Image = global::GpxViewer.Properties.Resources.TracksDelete;
-         this.ToolStripMenuItem_RemoveVisibleEditableTracks.Name = "ToolStripMenuItem_RemoveVisibleEditableTracks";
-         this.ToolStripMenuItem_RemoveVisibleEditableTracks.Size = new System.Drawing.Size(256, 26);
-         this.ToolStripMenuItem_RemoveVisibleEditableTracks.Text = "alle angezeigten (!) Tracks löschen";
-         this.ToolStripMenuItem_RemoveVisibleEditableTracks.Click += new System.EventHandler(this.ToolStripMenuItem_RemoveVisibleEditableTracks_Click);
+         toolStripSeparator5.Name = "toolStripSeparator5";
+         toolStripSeparator5.Size = new Size(262, 6);
          // 
-         // contextMenuStripMarker
+         // ToolStripMenuItem_ShowAllEditableObjects1
          // 
-         this.contextMenuStripMarker.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.contextMenuStripMarker.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItem_WaypointZoom,
-            this.ToolStripMenuItem_WaypointShow,
-            this.ToolStripMenuItem_WaypointEdit,
-            this.ToolStripMenuItem_WaypointClone,
-            this.ToolStripMenuItem_WaypointSet,
-            this.ToolStripMenuItem_WaypointDelete,
-            this.xToolStripMenuItem,
-            this.ToolStripMenuItem_ShowAllEditableMarkers,
-            this.ToolStripMenuItem_HideAllEditableMarkers,
-            this.ToolStripMenuItem_RemoveVisibleEditableMarkers});
-         this.contextMenuStripMarker.Name = "contextMenuStripEditMarker";
-         this.contextMenuStripMarker.Size = new System.Drawing.Size(299, 244);
-         this.contextMenuStripMarker.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripMarker_Opening);
+         ToolStripMenuItem_ShowAllEditableObjects1.Name = "ToolStripMenuItem_ShowAllEditableObjects1";
+         ToolStripMenuItem_ShowAllEditableObjects1.Size = new Size(265, 26);
+         ToolStripMenuItem_ShowAllEditableObjects1.Text = "alle Objekte anzeigen";
+         ToolStripMenuItem_ShowAllEditableObjects1.Click += ToolStripMenuItem_ShowAllEditableObjects_Click;
+         // 
+         // ToolStripMenuItem_HideAllEditableObjects1
+         // 
+         ToolStripMenuItem_HideAllEditableObjects1.Name = "ToolStripMenuItem_HideAllEditableObjects1";
+         ToolStripMenuItem_HideAllEditableObjects1.Size = new Size(265, 26);
+         ToolStripMenuItem_HideAllEditableObjects1.Text = "alle Objekte verbergen";
+         ToolStripMenuItem_HideAllEditableObjects1.Click += ToolStripMenuItem_HideAllEditableObjects_Click;
+         // 
+         // ToolStripMenuItem_DeleteAllVisibleEditableObjects1
+         // 
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects1.ForeColor = Color.FromArgb(192, 0, 0);
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects1.Image = Properties.Resources.delete;
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects1.Name = "ToolStripMenuItem_DeleteAllVisibleEditableObjects1";
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects1.Size = new Size(265, 26);
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects1.Text = "alle angezeigten (!) Objekte löschen";
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects1.Click += ToolStripMenuItem_DeleteAllVisibleEditableObjects_Click;
+         // 
+         // contextMenuStripEditableMarker
+         // 
+         contextMenuStripEditableMarker.ImageScalingSize = new Size(20, 20);
+         contextMenuStripEditableMarker.Items.AddRange(new ToolStripItem[] { ToolStripMenuItem_WaypointZoom, ToolStripMenuItem_WaypointShow, ToolStripMenuItem_WaypointEdit, ToolStripMenuItem_WaypointClone, ToolStripMenuItem_WaypointSet, ToolStripMenuItem_WaypointDelete, xToolStripMenuItem, ToolStripMenuItem_EditableGroupInsert3, ToolStripMenuItem_EditableGroupDelete3, toolStripSeparator7, ToolStripMenuItem_ShowAllEditableObjects3, ToolStripMenuItem_HideAllEditableObjects3, ToolStripMenuItem_DeleteAllVisibleEditableObjects3 });
+         contextMenuStripEditableMarker.Name = "contextMenuStripEditMarker";
+         contextMenuStripEditableMarker.Size = new Size(270, 302);
+         contextMenuStripEditableMarker.Opening += contextMenuStripMarker_Opening;
          // 
          // ToolStripMenuItem_WaypointZoom
          // 
-         this.ToolStripMenuItem_WaypointZoom.Image = global::GpxViewer.Properties.Resources.zoom1;
-         this.ToolStripMenuItem_WaypointZoom.Name = "ToolStripMenuItem_WaypointZoom";
-         this.ToolStripMenuItem_WaypointZoom.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_WaypointZoom.Text = "Zoom auf diese Markierung";
-         this.ToolStripMenuItem_WaypointZoom.Click += new System.EventHandler(this.ToolStripMenuItem_WaypointZoom_Click);
+         ToolStripMenuItem_WaypointZoom.Image = Properties.Resources.zoom1;
+         ToolStripMenuItem_WaypointZoom.Name = "ToolStripMenuItem_WaypointZoom";
+         ToolStripMenuItem_WaypointZoom.Size = new Size(269, 26);
+         ToolStripMenuItem_WaypointZoom.Text = "Zoom auf diese Markierung";
+         ToolStripMenuItem_WaypointZoom.Click += ToolStripMenuItem_ForOneWaypoint;
          // 
          // ToolStripMenuItem_WaypointShow
          // 
-         this.ToolStripMenuItem_WaypointShow.Name = "ToolStripMenuItem_WaypointShow";
-         this.ToolStripMenuItem_WaypointShow.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_WaypointShow.Text = "Markierung anzeigen";
-         this.ToolStripMenuItem_WaypointShow.Click += new System.EventHandler(this.ToolStripMenuItem_WaypointShow_Click);
+         ToolStripMenuItem_WaypointShow.Image = Properties.Resources.Flag16x16;
+         ToolStripMenuItem_WaypointShow.Name = "ToolStripMenuItem_WaypointShow";
+         ToolStripMenuItem_WaypointShow.Size = new Size(269, 26);
+         ToolStripMenuItem_WaypointShow.Text = "Markierung anzeigen";
+         ToolStripMenuItem_WaypointShow.Click += ToolStripMenuItem_ForOneWaypoint;
          // 
          // ToolStripMenuItem_WaypointEdit
          // 
-         this.ToolStripMenuItem_WaypointEdit.Image = global::GpxViewer.Properties.Resources.edit;
-         this.ToolStripMenuItem_WaypointEdit.Name = "ToolStripMenuItem_WaypointEdit";
-         this.ToolStripMenuItem_WaypointEdit.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_WaypointEdit.Text = "Eigenschaften anzeigen / &bearbeiten";
-         this.ToolStripMenuItem_WaypointEdit.Click += new System.EventHandler(this.ToolStripMenuItem_WaypointEdit_Click);
+         ToolStripMenuItem_WaypointEdit.Image = Properties.Resources.edit;
+         ToolStripMenuItem_WaypointEdit.Name = "ToolStripMenuItem_WaypointEdit";
+         ToolStripMenuItem_WaypointEdit.Size = new Size(269, 26);
+         ToolStripMenuItem_WaypointEdit.Text = "Eigenschaften anzeigen / &bearbeiten";
+         ToolStripMenuItem_WaypointEdit.Click += ToolStripMenuItem_ForOneWaypoint;
          // 
          // ToolStripMenuItem_WaypointClone
          // 
-         this.ToolStripMenuItem_WaypointClone.Image = global::GpxViewer.Properties.Resources.kopie;
-         this.ToolStripMenuItem_WaypointClone.Name = "ToolStripMenuItem_WaypointClone";
-         this.ToolStripMenuItem_WaypointClone.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_WaypointClone.Text = "bearbeitbare Kopie erzeugen";
-         this.ToolStripMenuItem_WaypointClone.Click += new System.EventHandler(this.ToolStripMenuItem_WaypointClone_Click);
+         ToolStripMenuItem_WaypointClone.Image = Properties.Resources.kopie;
+         ToolStripMenuItem_WaypointClone.Name = "ToolStripMenuItem_WaypointClone";
+         ToolStripMenuItem_WaypointClone.Size = new Size(269, 26);
+         ToolStripMenuItem_WaypointClone.Text = "bearbeitbare Kopie erzeugen";
+         ToolStripMenuItem_WaypointClone.Click += ToolStripMenuItem_ForOneWaypoint;
          // 
          // ToolStripMenuItem_WaypointSet
          // 
-         this.ToolStripMenuItem_WaypointSet.Name = "ToolStripMenuItem_WaypointSet";
-         this.ToolStripMenuItem_WaypointSet.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_WaypointSet.Text = "neue Position &setzen";
-         this.ToolStripMenuItem_WaypointSet.Click += new System.EventHandler(this.ToolStripMenuItem_WaypointSet_Click);
+         ToolStripMenuItem_WaypointSet.Name = "ToolStripMenuItem_WaypointSet";
+         ToolStripMenuItem_WaypointSet.Size = new Size(269, 26);
+         ToolStripMenuItem_WaypointSet.Text = "neue Position &setzen";
+         ToolStripMenuItem_WaypointSet.Click += ToolStripMenuItem_ForOneWaypoint;
          // 
          // ToolStripMenuItem_WaypointDelete
          // 
-         this.ToolStripMenuItem_WaypointDelete.Image = global::GpxViewer.Properties.Resources.delete;
-         this.ToolStripMenuItem_WaypointDelete.Name = "ToolStripMenuItem_WaypointDelete";
-         this.ToolStripMenuItem_WaypointDelete.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_WaypointDelete.Text = "Marker &löschen";
-         this.ToolStripMenuItem_WaypointDelete.Click += new System.EventHandler(this.ToolStripMenuItem_WaypointDelete_Click);
+         ToolStripMenuItem_WaypointDelete.Image = Properties.Resources.delete;
+         ToolStripMenuItem_WaypointDelete.Name = "ToolStripMenuItem_WaypointDelete";
+         ToolStripMenuItem_WaypointDelete.Size = new Size(269, 26);
+         ToolStripMenuItem_WaypointDelete.Text = "Marker &löschen";
+         ToolStripMenuItem_WaypointDelete.Click += ToolStripMenuItem_ForOneWaypoint;
          // 
          // xToolStripMenuItem
          // 
-         this.xToolStripMenuItem.Name = "xToolStripMenuItem";
-         this.xToolStripMenuItem.Size = new System.Drawing.Size(295, 6);
+         xToolStripMenuItem.Name = "xToolStripMenuItem";
+         xToolStripMenuItem.Size = new Size(266, 6);
          // 
-         // ToolStripMenuItem_ShowAllEditableMarkers
+         // ToolStripMenuItem_EditableGroupInsert3
          // 
-         this.ToolStripMenuItem_ShowAllEditableMarkers.Name = "ToolStripMenuItem_ShowAllEditableMarkers";
-         this.ToolStripMenuItem_ShowAllEditableMarkers.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_ShowAllEditableMarkers.Text = "alle Markierungen anzeigen";
-         this.ToolStripMenuItem_ShowAllEditableMarkers.Click += new System.EventHandler(this.ToolStripMenuItem_ShowAllEditableMarkers_Click);
+         ToolStripMenuItem_EditableGroupInsert3.Image = Properties.Resources.Open;
+         ToolStripMenuItem_EditableGroupInsert3.Name = "ToolStripMenuItem_EditableGroupInsert3";
+         ToolStripMenuItem_EditableGroupInsert3.Size = new Size(269, 26);
+         ToolStripMenuItem_EditableGroupInsert3.Text = "Gruppe anlegen";
+         ToolStripMenuItem_EditableGroupInsert3.Click += ToolStripMenuItem_EditableGroupInsert_Click;
          // 
-         // ToolStripMenuItem_HideAllEditableMarkers
+         // ToolStripMenuItem_EditableGroupDelete3
          // 
-         this.ToolStripMenuItem_HideAllEditableMarkers.Name = "ToolStripMenuItem_HideAllEditableMarkers";
-         this.ToolStripMenuItem_HideAllEditableMarkers.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_HideAllEditableMarkers.Text = "alle Markierungen verbergen";
-         this.ToolStripMenuItem_HideAllEditableMarkers.Click += new System.EventHandler(this.ToolStripMenuItem_HideAllEditableMarkers_Click);
+         ToolStripMenuItem_EditableGroupDelete3.ForeColor = Color.FromArgb(192, 0, 0);
+         ToolStripMenuItem_EditableGroupDelete3.Image = Properties.Resources.delete;
+         ToolStripMenuItem_EditableGroupDelete3.Name = "ToolStripMenuItem_EditableGroupDelete3";
+         ToolStripMenuItem_EditableGroupDelete3.Size = new Size(269, 26);
+         ToolStripMenuItem_EditableGroupDelete3.Text = "gesamte (!) Gruppe löschen";
+         ToolStripMenuItem_EditableGroupDelete3.Click += ToolStripMenuItem_EditableGroupDelete_Click;
          // 
-         // ToolStripMenuItem_RemoveVisibleEditableMarkers
+         // toolStripSeparator7
          // 
-         this.ToolStripMenuItem_RemoveVisibleEditableMarkers.Image = global::GpxViewer.Properties.Resources.MarkersDelete;
-         this.ToolStripMenuItem_RemoveVisibleEditableMarkers.Name = "ToolStripMenuItem_RemoveVisibleEditableMarkers";
-         this.ToolStripMenuItem_RemoveVisibleEditableMarkers.Size = new System.Drawing.Size(298, 26);
-         this.ToolStripMenuItem_RemoveVisibleEditableMarkers.Text = "alle angezeigten (!) Markierungen löschen";
-         this.ToolStripMenuItem_RemoveVisibleEditableMarkers.Click += new System.EventHandler(this.ToolStripMenuItem_RemoveVisibleEditableMarkers_Click);
+         toolStripSeparator7.Name = "toolStripSeparator7";
+         toolStripSeparator7.Size = new Size(266, 6);
+         // 
+         // ToolStripMenuItem_ShowAllEditableObjects3
+         // 
+         ToolStripMenuItem_ShowAllEditableObjects3.Name = "ToolStripMenuItem_ShowAllEditableObjects3";
+         ToolStripMenuItem_ShowAllEditableObjects3.Size = new Size(269, 26);
+         ToolStripMenuItem_ShowAllEditableObjects3.Text = "alle Objekte anzeigen";
+         ToolStripMenuItem_ShowAllEditableObjects3.Click += ToolStripMenuItem_ShowAllEditableObjects_Click;
+         // 
+         // ToolStripMenuItem_HideAllEditableObjects3
+         // 
+         ToolStripMenuItem_HideAllEditableObjects3.Name = "ToolStripMenuItem_HideAllEditableObjects3";
+         ToolStripMenuItem_HideAllEditableObjects3.Size = new Size(269, 26);
+         ToolStripMenuItem_HideAllEditableObjects3.Text = "alle Objekte verbergen";
+         ToolStripMenuItem_HideAllEditableObjects3.Click += ToolStripMenuItem_HideAllEditableObjects_Click;
+         // 
+         // ToolStripMenuItem_DeleteAllVisibleEditableObjects3
+         // 
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects3.ForeColor = Color.FromArgb(192, 0, 0);
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects3.Image = Properties.Resources.delete;
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects3.Name = "ToolStripMenuItem_DeleteAllVisibleEditableObjects3";
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects3.Size = new Size(269, 26);
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects3.Text = "alle angezeigten (!) Objekte löschen";
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects3.Click += ToolStripMenuItem_DeleteAllVisibleEditableObjects_Click;
          // 
          // toolStripContainer1
          // 
          // 
          // toolStripContainer1.BottomToolStripPanel
          // 
-         this.toolStripContainer1.BottomToolStripPanel.Controls.Add(this.statusStrip1);
+         toolStripContainer1.BottomToolStripPanel.Controls.Add(statusStrip1);
          // 
          // toolStripContainer1.ContentPanel
          // 
-         this.toolStripContainer1.ContentPanel.Controls.Add(this.panelMap);
-         this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(1318, 729);
-         this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.toolStripContainer1.Location = new System.Drawing.Point(0, 0);
-         this.toolStripContainer1.Name = "toolStripContainer1";
-         this.toolStripContainer1.Size = new System.Drawing.Size(1318, 804);
-         this.toolStripContainer1.TabIndex = 7;
-         this.toolStripContainer1.Text = "toolStripContainer1";
+         toolStripContainer1.ContentPanel.Controls.Add(panelMap);
+         toolStripContainer1.ContentPanel.Margin = new Padding(4, 3, 4, 3);
+         toolStripContainer1.ContentPanel.Size = new Size(1058, 610);
+         toolStripContainer1.Dock = DockStyle.Fill;
+         toolStripContainer1.Location = new Point(0, 0);
+         toolStripContainer1.Margin = new Padding(4, 3, 4, 3);
+         toolStripContainer1.Name = "toolStripContainer1";
+         toolStripContainer1.Size = new Size(1058, 661);
+         toolStripContainer1.TabIndex = 7;
+         toolStripContainer1.Text = "toolStripContainer1";
          // 
          // toolStripContainer1.TopToolStripPanel
          // 
-         this.toolStripContainer1.TopToolStripPanel.Controls.Add(this.menuStrip1);
-         this.toolStripContainer1.TopToolStripPanel.Controls.Add(this.toolStrip_Standard);
+         toolStripContainer1.TopToolStripPanel.Controls.Add(menuStrip1);
+         toolStripContainer1.TopToolStripPanel.Controls.Add(toolStrip_Standard);
          // 
          // statusStrip1
          // 
-         this.statusStrip1.Dock = System.Windows.Forms.DockStyle.None;
-         this.statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripStatusLabel_MapLoad,
-            this.toolStripStatusLabel_Zoom,
-            this.toolStripStatusLabel_Pos,
-            this.toolStripStatusLabel_TrackMiniInfo,
-            this.toolStripStatusLabel_TrackInfo,
-            this.toolStripStatusLabel_GpxLoad});
-         this.statusStrip1.Location = new System.Drawing.Point(0, 0);
-         this.statusStrip1.Name = "statusStrip1";
-         this.statusStrip1.Size = new System.Drawing.Size(1318, 24);
-         this.statusStrip1.TabIndex = 0;
+         statusStrip1.Dock = DockStyle.None;
+         statusStrip1.ImageScalingSize = new Size(20, 20);
+         statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel_MapLoad, toolStripStatusLabel_Zoom, toolStripStatusLabel_Pos, toolStripStatusLabel_TrackMiniInfo, toolStripStatusLabel_TrackInfo, toolStripStatusLabel_GpxLoad });
+         statusStrip1.Location = new Point(0, 0);
+         statusStrip1.Name = "statusStrip1";
+         statusStrip1.Size = new Size(1058, 24);
+         statusStrip1.TabIndex = 0;
          // 
          // toolStripStatusLabel_MapLoad
          // 
-         this.toolStripStatusLabel_MapLoad.Name = "toolStripStatusLabel_MapLoad";
-         this.toolStripStatusLabel_MapLoad.Size = new System.Drawing.Size(14, 19);
-         this.toolStripStatusLabel_MapLoad.Text = "X";
+         toolStripStatusLabel_MapLoad.BackColor = SystemColors.Control;
+         toolStripStatusLabel_MapLoad.Font = new Font("Segoe UI", 9F);
+         toolStripStatusLabel_MapLoad.Name = "toolStripStatusLabel_MapLoad";
+         toolStripStatusLabel_MapLoad.Size = new Size(14, 19);
+         toolStripStatusLabel_MapLoad.Text = "X";
          // 
          // toolStripStatusLabel_Zoom
          // 
-         this.toolStripStatusLabel_Zoom.Name = "toolStripStatusLabel_Zoom";
-         this.toolStripStatusLabel_Zoom.Size = new System.Drawing.Size(39, 19);
-         this.toolStripStatusLabel_Zoom.Text = "Zoom";
+         toolStripStatusLabel_Zoom.Name = "toolStripStatusLabel_Zoom";
+         toolStripStatusLabel_Zoom.Size = new Size(39, 19);
+         toolStripStatusLabel_Zoom.Text = "Zoom";
          // 
          // toolStripStatusLabel_Pos
          // 
-         this.toolStripStatusLabel_Pos.BorderSides = ((System.Windows.Forms.ToolStripStatusLabelBorderSides)((((System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top) 
-            | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right) 
-            | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
-         this.toolStripStatusLabel_Pos.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-         this.toolStripStatusLabel_Pos.Name = "toolStripStatusLabel_Pos";
-         this.toolStripStatusLabel_Pos.Size = new System.Drawing.Size(30, 19);
-         this.toolStripStatusLabel_Pos.Text = "Pos";
+         toolStripStatusLabel_Pos.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+         toolStripStatusLabel_Pos.BorderStyle = Border3DStyle.SunkenInner;
+         toolStripStatusLabel_Pos.Name = "toolStripStatusLabel_Pos";
+         toolStripStatusLabel_Pos.Size = new Size(30, 19);
+         toolStripStatusLabel_Pos.Text = "Pos";
          // 
          // toolStripStatusLabel_TrackMiniInfo
          // 
-         this.toolStripStatusLabel_TrackMiniInfo.BorderSides = ((System.Windows.Forms.ToolStripStatusLabelBorderSides)((((System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top) 
-            | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right) 
-            | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
-         this.toolStripStatusLabel_TrackMiniInfo.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-         this.toolStripStatusLabel_TrackMiniInfo.Name = "toolStripStatusLabel_TrackMiniInfo";
-         this.toolStripStatusLabel_TrackMiniInfo.Size = new System.Drawing.Size(4, 19);
+         toolStripStatusLabel_TrackMiniInfo.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+         toolStripStatusLabel_TrackMiniInfo.BorderStyle = Border3DStyle.SunkenInner;
+         toolStripStatusLabel_TrackMiniInfo.Name = "toolStripStatusLabel_TrackMiniInfo";
+         toolStripStatusLabel_TrackMiniInfo.Size = new Size(4, 19);
          // 
          // toolStripStatusLabel_TrackInfo
          // 
-         this.toolStripStatusLabel_TrackInfo.BorderSides = ((System.Windows.Forms.ToolStripStatusLabelBorderSides)((((System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top) 
-            | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right) 
-            | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
-         this.toolStripStatusLabel_TrackInfo.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-         this.toolStripStatusLabel_TrackInfo.ForeColor = System.Drawing.SystemColors.GrayText;
-         this.toolStripStatusLabel_TrackInfo.Name = "toolStripStatusLabel_TrackInfo";
-         this.toolStripStatusLabel_TrackInfo.Size = new System.Drawing.Size(4, 19);
+         toolStripStatusLabel_TrackInfo.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+         toolStripStatusLabel_TrackInfo.BorderStyle = Border3DStyle.SunkenInner;
+         toolStripStatusLabel_TrackInfo.ForeColor = SystemColors.GrayText;
+         toolStripStatusLabel_TrackInfo.Name = "toolStripStatusLabel_TrackInfo";
+         toolStripStatusLabel_TrackInfo.Size = new Size(4, 19);
          // 
          // toolStripStatusLabel_GpxLoad
          // 
-         this.toolStripStatusLabel_GpxLoad.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
-         this.toolStripStatusLabel_GpxLoad.Name = "toolStripStatusLabel_GpxLoad";
-         this.toolStripStatusLabel_GpxLoad.Size = new System.Drawing.Size(14, 19);
-         this.toolStripStatusLabel_GpxLoad.Text = "X";
+         toolStripStatusLabel_GpxLoad.BackColor = Color.FromArgb(255, 192, 192);
+         toolStripStatusLabel_GpxLoad.Name = "toolStripStatusLabel_GpxLoad";
+         toolStripStatusLabel_GpxLoad.Size = new Size(14, 19);
+         toolStripStatusLabel_GpxLoad.Text = "X";
          // 
          // menuStrip1
          // 
-         this.menuStrip1.Dock = System.Windows.Forms.DockStyle.None;
-         this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItemMaps,
-            this.ToolStripMenuItemExtra});
-         this.menuStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow;
-         this.menuStrip1.Location = new System.Drawing.Point(3, 0);
-         this.menuStrip1.Name = "menuStrip1";
-         this.menuStrip1.Size = new System.Drawing.Size(111, 24);
-         this.menuStrip1.Stretch = false;
-         this.menuStrip1.TabIndex = 2;
-         this.menuStrip1.Text = "menuStrip1";
+         menuStrip1.Dock = DockStyle.None;
+         menuStrip1.ImageScalingSize = new Size(20, 20);
+         menuStrip1.Items.AddRange(new ToolStripItem[] { ToolStripMenuItemMaps });
+         menuStrip1.LayoutStyle = ToolStripLayoutStyle.HorizontalStackWithOverflow;
+         menuStrip1.Location = new Point(3, 0);
+         menuStrip1.Name = "menuStrip1";
+         menuStrip1.Size = new Size(61, 24);
+         menuStrip1.Stretch = false;
+         menuStrip1.TabIndex = 2;
+         menuStrip1.Text = "menuStrip1";
          // 
          // ToolStripMenuItemMaps
          // 
-         this.ToolStripMenuItemMaps.Name = "ToolStripMenuItemMaps";
-         this.ToolStripMenuItemMaps.Size = new System.Drawing.Size(53, 20);
-         this.ToolStripMenuItemMaps.Text = "Karten";
-         // 
-         // ToolStripMenuItemExtra
-         // 
-         this.ToolStripMenuItemExtra.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuIemConfig});
-         this.ToolStripMenuItemExtra.Name = "ToolStripMenuItemExtra";
-         this.ToolStripMenuItemExtra.Size = new System.Drawing.Size(50, 20);
-         this.ToolStripMenuItemExtra.Text = "Extras";
-         // 
-         // ToolStripMenuIemConfig
-         // 
-         this.ToolStripMenuIemConfig.Name = "ToolStripMenuIemConfig";
-         this.ToolStripMenuIemConfig.Size = new System.Drawing.Size(147, 22);
-         this.ToolStripMenuIemConfig.Text = "Konfiguration";
-         this.ToolStripMenuIemConfig.Click += new System.EventHandler(this.ToolStripMenuIemConfig_Click);
+         ToolStripMenuItemMaps.Name = "ToolStripMenuItemMaps";
+         ToolStripMenuItemMaps.Size = new Size(53, 20);
+         ToolStripMenuItemMaps.Text = "Karten";
          // 
          // toolStrip_Standard
          // 
-         this.toolStrip_Standard.Dock = System.Windows.Forms.DockStyle.None;
-         this.toolStrip_Standard.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-         this.toolStrip_Standard.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.toolStrip_Standard.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripButton_CancelMapLoading,
-            this.toolStripButton_ReloadMap,
-            this.toolStripButton_ClearCache,
-            this.toolStripSeparator3,
-            this.toolStripButton_OpenGpxfile,
-            this.toolStripButton_SaveGpxFileExt,
-            this.toolStripButton_SaveGpxFiles,
-            this.toolStripButton_SaveWithGarminExt,
-            this.toolStripButton_CopyMap,
-            this.toolStripButton_PrintMap,
-            this.toolStripButton_GeoTagging,
-            this.toolStripSeparator20,
-            this.toolStripButton_ZoomIn,
-            this.toolStripButton_ZoomOut,
-            this.toolStripButton_TrackZoom,
-            this.toolStripSeparator8,
-            this.toolStripButton_LocationForm,
-            this.toolStripButton_GoToPos,
-            this.toolStripButton_GeoSearch,
-            this.toolStripButton_TrackSearch,
-            this.toolStripSeparator6,
-            this.toolStripButton_MiniHelp});
-         this.toolStrip_Standard.Location = new System.Drawing.Point(3, 24);
-         this.toolStrip_Standard.Name = "toolStrip_Standard";
-         this.toolStrip_Standard.Size = new System.Drawing.Size(570, 27);
-         this.toolStrip_Standard.TabIndex = 0;
+         toolStrip_Standard.Dock = DockStyle.None;
+         toolStrip_Standard.GripStyle = ToolStripGripStyle.Hidden;
+         toolStrip_Standard.ImageScalingSize = new Size(20, 20);
+         toolStrip_Standard.Items.AddRange(new ToolStripItem[] { toolStripButton_Config, toolStripSeparator9, toolStripButton_CancelMapLoading, toolStripButton_ReloadMap, toolStripButton_ClearCache, toolStripSeparator3, toolStripButton_OpenGpxfile, toolStripButton_SaveGpxFileExt, toolStripButton_SaveGpxFiles, toolStripButton_SaveWithGarminExt, toolStripButton_CopyMap, toolStripButton_PrintMap, toolStripSeparator20, toolStripButton_ZoomIn, toolStripButton_ZoomOut, toolStripButton_TrackZoom, toolStripSeparator8, toolStripButton_TrackSearch, toolStripSeparator6, toolStripButton_MiniHelp });
+         toolStrip_Standard.Location = new Point(64, 0);
+         toolStrip_Standard.Name = "toolStrip_Standard";
+         toolStrip_Standard.Size = new Size(473, 27);
+         toolStrip_Standard.TabIndex = 0;
+         // 
+         // toolStripButton_Config
+         // 
+         toolStripButton_Config.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_Config.Image = Properties.Resources.props;
+         toolStripButton_Config.ImageTransparentColor = Color.Magenta;
+         toolStripButton_Config.Name = "toolStripButton_Config";
+         toolStripButton_Config.Size = new Size(24, 24);
+         toolStripButton_Config.Text = "Einstellungen";
+         toolStripButton_Config.Click += toolStripButton_Config_Click;
+         // 
+         // toolStripSeparator9
+         // 
+         toolStripSeparator9.Name = "toolStripSeparator9";
+         toolStripSeparator9.Size = new Size(6, 27);
          // 
          // toolStripButton_CancelMapLoading
          // 
-         this.toolStripButton_CancelMapLoading.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_CancelMapLoading.Enabled = false;
-         this.toolStripButton_CancelMapLoading.Image = global::GpxViewer.Properties.Resources.cancel;
-         this.toolStripButton_CancelMapLoading.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_CancelMapLoading.Name = "toolStripButton_CancelMapLoading";
-         this.toolStripButton_CancelMapLoading.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_CancelMapLoading.Text = "Laden der Karte abbrechen";
-         this.toolStripButton_CancelMapLoading.Click += new System.EventHandler(this.toolStripButton_CancelMapLoading_Click);
+         toolStripButton_CancelMapLoading.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_CancelMapLoading.Enabled = false;
+         toolStripButton_CancelMapLoading.Image = Properties.Resources.cancel;
+         toolStripButton_CancelMapLoading.ImageTransparentColor = Color.Magenta;
+         toolStripButton_CancelMapLoading.Name = "toolStripButton_CancelMapLoading";
+         toolStripButton_CancelMapLoading.Size = new Size(24, 24);
+         toolStripButton_CancelMapLoading.Text = "Laden der Karte abbrechen";
+         toolStripButton_CancelMapLoading.Click += toolStripButton_CancelMapLoading_Click;
          // 
          // toolStripButton_ReloadMap
          // 
-         this.toolStripButton_ReloadMap.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_ReloadMap.Image = global::GpxViewer.Properties.Resources.reload;
-         this.toolStripButton_ReloadMap.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_ReloadMap.Name = "toolStripButton_ReloadMap";
-         this.toolStripButton_ReloadMap.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ReloadMap.Text = "Karte neu zeichnen";
-         this.toolStripButton_ReloadMap.Click += new System.EventHandler(this.toolStripButton_ReloadMap_Click);
+         toolStripButton_ReloadMap.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_ReloadMap.Image = Properties.Resources.reload;
+         toolStripButton_ReloadMap.ImageTransparentColor = Color.Magenta;
+         toolStripButton_ReloadMap.Name = "toolStripButton_ReloadMap";
+         toolStripButton_ReloadMap.Size = new Size(24, 24);
+         toolStripButton_ReloadMap.Text = "Karte neu zeichnen";
+         toolStripButton_ReloadMap.Click += toolStripButton_ReloadMap_Click;
          // 
          // toolStripButton_ClearCache
          // 
-         this.toolStripButton_ClearCache.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_ClearCache.Image = global::GpxViewer.Properties.Resources.database_delete;
-         this.toolStripButton_ClearCache.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_ClearCache.Name = "toolStripButton_ClearCache";
-         this.toolStripButton_ClearCache.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ClearCache.Text = "intern gespeicherte Daten löschen";
-         this.toolStripButton_ClearCache.Click += new System.EventHandler(this.toolStripButton_ClearCache_Click);
+         toolStripButton_ClearCache.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_ClearCache.Image = Properties.Resources.database_delete;
+         toolStripButton_ClearCache.ImageTransparentColor = Color.Magenta;
+         toolStripButton_ClearCache.Name = "toolStripButton_ClearCache";
+         toolStripButton_ClearCache.Size = new Size(24, 24);
+         toolStripButton_ClearCache.Text = "intern gespeicherte Kartendaten löschen";
+         toolStripButton_ClearCache.Click += toolStripButton_ClearCache_Click;
          // 
          // toolStripSeparator3
          // 
-         this.toolStripSeparator3.Margin = new System.Windows.Forms.Padding(10, 0, 10, 0);
-         this.toolStripSeparator3.Name = "toolStripSeparator3";
-         this.toolStripSeparator3.Size = new System.Drawing.Size(6, 27);
+         toolStripSeparator3.Margin = new Padding(10, 0, 10, 0);
+         toolStripSeparator3.Name = "toolStripSeparator3";
+         toolStripSeparator3.Size = new Size(6, 27);
          // 
          // toolStripButton_OpenGpxfile
          // 
-         this.toolStripButton_OpenGpxfile.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_OpenGpxfile.Image = global::GpxViewer.Properties.Resources.Open;
-         this.toolStripButton_OpenGpxfile.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_OpenGpxfile.Name = "toolStripButton_OpenGpxfile";
-         this.toolStripButton_OpenGpxfile.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_OpenGpxfile.Text = "GPX-Datei öffnen (Strg+O)";
-         this.toolStripButton_OpenGpxfile.Click += new System.EventHandler(this.toolStripButton_OpenGpxfile_Click);
+         toolStripButton_OpenGpxfile.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_OpenGpxfile.Image = Properties.Resources.Open;
+         toolStripButton_OpenGpxfile.ImageTransparentColor = Color.Magenta;
+         toolStripButton_OpenGpxfile.Name = "toolStripButton_OpenGpxfile";
+         toolStripButton_OpenGpxfile.Size = new Size(24, 24);
+         toolStripButton_OpenGpxfile.Text = "GPX-Datei öffnen (Strg+X)";
+         toolStripButton_OpenGpxfile.Click += toolStripButton_OpenGpxfile_Click;
          // 
          // toolStripButton_SaveGpxFileExt
          // 
-         this.toolStripButton_SaveGpxFileExt.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_SaveGpxFileExt.Enabled = false;
-         this.toolStripButton_SaveGpxFileExt.Image = global::GpxViewer.Properties.Resources.speichernu;
-         this.toolStripButton_SaveGpxFileExt.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_SaveGpxFileExt.Name = "toolStripButton_SaveGpxFileExt";
-         this.toolStripButton_SaveGpxFileExt.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_SaveGpxFileExt.Text = "speichern unter ...";
-         this.toolStripButton_SaveGpxFileExt.Click += new System.EventHandler(this.toolStripButton_SaveGpxFileExt_Click);
+         toolStripButton_SaveGpxFileExt.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_SaveGpxFileExt.Enabled = false;
+         toolStripButton_SaveGpxFileExt.Image = Properties.Resources.speichernu;
+         toolStripButton_SaveGpxFileExt.ImageTransparentColor = Color.Magenta;
+         toolStripButton_SaveGpxFileExt.Name = "toolStripButton_SaveGpxFileExt";
+         toolStripButton_SaveGpxFileExt.Size = new Size(24, 24);
+         toolStripButton_SaveGpxFileExt.Text = "angezeigte Objekte speichern unter ...";
+         toolStripButton_SaveGpxFileExt.Click += toolStripButton_SaveGpxFileExt_Click;
          // 
          // toolStripButton_SaveGpxFiles
          // 
-         this.toolStripButton_SaveGpxFiles.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_SaveGpxFiles.Enabled = false;
-         this.toolStripButton_SaveGpxFiles.Image = global::GpxViewer.Properties.Resources.speichernmulti;
-         this.toolStripButton_SaveGpxFiles.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_SaveGpxFiles.Name = "toolStripButton_SaveGpxFiles";
-         this.toolStripButton_SaveGpxFiles.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_SaveGpxFiles.Text = "speichern unter ... als Einzeldateien";
-         this.toolStripButton_SaveGpxFiles.Click += new System.EventHandler(this.toolStripButton_SaveGpxFiles_Click);
+         toolStripButton_SaveGpxFiles.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_SaveGpxFiles.Enabled = false;
+         toolStripButton_SaveGpxFiles.Image = Properties.Resources.speichernmulti;
+         toolStripButton_SaveGpxFiles.ImageTransparentColor = Color.Magenta;
+         toolStripButton_SaveGpxFiles.Name = "toolStripButton_SaveGpxFiles";
+         toolStripButton_SaveGpxFiles.Size = new Size(24, 24);
+         toolStripButton_SaveGpxFiles.Text = "angezeigte Objekte speichern unter ... als Einzeldateien";
+         toolStripButton_SaveGpxFiles.Click += toolStripButton_SaveGpxFiles_Click;
          // 
          // toolStripButton_SaveWithGarminExt
          // 
-         this.toolStripButton_SaveWithGarminExt.Checked = true;
-         this.toolStripButton_SaveWithGarminExt.CheckOnClick = true;
-         this.toolStripButton_SaveWithGarminExt.CheckState = System.Windows.Forms.CheckState.Checked;
-         this.toolStripButton_SaveWithGarminExt.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_SaveWithGarminExt.Image = global::GpxViewer.Properties.Resources.garmin1;
-         this.toolStripButton_SaveWithGarminExt.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_SaveWithGarminExt.Name = "toolStripButton_SaveWithGarminExt";
-         this.toolStripButton_SaveWithGarminExt.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_SaveWithGarminExt.Text = "mit Garminerweiterungen speichern";
+         toolStripButton_SaveWithGarminExt.Checked = true;
+         toolStripButton_SaveWithGarminExt.CheckOnClick = true;
+         toolStripButton_SaveWithGarminExt.CheckState = CheckState.Checked;
+         toolStripButton_SaveWithGarminExt.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_SaveWithGarminExt.Image = Properties.Resources.garmin1;
+         toolStripButton_SaveWithGarminExt.ImageTransparentColor = Color.Magenta;
+         toolStripButton_SaveWithGarminExt.Name = "toolStripButton_SaveWithGarminExt";
+         toolStripButton_SaveWithGarminExt.Size = new Size(24, 24);
+         toolStripButton_SaveWithGarminExt.Text = "mit Garminerweiterungen speichern";
          // 
          // toolStripButton_CopyMap
          // 
-         this.toolStripButton_CopyMap.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_CopyMap.Image = global::GpxViewer.Properties.Resources.copy;
-         this.toolStripButton_CopyMap.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_CopyMap.Name = "toolStripButton_CopyMap";
-         this.toolStripButton_CopyMap.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_CopyMap.Text = "Karte in Zwischenablage kopieren ...";
-         this.toolStripButton_CopyMap.Click += new System.EventHandler(this.toolStripButton_CopyMap_Click);
+         toolStripButton_CopyMap.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_CopyMap.Image = Properties.Resources.copy;
+         toolStripButton_CopyMap.ImageTransparentColor = Color.Magenta;
+         toolStripButton_CopyMap.Name = "toolStripButton_CopyMap";
+         toolStripButton_CopyMap.Size = new Size(24, 24);
+         toolStripButton_CopyMap.Text = "Karte in Zwischenablage kopieren ...";
+         toolStripButton_CopyMap.Click += toolStripButton_CopyMap_Click;
          // 
          // toolStripButton_PrintMap
          // 
-         this.toolStripButton_PrintMap.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_PrintMap.Image = global::GpxViewer.Properties.Resources.printer;
-         this.toolStripButton_PrintMap.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_PrintMap.Name = "toolStripButton_PrintMap";
-         this.toolStripButton_PrintMap.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_PrintMap.Text = "Karte drucken";
-         this.toolStripButton_PrintMap.Click += new System.EventHandler(this.toolStripButton_PrintMap_Click);
-         // 
-         // toolStripButton_GeoTagging
-         // 
-         this.toolStripButton_GeoTagging.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_GeoTagging.Image = global::GpxViewer.Properties.Resources.GeoTagging;
-         this.toolStripButton_GeoTagging.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_GeoTagging.Name = "toolStripButton_GeoTagging";
-         this.toolStripButton_GeoTagging.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_GeoTagging.Text = "Geotagging für Fotos";
-         this.toolStripButton_GeoTagging.Click += new System.EventHandler(this.toolStripButton_GeoTagging_Click);
+         toolStripButton_PrintMap.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_PrintMap.Image = Properties.Resources.printer;
+         toolStripButton_PrintMap.ImageTransparentColor = Color.Magenta;
+         toolStripButton_PrintMap.Name = "toolStripButton_PrintMap";
+         toolStripButton_PrintMap.Size = new Size(24, 24);
+         toolStripButton_PrintMap.Text = "Karte drucken";
+         toolStripButton_PrintMap.Click += toolStripButton_PrintMap_Click;
          // 
          // toolStripSeparator20
          // 
-         this.toolStripSeparator20.Margin = new System.Windows.Forms.Padding(10, 0, 10, 0);
-         this.toolStripSeparator20.Name = "toolStripSeparator20";
-         this.toolStripSeparator20.Size = new System.Drawing.Size(6, 27);
+         toolStripSeparator20.Margin = new Padding(10, 0, 10, 0);
+         toolStripSeparator20.Name = "toolStripSeparator20";
+         toolStripSeparator20.Size = new Size(6, 27);
          // 
          // toolStripButton_ZoomIn
          // 
-         this.toolStripButton_ZoomIn.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_ZoomIn.Image = global::GpxViewer.Properties.Resources.zoom_in;
-         this.toolStripButton_ZoomIn.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_ZoomIn.Name = "toolStripButton_ZoomIn";
-         this.toolStripButton_ZoomIn.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ZoomIn.Text = "hineinzoomen (Strg+ +)";
-         this.toolStripButton_ZoomIn.Click += new System.EventHandler(this.toolStripButton_ZoomIn_Click);
+         toolStripButton_ZoomIn.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_ZoomIn.Image = Properties.Resources.zoom_in;
+         toolStripButton_ZoomIn.ImageTransparentColor = Color.Magenta;
+         toolStripButton_ZoomIn.Name = "toolStripButton_ZoomIn";
+         toolStripButton_ZoomIn.Size = new Size(24, 24);
+         toolStripButton_ZoomIn.Text = "hineinzoomen (Strg+ +)";
+         toolStripButton_ZoomIn.Click += toolStripButton_ZoomIn_Click;
          // 
          // toolStripButton_ZoomOut
          // 
-         this.toolStripButton_ZoomOut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_ZoomOut.Image = global::GpxViewer.Properties.Resources.zoom_out;
-         this.toolStripButton_ZoomOut.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_ZoomOut.Name = "toolStripButton_ZoomOut";
-         this.toolStripButton_ZoomOut.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_ZoomOut.Text = "herauszoomen (Strg+ -)";
-         this.toolStripButton_ZoomOut.Click += new System.EventHandler(this.toolStripButton_ZoomOut_Click);
+         toolStripButton_ZoomOut.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_ZoomOut.Image = Properties.Resources.zoom_out;
+         toolStripButton_ZoomOut.ImageTransparentColor = Color.Magenta;
+         toolStripButton_ZoomOut.Name = "toolStripButton_ZoomOut";
+         toolStripButton_ZoomOut.Size = new Size(24, 24);
+         toolStripButton_ZoomOut.Text = "herauszoomen (Strg+ -)";
+         toolStripButton_ZoomOut.Click += toolStripButton_ZoomOut_Click;
          // 
          // toolStripButton_TrackZoom
          // 
-         this.toolStripButton_TrackZoom.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_TrackZoom.Image = global::GpxViewer.Properties.Resources.zoom1;
-         this.toolStripButton_TrackZoom.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_TrackZoom.Name = "toolStripButton_TrackZoom";
-         this.toolStripButton_TrackZoom.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_TrackZoom.Text = "Zoom auf angezeigte Tracks";
-         this.toolStripButton_TrackZoom.Click += new System.EventHandler(this.toolStripButton_TrackZoom_Click);
+         toolStripButton_TrackZoom.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_TrackZoom.Image = Properties.Resources.zoom1;
+         toolStripButton_TrackZoom.ImageTransparentColor = Color.Magenta;
+         toolStripButton_TrackZoom.Name = "toolStripButton_TrackZoom";
+         toolStripButton_TrackZoom.Size = new Size(24, 24);
+         toolStripButton_TrackZoom.Text = "Zoom auf angezeigte Tracks";
+         toolStripButton_TrackZoom.Click += toolStripButton_TrackZoom_Click;
          // 
          // toolStripSeparator8
          // 
-         this.toolStripSeparator8.Margin = new System.Windows.Forms.Padding(10, 0, 10, 0);
-         this.toolStripSeparator8.Name = "toolStripSeparator8";
-         this.toolStripSeparator8.Size = new System.Drawing.Size(6, 27);
-         // 
-         // toolStripButton_LocationForm
-         // 
-         this.toolStripButton_LocationForm.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_LocationForm.Image = global::GpxViewer.Properties.Resources.map_go;
-         this.toolStripButton_LocationForm.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_LocationForm.Name = "toolStripButton_LocationForm";
-         this.toolStripButton_LocationForm.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_LocationForm.Text = "gespeicherte Orte (Strg+Shift+O)";
-         this.toolStripButton_LocationForm.Click += new System.EventHandler(this.toolStripButton_LocationForm_Click);
-         // 
-         // toolStripButton_GoToPos
-         // 
-         this.toolStripButton_GoToPos.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_GoToPos.Image = global::GpxViewer.Properties.Resources.goto2;
-         this.toolStripButton_GoToPos.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_GoToPos.Name = "toolStripButton_GoToPos";
-         this.toolStripButton_GoToPos.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_GoToPos.Text = "zu geografischen Koordinaten gehen (Strg+Shift+K)";
-         this.toolStripButton_GoToPos.Click += new System.EventHandler(this.toolStripButton_GoToPos_Click);
-         // 
-         // toolStripButton_GeoSearch
-         // 
-         this.toolStripButton_GeoSearch.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_GeoSearch.Image = global::GpxViewer.Properties.Resources.Search2;
-         this.toolStripButton_GeoSearch.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_GeoSearch.Name = "toolStripButton_GeoSearch";
-         this.toolStripButton_GeoSearch.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_GeoSearch.Text = "geografisches Objekt suchen (Strg+S)";
-         this.toolStripButton_GeoSearch.Click += new System.EventHandler(this.toolStripButton_GeoSearch_Click);
+         toolStripSeparator8.Margin = new Padding(10, 0, 10, 0);
+         toolStripSeparator8.Name = "toolStripSeparator8";
+         toolStripSeparator8.Size = new Size(6, 27);
          // 
          // toolStripButton_TrackSearch
          // 
-         this.toolStripButton_TrackSearch.CheckOnClick = true;
-         this.toolStripButton_TrackSearch.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_TrackSearch.Image = global::GpxViewer.Properties.Resources.Search;
-         this.toolStripButton_TrackSearch.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_TrackSearch.Name = "toolStripButton_TrackSearch";
-         this.toolStripButton_TrackSearch.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_TrackSearch.Text = "Tracks im markierten Bereich suchen";
-         this.toolStripButton_TrackSearch.Click += new System.EventHandler(this.toolStripButton_TrackSearch_Click);
+         toolStripButton_TrackSearch.CheckOnClick = true;
+         toolStripButton_TrackSearch.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_TrackSearch.Image = Properties.Resources.Search;
+         toolStripButton_TrackSearch.ImageTransparentColor = Color.Magenta;
+         toolStripButton_TrackSearch.Name = "toolStripButton_TrackSearch";
+         toolStripButton_TrackSearch.Size = new Size(24, 24);
+         toolStripButton_TrackSearch.Text = "Tracks im markierten Bereich suchen";
+         toolStripButton_TrackSearch.Click += toolStripButton_TrackSearch_Click;
          // 
          // toolStripSeparator6
          // 
-         this.toolStripSeparator6.Margin = new System.Windows.Forms.Padding(10, 0, 10, 0);
-         this.toolStripSeparator6.Name = "toolStripSeparator6";
-         this.toolStripSeparator6.Size = new System.Drawing.Size(6, 27);
+         toolStripSeparator6.Margin = new Padding(10, 0, 10, 0);
+         toolStripSeparator6.Name = "toolStripSeparator6";
+         toolStripSeparator6.Size = new Size(6, 27);
          // 
          // toolStripButton_MiniHelp
          // 
-         this.toolStripButton_MiniHelp.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-         this.toolStripButton_MiniHelp.Image = global::GpxViewer.Properties.Resources.help;
-         this.toolStripButton_MiniHelp.ImageTransparentColor = System.Drawing.Color.Magenta;
-         this.toolStripButton_MiniHelp.Name = "toolStripButton_MiniHelp";
-         this.toolStripButton_MiniHelp.Size = new System.Drawing.Size(24, 24);
-         this.toolStripButton_MiniHelp.Text = "Hilfe";
-         this.toolStripButton_MiniHelp.Click += new System.EventHandler(this.toolStripButton_MiniHelp_Click);
+         toolStripButton_MiniHelp.DisplayStyle = ToolStripItemDisplayStyle.Image;
+         toolStripButton_MiniHelp.Image = Properties.Resources.help;
+         toolStripButton_MiniHelp.ImageTransparentColor = Color.Magenta;
+         toolStripButton_MiniHelp.Name = "toolStripButton_MiniHelp";
+         toolStripButton_MiniHelp.Size = new Size(24, 24);
+         toolStripButton_MiniHelp.Text = "Hilfe";
+         toolStripButton_MiniHelp.Click += toolStripButton_MiniHelp_Click;
          // 
          // colorDialog1
          // 
-         this.colorDialog1.AnyColor = true;
-         this.colorDialog1.FullOpen = true;
+         colorDialog1.AnyColor = true;
+         colorDialog1.FullOpen = true;
          // 
          // openFileDialogGpx
          // 
-         this.openFileDialogGpx.Filter = "GPX-Dateien|*.gpx|GDB-Dateien|*.gdb|alle Dateien|*.*";
-         this.openFileDialogGpx.Title = "GPX-Datei öffnen";
+         openFileDialogGpx.Filter = "GPX-Dateien|*.gpx|GDB-Dateien|*.gdb|alle Dateien|*.*";
+         openFileDialogGpx.Title = "GPX-Datei öffnen";
          // 
          // saveFileDialogGpx
          // 
-         this.saveFileDialogGpx.DefaultExt = "gpx";
-         this.saveFileDialogGpx.Filter = "Gpx-Dateien|*.gpx|KMZ-Dateien|*.kmz|KML-Dateien|*.kml";
-         this.saveFileDialogGpx.OverwritePrompt = false;
-         this.saveFileDialogGpx.Title = "speichern unter ...";
+         saveFileDialogGpx.DefaultExt = "gpx";
+         saveFileDialogGpx.Filter = "Gpx-Dateien|*.gpx|KMZ-Dateien|*.kmz|KML-Dateien|*.kml";
+         saveFileDialogGpx.OverwritePrompt = false;
+         saveFileDialogGpx.Title = "speichern unter ...";
+         // 
+         // contextMenuStripEditableGroupOrNothing
+         // 
+         contextMenuStripEditableGroupOrNothing.ImageScalingSize = new Size(20, 20);
+         contextMenuStripEditableGroupOrNothing.Items.AddRange(new ToolStripItem[] { ToolStripMenuItem_EditableGroupInsert2, ToolStripMenuItem_EditableGroupDelete2, toolStripSeparator17, ToolStripMenuItem_ShowAllEditableObjects2, ToolStripMenuItem_HideAllEditableObjects2, ToolStripMenuItem_DeleteAllVisibleEditableObjects2 });
+         contextMenuStripEditableGroupOrNothing.Name = "contextMenuStripTrack";
+         contextMenuStripEditableGroupOrNothing.Size = new Size(266, 140);
+         contextMenuStripEditableGroupOrNothing.Opening += contextMenuStripEditableGroupOrNothing_Opening;
+         // 
+         // ToolStripMenuItem_EditableGroupInsert2
+         // 
+         ToolStripMenuItem_EditableGroupInsert2.Image = Properties.Resources.Open;
+         ToolStripMenuItem_EditableGroupInsert2.Name = "ToolStripMenuItem_EditableGroupInsert2";
+         ToolStripMenuItem_EditableGroupInsert2.Size = new Size(265, 26);
+         ToolStripMenuItem_EditableGroupInsert2.Text = "Gruppe anlegen";
+         ToolStripMenuItem_EditableGroupInsert2.Click += ToolStripMenuItem_EditableGroupInsert_Click;
+         // 
+         // ToolStripMenuItem_EditableGroupDelete2
+         // 
+         ToolStripMenuItem_EditableGroupDelete2.ForeColor = Color.FromArgb(192, 0, 0);
+         ToolStripMenuItem_EditableGroupDelete2.Image = Properties.Resources.delete;
+         ToolStripMenuItem_EditableGroupDelete2.Name = "ToolStripMenuItem_EditableGroupDelete2";
+         ToolStripMenuItem_EditableGroupDelete2.Size = new Size(265, 26);
+         ToolStripMenuItem_EditableGroupDelete2.Text = "gesamte (!) Gruppe löschen";
+         ToolStripMenuItem_EditableGroupDelete2.Click += ToolStripMenuItem_EditableGroupDelete_Click;
+         // 
+         // toolStripSeparator17
+         // 
+         toolStripSeparator17.Name = "toolStripSeparator17";
+         toolStripSeparator17.Size = new Size(262, 6);
+         // 
+         // ToolStripMenuItem_ShowAllEditableObjects2
+         // 
+         ToolStripMenuItem_ShowAllEditableObjects2.Name = "ToolStripMenuItem_ShowAllEditableObjects2";
+         ToolStripMenuItem_ShowAllEditableObjects2.Size = new Size(265, 26);
+         ToolStripMenuItem_ShowAllEditableObjects2.Text = "alle Objekte anzeigen";
+         ToolStripMenuItem_ShowAllEditableObjects2.Click += ToolStripMenuItem_ShowAllEditableObjects_Click;
+         // 
+         // ToolStripMenuItem_HideAllEditableObjects2
+         // 
+         ToolStripMenuItem_HideAllEditableObjects2.Name = "ToolStripMenuItem_HideAllEditableObjects2";
+         ToolStripMenuItem_HideAllEditableObjects2.Size = new Size(265, 26);
+         ToolStripMenuItem_HideAllEditableObjects2.Text = "alle Objekte verbergen";
+         ToolStripMenuItem_HideAllEditableObjects2.Click += ToolStripMenuItem_HideAllEditableObjects_Click;
+         // 
+         // ToolStripMenuItem_DeleteAllVisibleEditableObjects2
+         // 
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects2.ForeColor = Color.FromArgb(192, 0, 0);
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects2.Image = Properties.Resources.delete;
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects2.Name = "ToolStripMenuItem_DeleteAllVisibleEditableObjects2";
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects2.Size = new Size(265, 26);
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects2.Text = "alle angezeigten (!) Objekte löschen";
+         ToolStripMenuItem_DeleteAllVisibleEditableObjects2.Click += ToolStripMenuItem_DeleteAllVisibleEditableObjects_Click;
+         // 
+         // contextMenuStripReadOnlyMarker
+         // 
+         contextMenuStripReadOnlyMarker.ImageScalingSize = new Size(20, 20);
+         contextMenuStripReadOnlyMarker.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_ShowMarkerProperties, toolStripMenuItem_CloneMarker });
+         contextMenuStripReadOnlyMarker.Name = "contextMenuStripEditMarker";
+         contextMenuStripReadOnlyMarker.Size = new Size(229, 56);
+         contextMenuStripReadOnlyMarker.Opening += contextMenuStripReadOnlyMarker_Opening;
+         // 
+         // toolStripMenuItem_ShowMarkerProperties
+         // 
+         toolStripMenuItem_ShowMarkerProperties.Image = Properties.Resources.edit;
+         toolStripMenuItem_ShowMarkerProperties.Name = "toolStripMenuItem_ShowMarkerProperties";
+         toolStripMenuItem_ShowMarkerProperties.Size = new Size(228, 26);
+         toolStripMenuItem_ShowMarkerProperties.Text = "Eigenschaften anzeigen ";
+         toolStripMenuItem_ShowMarkerProperties.Click += toolStripMenuItem_ShowMarkerProperties_Click;
+         // 
+         // toolStripMenuItem_CloneMarker
+         // 
+         toolStripMenuItem_CloneMarker.Image = Properties.Resources.kopie;
+         toolStripMenuItem_CloneMarker.Name = "toolStripMenuItem_CloneMarker";
+         toolStripMenuItem_CloneMarker.Size = new Size(228, 26);
+         toolStripMenuItem_CloneMarker.Text = "bearbeitbare Kopie erzeugen";
+         toolStripMenuItem_CloneMarker.Click += toolStripMenuItem_CloneMarker_Click;
+         // 
+         // toolStripContainer3
+         // 
+         // 
+         // toolStripContainer3.ContentPanel
+         // 
+         toolStripContainer3.ContentPanel.Size = new Size(1058, 636);
+         toolStripContainer3.Dock = DockStyle.Fill;
+         toolStripContainer3.Location = new Point(0, 0);
+         toolStripContainer3.Name = "toolStripContainer3";
+         toolStripContainer3.Size = new Size(1058, 661);
+         toolStripContainer3.TabIndex = 0;
+         toolStripContainer3.Text = "toolStripContainer3";
          // 
          // FormMain
          // 
-         this.AllowDrop = true;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(1318, 804);
-         this.Controls.Add(this.toolStripContainer1);
-         this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-         this.KeyPreview = true;
-         this.MainMenuStrip = this.menuStrip1;
-         this.Name = "FormMain";
-         this.Text = "Form1";
-         this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMain_FormClosing);
-         this.Load += new System.EventHandler(this.FormMain_Load);
-         this.Shown += new System.EventHandler(this.FormMain_Shown);
-         this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
-         this.panelMap.ResumeLayout(false);
-         this.splitContainer1.Panel1.ResumeLayout(false);
-         this.splitContainer1.Panel2.ResumeLayout(false);
-         ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-         this.splitContainer1.ResumeLayout(false);
-         this.tabControl1.ResumeLayout(false);
-         this.tabPageFiles.ResumeLayout(false);
-         this.contextMenuStripReadOnlyTracks.ResumeLayout(false);
-         this.contextMenuStripReadOnlyTracks.PerformLayout();
-         this.tabPageEditable.ResumeLayout(false);
-         this.toolStripContainer2.ContentPanel.ResumeLayout(false);
-         this.toolStripContainer2.TopToolStripPanel.ResumeLayout(false);
-         this.toolStripContainer2.TopToolStripPanel.PerformLayout();
-         this.toolStripContainer2.ResumeLayout(false);
-         this.toolStripContainer2.PerformLayout();
-         this.toolStrip_Edit.ResumeLayout(false);
-         this.toolStrip_Edit.PerformLayout();
-         this.contextMenuStripEditableTracks.ResumeLayout(false);
-         this.contextMenuStripEditableTracks.PerformLayout();
-         this.contextMenuStripMarker.ResumeLayout(false);
-         this.toolStripContainer1.BottomToolStripPanel.ResumeLayout(false);
-         this.toolStripContainer1.BottomToolStripPanel.PerformLayout();
-         this.toolStripContainer1.ContentPanel.ResumeLayout(false);
-         this.toolStripContainer1.TopToolStripPanel.ResumeLayout(false);
-         this.toolStripContainer1.TopToolStripPanel.PerformLayout();
-         this.toolStripContainer1.ResumeLayout(false);
-         this.toolStripContainer1.PerformLayout();
-         this.statusStrip1.ResumeLayout(false);
-         this.statusStrip1.PerformLayout();
-         this.menuStrip1.ResumeLayout(false);
-         this.menuStrip1.PerformLayout();
-         this.toolStrip_Standard.ResumeLayout(false);
-         this.toolStrip_Standard.PerformLayout();
-         this.ResumeLayout(false);
-
+         AllowDrop = true;
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         ClientSize = new Size(1058, 661);
+         Controls.Add(toolStripContainer1);
+         Controls.Add(toolStripContainer3);
+         Icon = (Icon)resources.GetObject("$this.Icon");
+         KeyPreview = true;
+         MainMenuStrip = menuStrip1;
+         Margin = new Padding(4, 3, 4, 3);
+         Name = "FormMain";
+         Text = "Form1";
+         FormClosing += FormMain_FormClosing;
+         Load += FormMain_Load;
+         Shown += FormMain_Shown;
+         KeyDown += FormMain_KeyDown;
+         panelMap.ResumeLayout(false);
+         panelMap.PerformLayout();
+         ((System.ComponentModel.ISupportInitialize)trackBarZoom).EndInit();
+         splitContainer1.Panel1.ResumeLayout(false);
+         splitContainer1.Panel2.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+         splitContainer1.ResumeLayout(false);
+         tabControl1.ResumeLayout(false);
+         tabPageFiles.ResumeLayout(false);
+         contextMenuStripReadOnlyTracks.ResumeLayout(false);
+         contextMenuStripReadOnlyTracks.PerformLayout();
+         tabPageEditable.ResumeLayout(false);
+         toolStripContainer2.ContentPanel.ResumeLayout(false);
+         toolStripContainer2.TopToolStripPanel.ResumeLayout(false);
+         toolStripContainer2.TopToolStripPanel.PerformLayout();
+         toolStripContainer2.ResumeLayout(false);
+         toolStripContainer2.PerformLayout();
+         toolStrip_Edit.ResumeLayout(false);
+         toolStrip_Edit.PerformLayout();
+         tabPageSearch.ResumeLayout(false);
+         tabPageLocation.ResumeLayout(false);
+         splitContainer2.Panel1.ResumeLayout(false);
+         splitContainer2.Panel2.ResumeLayout(false);
+         ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
+         splitContainer2.ResumeLayout(false);
+         tabPageFoto.ResumeLayout(false);
+         contextMenuStripEditableTracks.ResumeLayout(false);
+         contextMenuStripEditableTracks.PerformLayout();
+         contextMenuStripEditableMarker.ResumeLayout(false);
+         toolStripContainer1.BottomToolStripPanel.ResumeLayout(false);
+         toolStripContainer1.BottomToolStripPanel.PerformLayout();
+         toolStripContainer1.ContentPanel.ResumeLayout(false);
+         toolStripContainer1.TopToolStripPanel.ResumeLayout(false);
+         toolStripContainer1.TopToolStripPanel.PerformLayout();
+         toolStripContainer1.ResumeLayout(false);
+         toolStripContainer1.PerformLayout();
+         statusStrip1.ResumeLayout(false);
+         statusStrip1.PerformLayout();
+         menuStrip1.ResumeLayout(false);
+         menuStrip1.PerformLayout();
+         toolStrip_Standard.ResumeLayout(false);
+         toolStrip_Standard.PerformLayout();
+         contextMenuStripEditableGroupOrNothing.ResumeLayout(false);
+         contextMenuStripReadOnlyMarker.ResumeLayout(false);
+         toolStripContainer3.ResumeLayout(false);
+         toolStripContainer3.PerformLayout();
+         ResumeLayout(false);
       }
 
       #endregion
@@ -1262,7 +1436,7 @@
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
       private System.Windows.Forms.ToolStripButton toolStripButton_TrackSearch;
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
-      private System.Windows.Forms.ContextMenuStrip contextMenuStripMarker;
+      private System.Windows.Forms.ContextMenuStrip contextMenuStripEditableMarker;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_WaypointEdit;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_WaypointSet;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_WaypointDelete;
@@ -1277,14 +1451,13 @@
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_WaypointZoom;
       private System.Windows.Forms.ToolStripButton toolStripButton_ZoomIn;
       private System.Windows.Forms.ToolStripButton toolStripButton_ZoomOut;
-      private System.Windows.Forms.ToolStripButton toolStripButton_LocationForm;
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
       private System.Windows.Forms.ToolStripButton toolStripButton_MiniHelp;
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_Zoom;
-      private MapControl mapControl1;
+      private SpecialMapCtrl.SpecialMapCtrl mapCtrl;
       private System.Windows.Forms.ToolStripButton toolStripButton_SetMarker;
       private System.Windows.Forms.ToolStripButton toolStripButton_TrackDraw;
-      private System.Windows.Forms.ToolStripButton toolStripButton_TrackDrawEnd;
+      private System.Windows.Forms.ToolStripButton toolStripButton_EditEnd;
       private System.Windows.Forms.ToolStripButton toolStripButton_PrintMap;
       private System.Windows.Forms.ToolStripButton toolStripButton_ClearEditable;
       private System.Windows.Forms.ContextMenuStrip contextMenuStripReadOnlyTracks;
@@ -1322,24 +1495,18 @@
       private System.Windows.Forms.ToolStripButton toolStripButton_ClearCache;
       private System.Windows.Forms.ToolStripButton toolStripButton_SaveWithGarminExt;
       private System.Windows.Forms.ToolStripButton toolStripButton_UniqueNames;
-      private ReadOnlyTracklistControl readOnlyTracklistControl1;
+      private ReadOnlyGpxControl readOnlyTracklistControl1;
       private System.Windows.Forms.TabPage tabPageEditable;
-      private EditableTracklistControl editableTracklistControl1;
+      private EditableGpxControl editableTracklistControl1;
       private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_TrackMiniInfo;
-      private System.Windows.Forms.ToolStripButton toolStripButton_GeoSearch;
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_RemoveVisibleEditableTracks;
-      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_RemoveVisibleEditableMarkers;
-      private System.Windows.Forms.ToolStripButton toolStripButton_GeoTagging;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_DeleteAllVisibleEditableObjects3;
       private System.Windows.Forms.ToolStrip toolStrip_Edit;
-      private System.Windows.Forms.ToolStripButton toolStripButton_GoToPos;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemMaps;
       private System.Windows.Forms.ToolStripSeparator xToolStripMenuItem;
-      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowAllEditableMarkers;
-      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_HideAllEditableMarkers;
-      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowAllEditableTracks;
-      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_HideAllEditableTracks;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowAllEditableObjects3;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_HideAllEditableObjects3;
       private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_EditableTrackSimplify;
       private System.Windows.Forms.ToolStripButton toolStripButton_CancelMapLoading;
@@ -1349,6 +1516,39 @@
       private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_EditableTrackShowSlope;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItemExtra;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuIemConfig;
+      private System.Windows.Forms.ContextMenuStrip contextMenuStripEditableGroupOrNothing;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_EditableGroupInsert2;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_EditableGroupDelete2;
+      private System.Windows.Forms.ToolStripSeparator toolStripSeparator17;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowAllEditableObjects2;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_HideAllEditableObjects2;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_DeleteAllVisibleEditableObjects2;
+      private System.Windows.Forms.ContextMenuStrip contextMenuStripReadOnlyMarker;
+      private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_ShowMarkerProperties;
+      private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_CloneMarker;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowAllEditableObjects1;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_HideAllEditableObjects1;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_DeleteAllVisibleEditableObjects1;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_EditableGroupInsert1;
+      private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_EditableGroupDelete1;
+      private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_EditableGroupInsert3;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_EditableGroupDelete3;
+      private TabPage tabPageFoto;
+      private PictureManager pictureManager1;
+      private TabPage tabPageLocation;
+      private SplitContainer splitContainer2;
+      private ToolStripContainer toolStripContainer3;
+      private LocationControl locationControl1;
+      private GeoLocationControl geoLocationControl1;
+      private TabPage tabPageSearch;
+      private SearchControl searchControl1;
+      private ToolStripMenuItem toolStripMenuItem_EditableTrackPointRemove;
+      private ToolStripButton toolStripButton_EditCancel;
+      private ToolStripButton toolStripButton_Config;
+      private ToolStripSeparator toolStripSeparator9;
+      private TrackBar trackBarZoom;
    }
 }
 

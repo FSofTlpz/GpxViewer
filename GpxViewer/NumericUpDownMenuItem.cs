@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Windows.Forms;
+﻿using System.ComponentModel;
 using System.Windows.Forms.Design;
 
 // https://docs.microsoft.com/en-us/dotnet/framework/winforms/controls/how-to-wrap-a-windows-forms-control-with-toolstripcontrolhost?redirectedfrom=MSDN
@@ -103,7 +101,7 @@ namespace GpxViewer {
             Margin = new Padding(5),
          };
 
-         flowLayoutPanel1 = Control as FlowLayoutPanel;
+         flowLayoutPanel1 = (FlowLayoutPanel)Control;
          flowLayoutPanel1.AutoSize = true;
          flowLayoutPanel1.Controls.Add(label1);
          flowLayoutPanel1.Controls.Add(NumUpDown);
@@ -126,9 +124,7 @@ namespace GpxViewer {
 
       //}
 
-      private void NumericUpDownMenuItem_TextChanged(object sender, EventArgs e) {
-         label1.Text = Text;
-      }
+      private void NumericUpDownMenuItem_TextChanged(object? sender, EventArgs e) => label1.Text = Text;
 
    }
 }

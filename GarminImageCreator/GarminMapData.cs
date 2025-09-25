@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using GarminImageCreator.Garmin;
-using GarminImageCreator.Garmin.Cache;
+﻿using GarminImageCreator.Garmin;
+using System;
 
 namespace GarminImageCreator {
 

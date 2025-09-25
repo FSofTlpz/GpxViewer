@@ -39,13 +39,13 @@ namespace GarminCore.DskImg {
    /// </summary>
    class MyStream : Stream {
 
-      public delegate void NewSizeEventHandler(object sender, uint newsize, object extradata);
+      public delegate void NewSizeEventHandler(object sender, uint newsize, object? extradata);
 
-      public event NewSizeEventHandler NewSize;
+      public event NewSizeEventHandler? NewSize;
 
       bool _bReadonly;
       string backgroundfile;
-      object eventdata;
+      object? eventdata;
       MemoryStream memstream;
       bool bChanged;
 
@@ -56,7 +56,7 @@ namespace GarminCore.DskImg {
       /// <param name="data">Streamdaten</param>
       /// <param name="eventdata">Daten, die beim Event übergeben werden</param>
       /// <param name="bReadonly"></param>
-      public MyStream(string backgroundfile, byte[] data = null, object eventdata = null, bool bReadonly = false) {
+      public MyStream(string backgroundfile, byte[]? data = null, object? eventdata = null, bool bReadonly = false) {
          _bReadonly = bReadonly;
          bChanged = false;
          this.backgroundfile = backgroundfile;
@@ -73,21 +73,11 @@ namespace GarminCore.DskImg {
 
       }
 
-      public override bool CanRead {
-         get {
-            return true;
-         }
-      }
-      public override bool CanWrite {
-         get {
-            return !_bReadonly;
-         }
-      }
-      public override bool CanSeek {
-         get {
-            return true;
-         }
-      }
+      public override bool CanRead => true;
+
+      public override bool CanWrite => !_bReadonly;
+
+      public override bool CanSeek => true;
 
       public override long Position {
          get {
@@ -98,33 +88,25 @@ namespace GarminCore.DskImg {
          }
       }
 
-      public override long Length {
-         get {
-            return memstream.Length;
-         }
-      }
+      public override long Length => memstream.Length;
 
       public override void SetLength(long value) {
          memstream.SetLength(value);
          bChanged = true;
       }
 
-      public override long Seek(long offset, SeekOrigin origin) {
-         return memstream.Seek(offset, origin);
-      }
+      public override long Seek(long offset, SeekOrigin origin) => memstream.Seek(offset, origin);
 
       public override void Flush() {
          memstream.Flush();
          if (bChanged) {
             File.WriteAllBytes(backgroundfile, memstream.ToArray());
-            NewSize(this, (uint)memstream.Length, eventdata);
+            NewSize?.Invoke(this, (uint)memstream.Length, eventdata);
             bChanged = false;
          }
       }
 
-      public override int Read(byte[] buffer, int offset, int count) {
-         return memstream.Read(buffer, offset, count);
-      }
+      public override int Read(byte[] buffer, int offset, int count) => memstream.Read(buffer, offset, count);
 
       public override void Write(byte[] buffer, int offset, int count) {
          memstream.Write(buffer, offset, count);

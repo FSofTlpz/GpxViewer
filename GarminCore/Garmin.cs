@@ -42,13 +42,13 @@ namespace GarminCore {
       /// <param name="typ"></param>
       /// <param name="subtyp"></param>
       /// <returns></returns>
-      public static string GetGarminTypname(string typprefix, uint typ, uint subtyp) {
+      public static string? GetGarminTypname(string typprefix, uint typ, uint subtyp) {
          string txt = "";
          if (typprefix == "P")
             txt = string.Format("{0}0x{1:x2}{2:x2}", typprefix, typ, subtyp);
          else
             txt = string.Format("{0}0x{1:x2}", typprefix, typ);
-         return global::GarminCore.Properties.Resources.ResourceManager.GetString(txt);
+         return Properties.Resources.ResourceManager.GetString(txt);
       }
 
       /// <summary>
@@ -66,8 +66,11 @@ namespace GarminCore {
             if (titleAttribute.Title != "")
                sTitle = titleAttribute.Title;
          }
-         if (sTitle.Length == 0)         // Notlösung
-            sTitle = System.IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().CodeBase);
+         if (sTitle.Length == 0) {          // Notlösung
+            string? tmp = System.IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location);
+            if (tmp != null)
+               sTitle = tmp;
+         }
          //string sVersion = a.GetName().Version.ToString();
 
          string sCopyright = "";
@@ -79,7 +82,7 @@ namespace GarminCore {
          attributes = a.GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false);
          if (attributes.Length > 0)
             sInfoVersion = ((AssemblyInformationalVersionAttribute)attributes[0]).InformationalVersion;
-         return sTitle + ", Version vom " + sInfoVersion+ ", " + sCopyright;
+         return sTitle + ", Version vom " + sInfoVersion + ", " + sCopyright;
       }
 
    }

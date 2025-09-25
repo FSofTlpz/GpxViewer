@@ -14,10 +14,10 @@ using GarminImageCreator.Garmin;
 namespace GarminImageCreator {
    public class ImageCreator {
 
-      /// <summary>
-      /// Liste aller aktiven Garmin-Karten (i.A. nur 1); Abfrage über <see cref="GetGarminMapDefs"/>()!
-      /// </summary>
-      List<GarminMapData> garminMapData = null;
+      ///// <summary>
+      ///// Liste aller aktiven Garmin-Karten (i.A. nur 1); Abfrage über <see cref="GetGarminMapDefs"/>()!
+      ///// </summary>
+      //List<GarminMapData>? garminMapData = null;
 
 #if DRAWBITMAPSEQUENTIEL
       readonly object lock4drawbitmapsequentiel = new object();
@@ -99,30 +99,30 @@ namespace GarminImageCreator {
       /// zum erzeugen einer Gesamtkarte
       /// </summary>
       /// <param name="mapdefs">def. der einzelnen Garminkarten die zur Gesamtkarte gehören</param>
-      public ImageCreator(IList<GarminMapData> mapdefs = null) {
-         garminMapData = new List<GarminMapData>();
+      public ImageCreator(IList<GarminMapData>? mapdefs = null) {
+         //garminMapData = new List<GarminMapData>();
 
-         if (mapdefs != null)
-            SetGarminMapDefs(mapdefs);
+         //if (mapdefs != null)
+         //   SetGarminMapDefs(mapdefs);
       }
 
-      /// <summary>
-      /// setzt <see cref="GarminMapData"/>-Liste der zu verwendenden Garmin-Karten neu
-      /// </summary>
-      /// <param name="newmapdefs"></param>
-      public void SetGarminMapDefs(IList<GarminMapData> newmapdefs) {
-         if (newmapdefs != null) {
-            Interlocked.Exchange(ref garminMapData, new List<GarminMapData>(newmapdefs));
-         }
-      }
+      ///// <summary>
+      ///// setzt <see cref="GarminMapData"/>-Liste der zu verwendenden Garmin-Karten neu
+      ///// </summary>
+      ///// <param name="newmapdefs"></param>
+      //public void SetGarminMapDefs(IList<GarminMapData> newmapdefs) {
+      //   if (newmapdefs != null) {
+      //      Interlocked.Exchange(ref garminMapData, new List<GarminMapData>(newmapdefs));
+      //   }
+      //}
 
-      /// <summary>
-      /// liefert die akt. registrierte <see cref="GarminMapData"/>-Liste
-      /// </summary>
-      /// <returns></returns>
-      public List<GarminMapData> GetGarminMapDefs() {
-         return Interlocked.Exchange(ref garminMapData, garminMapData);
-      }
+      ///// <summary>
+      ///// liefert die akt. registrierte <see cref="GarminMapData"/>-Liste
+      ///// </summary>
+      ///// <returns></returns>
+      //public List<GarminMapData>? GetGarminMapDefs() {
+      //   return Interlocked.Exchange(ref garminMapData, garminMapData);
+      //}
 
 
 
@@ -149,7 +149,7 @@ namespace GarminImageCreator {
                             IList<double> groundResolution,
                             PictureDrawing picturePart,
                             ref object extdata,
-                            CancellationToken cancellationToken) {
+                            CancellationToken? cancellationToken) {
 #if DRAWBITMAPSEQUENTIEL
          lock (lock4drawbitmapsequentiel) {
 #endif
@@ -175,7 +175,7 @@ namespace GarminImageCreator {
 
             if (picturePart == PictureDrawing.all ||
                 picturePart == PictureDrawing.beforehillshade)
-               canvas.Clear(Color.LightGray);
+               canvas.Clear(Color.Transparent); //.LightGray);
 
             Bound picturebound = new Bound(lon1, lon2, lat1, lat2);
 
@@ -183,7 +183,7 @@ namespace GarminImageCreator {
             if (extdata == null)    // neu anlegen
                extdata = mapData4Image = new MapData4Image(new Dictionary<ObjectText.ObjectType, List<ObjectText>>());
             else                    // übernehmen
-               mapData4Image = extdata as MapData4Image;
+               mapData4Image = (MapData4Image)extdata;
 
             Dictionary<ObjectText.ObjectType, List<ObjectText>> objectTextLists = mapData4Image.TextLists4Type;
             List<double> textFactor = new List<double>();
@@ -301,7 +301,9 @@ namespace GarminImageCreator {
 #endif
 
          } catch (Exception ex) {
-            throw new Exception("DrawImage: " + ex.Message);
+            throw new Exception(nameof(GarminImageCreator) + "." +
+                                nameof(ImageCreator) + "." +
+                                nameof(DrawImage) + ": " + ex.Message);
          }
 
 #if GARMINDRAWTEST
@@ -336,34 +338,38 @@ namespace GarminImageCreator {
                    type == 0x4a00) // Garmin-Hintergrund
                   continue;
                if (areas.ContainsKey(type)) {
-                  GarminGraphicData.AreaData drawdata = gMapData.GraphicData.Areas.TryGetValue(type, out drawdata) ? drawdata : null;
-                  Brush brush = drawdata?.GetBrush();
+                  GarminGraphicData.AreaData? drawdata = gMapData.GraphicData.Areas.TryGetValue(type, out drawdata) ? drawdata : null;
 
-                  GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
-                  Font font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
-                  float fontheight = 0; // wegen Opt.
+                  if (drawdata != null) {
+                     Brush? brush = drawdata?.GetBrush();
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                     GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                     Font? font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
+                     float fontheight = 0; // wegen Opt.
 
-                  foreach (GeoPoly area in areas[type]) {
-                     if (drawArea(canvas,
-                               area,
-                               conv,
-                               brush,
-                               groundresolution))
-                        if (!string.IsNullOrEmpty(area.Text) &&
-                            fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
-                           if (fontheight == 0)
-                              fontheight = font.GetHeight();
-                           objectTextList.Add(new ObjectText(area.Text,
-                                                             ObjectText.ObjectType.Area,
-                                                             type,
-                                                             font,
-                                                             drawdata.TextColor,
-                                                             conv.Convert(area.Bound.CenterXDegree, area.Bound.CenterYDegree),
-                                                             fontheight));
-                        }
+                     foreach (GeoPoly area in areas[type]) {
+                        if (drawArea(canvas,
+                                     area,
+                                     conv,
+                                     brush,
+                                     groundresolution))
+                           if (font != null && !string.IsNullOrEmpty(area.Text) &&
+                               fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
+                              if (fontheight == 0)
+                                 fontheight = font.GetHeight();
+                              objectTextList.Add(new ObjectText(area.Text,
+                                                                ObjectText.ObjectType.Area,
+                                                                type,
+                                                                font,
+                                                                drawdata.TextColor,
+                                                                conv.Convert(area.Bound.CenterXDegree, area.Bound.CenterYDegree),
+                                                                fontheight));
+                           }
+                     }
+
+                     brush?.Dispose();
                   }
-
-                  brush?.Dispose();
                }
             }
 
@@ -384,19 +390,19 @@ namespace GarminImageCreator {
          try {
 
             for (int type = types.Length - 1; type >= 0; type--) {   // höchste Typen zuerst zeichnen
-               GarminGraphicData.LineData drawdata = gMapData.GraphicData.Lines.TryGetValue(types[type], out drawdata) ? drawdata : null;
+               GarminGraphicData.LineData? drawdata = gMapData.GraphicData.Lines.TryGetValue(types[type], out drawdata) ? drawdata : null;
                //if (types[type] == 0x0100) {
                //   Debug.WriteLine("");
                //}
                if (drawdata != null &&
                    !drawdata.IsTransparent) { // NICHT unsichtbare Linie
-                  Pen pen = drawdata.GetPen();
-                  Pen innerpen = drawdata != null ?
-                                       drawdata.WithBorder ? drawdata.GetInnerPen() : null :
-                                       null;
+                  Pen? pen = drawdata.GetPen();
+                  Pen? innerpen = drawdata.WithBorder ? drawdata.GetInnerPen() : null;
 
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
                   GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
-                  Font font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  Font? font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
                   float fontheight = 0; // wegen Opt.
 
                   foreach (GeoPoly line in lines[types[type]]) {
@@ -407,24 +413,26 @@ namespace GarminImageCreator {
                                   pen,
                                   innerpen,
                                   groundresolution))
-                        if (!string.IsNullOrEmpty(line.Text) &&
+                        if (font != null && !string.IsNullOrEmpty(line.Text) &&
                             fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
                            if (fontheight == 0)
                               fontheight = font.GetHeight();
-                           getRefLine4LineText(line.Points, out PointF p1, out PointF p2);
-                           objectTextList.Add(new ObjectText(line.Text,
-                                                             ObjectText.ObjectType.Line,
-                                                             types[type],
-                                                             font,
-                                                             drawdata.TextColor,
-                                                             conv.Convert(p1.X, p1.Y),
-                                                             conv.Convert(p2.X, p2.Y),
-                                                             fontheight));
+                           if (line.Points != null) {
+                              getRefLine4LineText(line.Points, out PointF p1, out PointF p2);
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                              objectTextList.Add(new ObjectText(line.Text,
+                                                                ObjectText.ObjectType.Line,
+                                                                types[type],
+                                                                font,
+                                                                drawdata.TextColor,
+                                                                conv.Convert(p1.X, p1.Y),
+                                                                conv.Convert(p2.X, p2.Y),
+                                                                fontheight));
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                           }
                         }
 
                   }
-
-                  //font?.Dispose();
 
                   pen?.Dispose();
                   innerpen?.Dispose();
@@ -448,41 +456,47 @@ namespace GarminImageCreator {
          try {
 
             for (int type = types.Length - 1; type >= 0; type--) {   // höchste Typen zuerst zeichnen
-               GarminGraphicData.PointData drawdata = gMapData.GraphicData.Points.TryGetValue(types[type], out drawdata) ? drawdata : null;
-               Bitmap bitmap = drawdata != null && drawdata.WithBitmap ?
-                                    drawdata.BitmapClone :
-                                    null;
+               GarminGraphicData.PointData? drawdata = gMapData.GraphicData.Points.TryGetValue(types[type], out drawdata) ? drawdata : null;
+               if (drawdata != null) {
+                  Bitmap? bitmap = drawdata != null && drawdata.WithBitmap ?
+                                       drawdata.BitmapClone :
+                                       null;
 
-               GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
-               Font font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
-               float fontheight = 0; // wegen Opt.
-               float pointdeltay = fontSize != GarminGraphicData.ObjectData.FontSize.NoFont ?
-                                          (font.GetHeight() + bitmap.Height) / 2 :
-                                          0;
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  GarminGraphicData.ObjectData.FontSize fontSize = drawdata.Fontsize;
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  Font? font = gMapData.GraphicData.Fonts.TextFont(drawdata.Fontsize);
+                  float fontheight = 0; // wegen Opt.
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  float pointdeltay = font != null && fontSize != GarminGraphicData.ObjectData.FontSize.NoFont ?
+                                             (font.GetHeight() + bitmap.Height) / 2 :
+                                             0;
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
 
-               foreach (GeoPoint point in points[types[type]]) {
-                  drawPoint(canvas,
-                            point,
-                            conv,
-                            bitmap,
-                            groundresolution);
-                  if (!string.IsNullOrEmpty(point.Text) &&
-                      fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
-                     if (fontheight == 0)
-                        fontheight = font.GetHeight();
-                     PointF pt = conv.Convert(point);
-                     pt.Y -= pointdeltay;
-                     objectTextList.Add(new ObjectText(point.Text,
-                                                       ObjectText.ObjectType.Point,
-                                                       types[type],
-                                                       font,
-                                                       drawdata.TextColor,
-                                                       pt,
-                                                       fontheight));
+                  foreach (GeoPoint point in points[types[type]]) {
+                     drawPoint(canvas,
+                               point,
+                               conv,
+                               bitmap,
+                               groundresolution);
+                     if (font != null && !string.IsNullOrEmpty(point.Text) &&
+                         fontSize != GarminGraphicData.ObjectData.FontSize.NoFont) {
+                        if (fontheight == 0)
+                           fontheight = font.GetHeight();
+                        PointF pt = conv.Convert(point);
+                        pt.Y -= pointdeltay;
+                        objectTextList.Add(new ObjectText(point.Text,
+                                                          ObjectText.ObjectType.Point,
+                                                          types[type],
+                                                          font,
+                                                          drawdata.TextColor,
+                                                          pt,
+                                                          fontheight));
+                     }
                   }
-               }
 
-               bitmap?.Dispose();
+                  bitmap?.Dispose();
+               }
             }
 
          } catch (Exception ex) {
@@ -596,7 +610,6 @@ namespace GarminImageCreator {
          //   }
          //}
 
-
          if (linepts.Count > 2) {
             // Punkt vor und nachte der "Mitte"
             p1 = linepts[p - 1];
@@ -606,10 +619,7 @@ namespace GarminImageCreator {
             p1 = linepts[p - 1];
             p2 = linepts[p];
          }
-
-
       }
-
 
       /// <summary>
       /// Test, ob der <see cref="ObjectText"/> an seine festgelegte Position gezeichnet werden darf (also keine Überdeckung mit anderen Texten erfolgt)
@@ -619,7 +629,7 @@ namespace GarminImageCreator {
       /// <returns></returns>
       bool areaIsFree4Text(ObjectText text, List<ObjectText> objectTextList) {
          foreach (var item in objectTextList) {
-            if (text.IntersectsWith(item, null)) {
+            if (text.IntersectsWith(item)) {
                return false;
             }
          }
@@ -654,7 +664,7 @@ namespace GarminImageCreator {
             if (angle != 0)
                canvas.ResetTransform();
 
-         } else {
+         } else {    // mit Outline zeichnen
 
             using (GraphicsPath path = new GraphicsPath()) {
 #if DRAWWITHSKIA
@@ -682,18 +692,18 @@ namespace GarminImageCreator {
                canvas.DrawPath(outlinepen, path);
 
 #if DRAWWITHSKIA
+               // DrawPath() vom Hintergrund und FillPath() für die Schrift passen gut zusammen, aber
+               // FillPath liefert kein Antialising. Es sieht gruselig aus!
                //brush.SKPaintSolid.IsAntialias = true;
-               //brush.SKPaintSolid.IsAutohinted= true;
+               //brush.SKPaintSolid.IsAutohinted = true;
                //brush.SKPaintSolid.IsDither = true;
-               //brush.SKPaintSolid.FilterQuality= SkiaSharp.SKFilterQuality.High;
+               //brush.SKPaintSolid.FilterQuality = SkiaSharp.SKFilterQuality.High;
                //canvas.FillPath(brush, path);
 
-               // ACHTUNG: DrawPath und DrawString passt nicht genau zusammen, aber FillPath liefert kein Antialising!
-
-               // experimentell
-               pt.Y += outlinepen.Width * .25F;
-               pt.X += outlinepen.Width * .25F;
-
+               // DrawPath und DrawString passt NICHT GENAU zusammen. Deshalb wird eine experimentell ermittelte
+               // Korrektur verwendet.
+               pt.Y += outlinepen.Width * .65F;
+               pt.X += outlinepen.Width * .30F;
                canvas.DrawString(text,
                                  font,
                                  brush,
@@ -728,8 +738,8 @@ namespace GarminImageCreator {
                     GeoPoly line,
                     GeoConverter conv,
                     bool bitmappen,
-                    Pen pen,
-                    Pen innerpen,
+                    Pen? pen,
+                    Pen? innerpen,
                     double groundresolution) {
          if (!conv.HasMinSize(line.Bound))
             return false;
@@ -789,7 +799,7 @@ namespace GarminImageCreator {
       bool drawArea(Graphics canvas,
                     GeoPoly area,
                     GeoConverter conv,
-                    Brush brush,
+                    Brush? brush,
                     double groundresolution) {
          if (!conv.HasMinSize(area.Bound))
             return false;
@@ -807,7 +817,7 @@ namespace GarminImageCreator {
       /// <param name="conv"></param>
       /// <param name="bitmap"></param>
       /// <param name="groundresolution">Meter je Pixel</param>
-      void drawPoint(Graphics canvas, GeoPoint point, GeoConverter conv, Bitmap bitmap, double groundresolution) {
+      void drawPoint(Graphics canvas, GeoPoint point, GeoConverter conv, Bitmap? bitmap, double groundresolution) {
          PointF pt = conv.Convert(point);
          if (bitmap != null)
             canvas.DrawImageUnscaled(bitmap, (int)(pt.X - bitmap.Width / 2), (int)(pt.Y - bitmap.Height / 2));
@@ -890,10 +900,9 @@ namespace GarminImageCreator {
          return FSofTUtils.Geography.GeoHelper.PointIsInNearPolyline(ptx, pty, polyx, polyy, delta);
       }
 
-      bool PointIsInNearPoint(double ptx, double pty, PointF pt, double deltalatlon) {
-         return pt.X - deltalatlon <= ptx && ptx <= pt.X + deltalatlon &&
-                pt.Y - deltalatlon <= pty && pty <= pt.Y + deltalatlon;
-      }
+      bool PointIsInNearPoint(double ptx, double pty, PointF pt, double deltalatlon) =>
+         pt.X - deltalatlon <= ptx && ptx <= pt.X + deltalatlon &&
+         pt.Y - deltalatlon <= pty && pty <= pt.Y + deltalatlon;
 
       /// <summary>
       /// holt Infos über Garminobjekte an dieser Position (und im Umfeld)
@@ -905,19 +914,18 @@ namespace GarminImageCreator {
       /// <param name="deltalat"></param>
       /// <param name="groundresolution">Meter je Pixel</param>
       /// <returns></returns>
-      public List<SearchObject> GetObjectInfo(double lon, 
-                                              double lat, 
-                                              double deltalon, 
-                                              double deltalat, 
+      public List<SearchObject> GetObjectInfo(double lon,
+                                              double lat,
+                                              double deltalon,
+                                              double deltalat,
                                               double groundresolution,
+                                              List<GarminImageCreator.GarminMapData> mapData,
                                               CancellationToken cancellationToken) {
          List<SearchObject> info = new List<SearchObject>();
-         List<GarminMapData> mapData = GetGarminMapDefs();
 
          if (mapData != null) {
             Bound searcharea = new Bound(lon - deltalon, lon + deltalon, lat - deltalat, lat + deltalat);
             foreach (GarminMapData gMapData in mapData) {
-               long cancel = 0;
                gMapData.DetailMapManager.GetAllData(searcharea,
                                                     groundresolution,
                                                     out SortedList<int, List<GeoPoint>> points,
@@ -930,19 +938,21 @@ namespace GarminImageCreator {
                      if (type == 0x4b00) // Garmin-Hintergrund
                         continue;
                      string name = "";
-                     if (gMapData.GraphicData.Areas.TryGetValue(type, out GarminGraphicData.AreaData d))
+                     if (gMapData.GraphicData.Areas.TryGetValue(type, out GarminGraphicData.AreaData? d) && d.Name != null)
                         name = d.Name;
                      foreach (GeoPoly area in areas[type]) {
-                        if (!PointIsInPolygon(lon, lat, area.Points))
+                        if (area.Points == null || !PointIsInPolygon(lon, lat, area.Points))
                            continue;
                         if (name != "" || !string.IsNullOrEmpty(area.Text)) {
-                           GarminGraphicData.AreaData drawdata = gMapData.GraphicData.Areas.TryGetValue(type, out drawdata) ? drawdata : null;
-                           Bitmap bm = drawdata.GetAsBitmap(32);
-                           info.Add(new SearchObject(SearchObject.ObjectType.Area,
-                                                     type,
-                                                     name,
-                                                     ObjectText.SimpleGarminTextConvert(area.Text),
-                                                     bm));
+                           GarminGraphicData.AreaData? drawdata = gMapData.GraphicData.Areas.TryGetValue(type, out drawdata) ? drawdata : null;
+                           if (drawdata != null) {
+                              Bitmap bm = drawdata.GetAsBitmap(32);
+                              info.Add(new SearchObject(SearchObject.ObjectType.Area,
+                                                        type,
+                                                        name,
+                                                        ObjectText.SimpleGarminTextConvert(area.Text),
+                                                        bm));
+                           }
                         }
                      }
                   }
@@ -953,19 +963,21 @@ namespace GarminImageCreator {
                try {
                   foreach (int type in lines.Keys) {
                      string name = "";
-                     if (gMapData.GraphicData.Lines.TryGetValue(type, out GarminGraphicData.LineData d))
+                     if (gMapData.GraphicData.Lines.TryGetValue(type, out GarminGraphicData.LineData? d) && d.Name != null)
                         name = d.Name;
                      foreach (GeoPoly line in lines[type]) {
-                        if (!PointIsInNearPolyline(lon, lat, line.Points, (deltalon + deltalat) / 2))
+                        if (line.Points == null || !PointIsInNearPolyline(lon, lat, line.Points, (deltalon + deltalat) / 2))
                            continue;
-                        if (name != "" || line.Text.Length > 0) {
-                           GarminGraphicData.LineData drawdata = gMapData.GraphicData.Lines.TryGetValue(type, out drawdata) ? drawdata : null;
-                           Bitmap bm = drawdata.GetAsBitmap(32);
-                           info.Add(new SearchObject(SearchObject.ObjectType.Line,
-                                                     type,
-                                                     name,
-                                                     ObjectText.SimpleGarminTextConvert(line.Text),
-                                                     bm));
+                        if (name != "" || (line.Text != null && line.Text.Length > 0)) {
+                           GarminGraphicData.LineData? drawdata = gMapData.GraphicData.Lines.TryGetValue(type, out drawdata) ? drawdata : null;
+                           if (drawdata != null) {
+                              Bitmap bm = drawdata.GetAsBitmap(32);
+                              info.Add(new SearchObject(SearchObject.ObjectType.Line,
+                                                        type,
+                                                        name,
+                                                        ObjectText.SimpleGarminTextConvert(line.Text),
+                                                        bm));
+                           }
                         }
                      }
                   }
@@ -976,14 +988,14 @@ namespace GarminImageCreator {
                try {
                   foreach (int type in points.Keys) {
                      string name = "";
-                     if (gMapData.GraphicData.Points.TryGetValue(type, out GarminGraphicData.PointData d))
+                     if (gMapData.GraphicData.Points.TryGetValue(type, out GarminGraphicData.PointData? d))
                         name = d.Name + ": ";
                      foreach (GeoPoint point in points[type]) {
                         if (!PointIsInNearPoint(lon, lat, new PointF(point.Point.X, point.Point.Y), (deltalon + deltalat) / 2))
                            continue;
-                        if (name != "" || point.Text.Length > 0) {
-                           GarminGraphicData.PointData drawdata = gMapData.GraphicData.Points.TryGetValue(type, out drawdata) ? drawdata : null;
-                           Bitmap bm = drawdata != null && drawdata.WithBitmap ? drawdata.BitmapClone : null;
+                        if (name != "" || (point.Text != null && point.Text.Length > 0)) {
+                           GarminGraphicData.PointData? drawdata = gMapData.GraphicData.Points.TryGetValue(type, out drawdata) ? drawdata : null;
+                           Bitmap? bm = drawdata != null && drawdata.WithBitmap ? drawdata.BitmapClone : null;
                            info.Add(new SearchObject(SearchObject.ObjectType.Point,
                                                      type,
                                                      name,
@@ -999,12 +1011,12 @@ namespace GarminImageCreator {
          }
 
          info.Sort(delegate (SearchObject so1, SearchObject so2) {
-            if (so1 == null && so2 == null)
-               return 0;
-            if (so1 == null)
-               return -1;
-            if (so1 == null)
-               return 1;
+            //if (so1 == null && so2 == null)
+            //   return 0;
+            //if (so1 == null)
+            //   return -1;
+            //if (so1 == null)
+            //   return 1;
 
             // Area = 0, Line = 1, Point = 2
             if ((int)so2.Objecttype > (int)so1.Objecttype)

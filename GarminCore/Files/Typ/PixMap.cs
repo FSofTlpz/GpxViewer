@@ -41,12 +41,12 @@ namespace GarminCore.Files.Typ {
    /// </summary>
    public enum BitmapColorMode {
       POI_SIMPLE = 0,
-     
+
       /// <summary>
       /// eine zusätzlicher Farbcode (nicht in der Farbtabelle enthalten) steht für transparente Pixel
       /// </summary>
       POI_TR = 0x10,
-      
+
       /// <summary>
       /// jede Farbe kann ihre eigene Transparenz haben
       /// </summary>
@@ -56,7 +56,7 @@ namespace GarminCore.Files.Typ {
       /// 1 Bit je Pixel, 2 Farben
       /// </summary>
       POLY2 = 0xfffd,
-      
+
       /// <summary>
       /// 1 Bit je Pixel, 1 Farbe (Code 1) + Transparenz
       /// </summary>
@@ -70,7 +70,7 @@ namespace GarminCore.Files.Typ {
    /// </summary>
    public class PixMap {
 
-      public PixData data { get; private set; }
+      public PixData data { get; private set; } = new PixData(0, 0, 0);
 
       /// <summary>
       /// Bildbreite
@@ -104,7 +104,7 @@ namespace GarminCore.Files.Typ {
       /// <summary>
       /// Farbtabelle (oder null, wenn keine benötigt wird)
       /// </summary>
-      protected Color[] colColorTable;
+      protected Color[] colColorTable = [];
 
 
       static PixMap() {
@@ -118,13 +118,13 @@ namespace GarminCore.Files.Typ {
       /// <param name="col">Farbtabelle</param>
       /// <param name="iWidth"></param>
       /// <param name="iHeight"></param>
-      public PixMap(uint iWidth, uint iHeight, Color[] col, BitmapColorMode cm, BinaryReaderWriter br = null)
+      public PixMap(uint iWidth, uint iHeight, Color[] col, BitmapColorMode cm, BinaryReaderWriter? br = null)
          : this(iWidth, iHeight, col.Length, cm) {
          col.CopyTo(colColorTable, 0);
          if (br != null)
             data.Read(br);
       }
-    
+
       /// <summary>
       /// erzeugt ein Bild mit max. 256 Farben (auch 0 Farben); transparent ist die "Dummy"-Farbe; liest die Farbtabelle und die Daten ev. aus dem Stream
       /// </summary>
@@ -133,7 +133,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="iColors">Anzahl der einzulesenden Farben</param>
       /// <param name="cm"></param>
       /// <param name="br"></param>
-      public PixMap(uint iWidth, uint iHeight, int iColors, BitmapColorMode cm, BinaryReaderWriter br = null) {
+      public PixMap(uint iWidth, uint iHeight, int iColors, BitmapColorMode cm, BinaryReaderWriter? br = null) {
          data = new PixData(iWidth, iHeight, BitsPerPixel4BitmapColorMode(cm, iColors));
          Colormode = cm;
          colColorTable = new Color[iColors];
@@ -199,7 +199,7 @@ namespace GarminCore.Files.Typ {
                data = new PixData(iWidth, iHeight, BpP, br);
             }
       }
-      
+
       /// <summary>
       /// erzeugt eine Kopie des Bildes
       /// </summary>
@@ -210,7 +210,7 @@ namespace GarminCore.Files.Typ {
          colColorTable = new Color[xpm.colColorTable.Length];
          xpm.colColorTable.CopyTo(colColorTable, 0);
       }
-      
+
       /// <summary>
       /// erzeugt ein Bild aus dem Bitmap
       /// </summary>
@@ -219,11 +219,12 @@ namespace GarminCore.Files.Typ {
       /// <param name="bExtended">true für Bilder mit mehr 255 Farben</param>
       public PixMap(Bitmap bm, BitmapColorMode cm, bool bExtended = false) {
          Colormode = cm;
-         bool bWithTransp, bWithAlpha;
-         Color[] coltab = GraphicElement.GetBitmapColorInfo(bm, out bWithTransp, out bWithAlpha);
+         Color[]? coltab = GraphicElement.GetBitmapColorInfo(bm, out bool bWithTransp, out bool bWithAlpha);
+         if (coltab == null)
+            throw new Exception("missing colortable");
          CreateFromBitmap(bm, Colormode, bExtended, coltab, bWithTransp, bWithAlpha);
       }
-      
+
       /// <summary>
       /// erzeugt ein Bild aus dem Bitmap
       /// </summary>
@@ -231,9 +232,9 @@ namespace GarminCore.Files.Typ {
       /// <param name="bAsPoi">Bild für einen POI oder Polygon/Linie</param>
       /// <param name="bExtended"></param>
       public PixMap(Bitmap bm, bool bAsPoi, bool bExtended) {
-         bool bWithTransp, bWithAlpha;
-         Color[] coltab;
-         Colormode = AnalyseBitmap(bm, bAsPoi, out coltab, out bWithTransp, out bWithAlpha);
+         Colormode = AnalyseBitmap(bm, bAsPoi, out Color[]? coltab, out bool bWithTransp, out bool bWithAlpha);
+         if (coltab == null)
+            throw new Exception("missing colortable");
          CreateFromBitmap(bm, Colormode, bExtended, coltab, bWithTransp, bWithAlpha);
       }
 
@@ -498,7 +499,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="bWithTransp">liefert die Info ob es transparente Pixel gibt</param>
       /// <param name="bWithAlpha">liefert die Info ob es Farben mit Alphaanteil gibt</param>
       /// <returns>liefert den einfachstmöglichen BitmapColorMode</returns>
-      public static BitmapColorMode AnalyseBitmap(Bitmap bm, bool b4Poi, out Color[] coltab, out bool bWithTransp, out bool bWithAlpha) {
+      public static BitmapColorMode AnalyseBitmap(Bitmap bm, bool b4Poi, out Color[]? coltab, out bool bWithTransp, out bool bWithAlpha) {
          coltab = new Color[0];
          bWithTransp = bWithAlpha = false;
          if (b4Poi) {
@@ -517,11 +518,13 @@ namespace GarminCore.Files.Typ {
             coltab = GraphicElement.GetBitmapColorInfo(bm, out bWithTransp, out bWithAlpha);
             if (bWithAlpha)
                throw new Exception("Ein Bitmap mit Alpha kann nicht für Polygone/Linien verwendet werden.");
-            if (coltab.Length == 1 ||
-               (coltab.Length == 2 && bWithTransp))
-               return BitmapColorMode.POLY1TR;
-            if (coltab.Length != 2)
-               throw new Exception("Ein Bitmap mit mehr als 2 Farben kann nicht für Polygone/Linien verwendet werden.");
+            if (coltab != null) {
+               if (coltab.Length == 1 ||
+                  (coltab.Length == 2 && bWithTransp))
+                  return BitmapColorMode.POLY1TR;
+               if (coltab.Length != 2)
+                  throw new Exception("Ein Bitmap mit mehr als 2 Farben kann nicht für Polygone/Linien verwendet werden.");
+            }
             return BitmapColorMode.POLY2;
          }
       }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FSofTUtils.Threading;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -16,7 +17,7 @@ namespace SpecialMapCtrl {
       /// <summary>
       /// Container aller GPX-Daten zu dem die <see cref="Track"/> gehört
       /// </summary>
-      public GpxAllExt GpxDataContainer { get; protected set; } = null;
+      public GpxData? GpxDataContainer { get; protected set; } = null;
 
       /// <summary>
       /// Originaltrack aus dem <see cref="GpxDataContainer"/>
@@ -26,15 +27,15 @@ namespace SpecialMapCtrl {
       /// <summary>
       /// Originalsegment aus dem <see cref="GpxTrack"/> aus dem <see cref="GpxDataContainer"/>
       /// </summary>
-      public Gpx.GpxTrackSegment GpxSegment { get; protected set; }
+      public Gpx.GpxTrackSegment? GpxSegment { get; protected set; }
 
       /// <summary>
       /// Boundingbox
       /// </summary>
-      public Gpx.GpxBounds Bounds { get; protected set; }
+      public Gpx.GpxBounds? Bounds { get; protected set; }
 
       /// <summary>
-      /// liefert den akt. Index der <see cref="Track"/> in <see cref="GpxAllExt"/>
+      /// liefert den akt. Index der <see cref="Track"/> in <see cref="GpxData"/>
       /// </summary>
       /// <returns></returns>
       public int GpxDataContainerIndex {
@@ -45,7 +46,7 @@ namespace SpecialMapCtrl {
       /// Name des (gesamten) Tracks
       /// </summary>
       public string Trackname {
-         get => GpxTrack?.Name;
+         get => GpxTrack != null && GpxTrack.Name != null ? GpxTrack.Name : string.Empty;
          set {
             if (GpxTrack != null)
                GpxTrack.Name = value;
@@ -60,7 +61,7 @@ namespace SpecialMapCtrl {
       /// <summary>
       /// nur zum Anzeigen des Tracks nötig
       /// </summary>
-      public VisualTrack VisualTrack { get; protected set; }
+      public VisualTrack? VisualTrack { get; protected set; }
 
       /// <summary>
       /// Ist der Track editierbar (wird, wenn vorhanden, vom <see cref="GpxDataContainer"/> vorgegeben, sonst true)?
@@ -78,7 +79,7 @@ namespace SpecialMapCtrl {
             if (IsEditable) {
                if (_iseditinwork != value) {
                   _iseditinwork = value;
-                  setVisualStyle();
+                  setStyle4VisualTrack();
                }
             }
          }
@@ -95,7 +96,7 @@ namespace SpecialMapCtrl {
          set {
             if (value != _isMarked) {
                _isMarked = value;
-               setVisualStyle();
+               setStyle4VisualTrack();
             }
          }
       }
@@ -109,7 +110,7 @@ namespace SpecialMapCtrl {
          set {
             if (value != _isMarked4Edit) {
                _isMarked4Edit = value;
-               setVisualStyle();
+               setStyle4VisualTrack();
             }
          }
       }
@@ -129,7 +130,8 @@ namespace SpecialMapCtrl {
                VisualTrack.IsVisible = value;
             else if (value == true) {
                UpdateVisualTrack();
-               VisualTrack.IsVisible = value;
+               if (VisualTrack != null)
+                  VisualTrack.IsVisible = value;
             }
          }
       }
@@ -156,7 +158,7 @@ namespace SpecialMapCtrl {
       public Color LineColor {
          get => _lineColor;
          set {
-            if (_lineColor != value) {
+            if (_lineColor.ToArgb() != value.ToArgb()) { // MS: ... For example, Black and FromArgb(0,0,0) are not considered equal, since Black is a named color and FromArgb(0,0,0) is not.
                _lineColor = value;
                if (GpxDataContainer != null) { // wenn alle Tracks die gleiche Farbe haben, dann auch die Containerfarbe setzen
                   bool different = false;
@@ -169,7 +171,7 @@ namespace SpecialMapCtrl {
                   if (!different)
                      GpxDataContainer.TrackColor = _lineColor;
                }
-               setVisualStyle();
+               setStyle4VisualTrack();
             }
          }
       }
@@ -183,30 +185,41 @@ namespace SpecialMapCtrl {
          set {
             if (_lineWidth != value) {
                _lineWidth = value;
-               setVisualStyle();
+               setStyle4VisualTrack();
             }
          }
       }
 
-      #region statistische Daten
+      #region statistische Daten (threadsicher)
 
-      public double StatMinHeigth { get; protected set; } = double.MaxValue;
-      public double StatMaxHeigth { get; protected set; } = double.MinValue;
-      public double StatElevationUp { get; protected set; } = 0;
-      public double StatElevationDown { get; protected set; } = 0;
-      public DateTime StatMinDateTime { get; protected set; } = DateTime.MaxValue;
-      public int StatMinDateTimeIdx { get; protected set; } = -1;
-      public DateTime StatMaxDateTime { get; protected set; } = DateTime.MinValue;
-      public int StatMaxDateTimeIdx { get; protected set; } = -1;
-      public double StatLength { get; protected set; } = 0;
-      public double StatLengthWithTime { get; protected set; } = 0;
+      ThreadSafeDoubleVariable _statMinHeigth = new ThreadSafeDoubleVariable(double.MaxValue);
+      ThreadSafeDoubleVariable _statMaxHeigth = new ThreadSafeDoubleVariable(double.MinValue);
+      ThreadSafeDoubleVariable _statElevationUp = new ThreadSafeDoubleVariable(0);
+      ThreadSafeDoubleVariable _statElevationDown = new ThreadSafeDoubleVariable(0);
+      ThreadSafeIntVariable _statMinDateTimeIdx = new ThreadSafeIntVariable(-1);
+      ThreadSafeVariable<DateTime> _statMinDateTime = new ThreadSafeVariable<DateTime>(DateTime.MaxValue);
+      ThreadSafeIntVariable _statMaxDateTimeIdx = new ThreadSafeIntVariable(-1);
+      ThreadSafeVariable<DateTime> _statMaxDateTime = new ThreadSafeVariable<DateTime>(DateTime.MinValue);
+      ThreadSafeDoubleVariable _statLength = new ThreadSafeDoubleVariable(0);
+      ThreadSafeDoubleVariable _satLengthWithTime = new ThreadSafeDoubleVariable(0);
+
+      public double StatMinHeigth { get => _statMinHeigth.Value; protected set => _statMinHeigth.Value = value; }
+      public double StatMaxHeigth { get => _statMaxHeigth.Value; protected set => _statMaxHeigth.Value = value; }
+      public double StatElevationUp { get => _statElevationUp.Value; protected set => _statElevationUp.Value = value; }
+      public double StatElevationDown { get => _statElevationDown.Value; protected set => _statElevationDown.Value = value; }
+      public DateTime StatMinDateTime { get => _statMinDateTime.Value; protected set => _statMinDateTime.Value = value; }
+      public int StatMinDateTimeIdx { get => _statMinDateTimeIdx.Value; protected set => _statMinDateTimeIdx.Value = value; }
+      public DateTime StatMaxDateTime { get => _statMaxDateTime.Value; protected set => _statMaxDateTime.Value = value; }
+      public int StatMaxDateTimeIdx { get => _statMaxDateTimeIdx.Value; protected set => _statMaxDateTimeIdx.Value = value; }
+      public double StatLength { get => _statLength.Value; protected set => _statLength.Value = value; }
+      public double StatLengthWithTime { get => _satLengthWithTime.Value; protected set => _satLengthWithTime.Value = value; }
 
       #endregion
 
 
       /// <summary>
       /// erzeugt intern einen <see cref="Gpx.GpxTrack"/> mit 1 Segment ohne Punkte
-      /// <para>Es gibt keinen Verweis auf einen <see cref="GpxAllExt"/>.</para>
+      /// <para>Es gibt keinen Verweis auf einen <see cref="GpxData"/>.</para>
       /// </summary>
       /// <param name="visualname"></param>
       public Track(string visualname) {
@@ -217,7 +230,7 @@ namespace SpecialMapCtrl {
 
       /// <summary>
       /// erzeugt intern einen <see cref="Gpx.GpxTrack"/> mit 1 Segment und einer Kopie der Punkte
-      /// <para>Es gibt keinen Verweis auf einen <see cref="GpxAllExt"/>.</para>
+      /// <para>Es gibt keinen Verweis auf einen <see cref="GpxData"/>.</para>
       /// </summary>
       /// <param name="gpxpoints"></param>
       /// <param name="visualname">anzuzeigender Name (wird auch als Trackname übernommen)</param>
@@ -246,18 +259,18 @@ namespace SpecialMapCtrl {
             }
             return pt;
          }
-         return new Gpx.GpxTrackPoint[0];
+         return Array.Empty<Gpx.GpxTrackPoint>();
       }
 
       /// <summary>
-      /// erzeugt den <see cref="Track"/> mit diesen Daten, fügt ihn aber noch nicht ihn die Trackliste in <see cref="GpxAllExt"/> ein
+      /// erzeugt den <see cref="Track"/> mit diesen Daten, fügt ihn aber noch nicht ihn die Trackliste in <see cref="GpxData"/> ein
       /// </summary>
       /// <param name="gpx"></param>
       /// <param name="trackno"></param>
       /// <param name="segmentno"></param>
       /// <param name="visualname"></param>
       /// <returns></returns>
-      public static Track Create(GpxAllExt gpx, int trackno, int segmentno, string visualname) {
+      public static Track Create(GpxData gpx, int trackno, int segmentno, string visualname) {
          Track track = new Track(visualname) {
             GpxDataContainer = gpx,
             GpxTrack = gpx.Tracks[trackno],
@@ -269,13 +282,13 @@ namespace SpecialMapCtrl {
       }
 
       /// <summary>
-      /// erzeugt eine Kopie des <see cref="Track"/>, fügt ihn aber noch nicht ihn die Trackliste in <see cref="GpxAllExt"/> ein
+      /// erzeugt eine Kopie des <see cref="Track"/>, fügt ihn aber noch nicht ihn die Trackliste in <see cref="GpxData"/> ein
       /// </summary>
       /// <param name="orgtrack"></param>
       /// <param name="destgpx"></param>
       /// <param name="useorgprops">bei false wird (wenn möglich) die Farbe vom Container verwendet</param>
       /// <returns></returns>
-      public static Track CreateCopy(Track orgtrack, GpxAllExt destgpx = null, bool useorgprops = false) {
+      public static Track CreateCopy(Track orgtrack, GpxData? destgpx = null, bool useorgprops = false) {
          Track track = new Track(orgtrack.VisualName) {
             GpxDataContainer = destgpx,
             GpxTrack = new Gpx.GpxTrack(orgtrack.GpxTrack),      // vollständige Kopie,
@@ -301,90 +314,53 @@ namespace SpecialMapCtrl {
       /// </summary>
       /// <param name="gpxpt"></param>
       /// <returns></returns>
-      public static Gpx.GpxBounds CalculateBounds(IList<Gpx.GpxTrackPoint> gpxpt) {
-         if (gpxpt.Count == 0)
-            return new Gpx.GpxBounds(0, 0, 0, 0);
-         Gpx.GpxBounds bounds = new Gpx.GpxBounds(double.MaxValue, double.MinValue, double.MaxValue, double.MinValue);
-         for (int i = 0; i < gpxpt.Count; i++) {
-            bounds.MinLat = Math.Min(bounds.MinLat, gpxpt[i].Lat);
-            bounds.MinLon = Math.Min(bounds.MinLon, gpxpt[i].Lon);
-            bounds.MaxLat = Math.Max(bounds.MaxLat, gpxpt[i].Lat);
-            bounds.MaxLon = Math.Max(bounds.MaxLon, gpxpt[i].Lon);
-         }
-         return bounds;
-      }
+      protected static Gpx.GpxBounds CalculateBounds(Gpx.ListTS<Gpx.GpxTrackPoint>? gpxpt) =>
+         gpxpt == null || gpxpt.Count == 0 ?
+                     new Gpx.GpxBounds(0, 0, 0, 0) :
+                     new Gpx.GpxBounds(gpxpt);
 
       /// <summary>
       /// berechnet <see cref="Bounds"/> neu
       /// </summary>
       public void RefreshBoundingbox() {
-         Bounds = CalculateBounds(GpxTrack.Segments[0].Points);
+         if (GpxTrack.Segments != null &&
+             GpxTrack.Segments.Count > 0 &&
+             GpxTrack.Segments[0].Points != null)
+            Bounds = CalculateBounds(GpxTrack.Segments[0].Points);
       }
 
       /// <summary>
       /// berechnet stat. Daten (neu)
       /// </summary>
       public void CalculateStats() {
-         if (GpxSegment != null) {
-            List<Gpx.GpxTrackPoint> pt = GpxSegment.Points;
+         double ascentdescentthreshold = 1;
 
-            StatMinHeigth = double.MaxValue;
-            StatMaxHeigth = double.MinValue;
-            StatElevationUp = 0;
-            StatElevationDown = 0;
-            StatMinDateTime = DateTime.MaxValue;
-            StatMaxDateTime = DateTime.MinValue;
-            StatMinDateTimeIdx = -1;
-            StatMaxDateTimeIdx = -1;
-            StatLength = 0;
-            StatLengthWithTime = 0;
+         StatMinHeigth = double.MaxValue;
+         StatMaxHeigth = double.MinValue;
+         StatElevationUp = 0;
+         StatElevationDown = 0;
+         StatMinDateTime = DateTime.MaxValue;
+         StatMaxDateTime = DateTime.MinValue;
+         StatMinDateTimeIdx = -1;
+         StatMaxDateTimeIdx = -1;
+         StatLength = 0;
+         StatLengthWithTime = 0;
 
-            int lastelevationidx = -1;
-            for (int i = 0; i < pt.Count; i++) {
-               if (pt[i].Elevation != Gpx.BaseElement.NOTVALID_DOUBLE) {
-                  StatMinHeigth = Math.Min(StatMinHeigth, pt[i].Elevation);
-                  StatMaxHeigth = Math.Max(StatMaxHeigth, pt[i].Elevation);
-                  if (lastelevationidx >= 0) {
-                     double delta = pt[i].Elevation - pt[lastelevationidx].Elevation;
-                     if (delta > 0)
-                        StatElevationUp += delta;
-                     else
-                        StatElevationDown += delta;
-                  }
-                  lastelevationidx = i;
-               }
+         if (GpxSegment != null &&
+             GpxSegment.Points != null) {
+            Gpx.GpxTrackPoint[] ptlst = GpxSegment.Points.ToArray();
+            FSofTUtils.Geography.GpxInfos.PointListInfo info = new FSofTUtils.Geography.GpxInfos.PointListInfo(ptlst, ascentdescentthreshold);
 
-               if (pt[i].Time != Gpx.BaseElement.NOTVALID_TIME) {
-                  if (StatMinDateTime > pt[i].Time) {
-                     StatMinDateTime = pt[i].Time;
-                     StatMinDateTimeIdx = i;
-                  }
-                  if (StatMaxDateTime < pt[i].Time) {
-                     StatMaxDateTime = pt[i].Time;
-                     StatMaxDateTimeIdx = i;
-                  }
-               }
-
-
-               if (i > 0) {
-                  StatLength += FSofTUtils.Geography.GeoHelper.Wgs84Distance(pt[i].Lon, pt[i - 1].Lon, pt[i].Lat, pt[i - 1].Lat);
-               }
-            }
-
-            if (StatMinDateTimeIdx >= 0 &&
-                StatMinDateTimeIdx < StatMaxDateTimeIdx) { // min. 1 Strecke
-               for (int i = StatMinDateTimeIdx + 1; i <= StatMaxDateTimeIdx; i++) {
-                  StatLengthWithTime += FSofTUtils.Geography.GeoHelper.Wgs84Distance(pt[i].Lon, pt[i - 1].Lon, pt[i].Lat, pt[i - 1].Lat);
-               }
-            }
-
-         } else {    // dann nur aus den GMap.NET.PointLatLng-Punkten
-            if (GpxSegment.Points != null) {
-               StatLength = 0;
-               for (int i = 1; i < GpxSegment.Points.Count; i++) {
-                  StatLength += FSofTUtils.Geography.GeoHelper.Wgs84Distance(GpxSegment.Points[i].Lon, GpxSegment.Points[i - 1].Lon, GpxSegment.Points[i].Lat, GpxSegment.Points[i - 1].Lat);
-               }
-            }
+            StatMinHeigth = info.Minheight;
+            StatMaxHeigth = info.Maxheight;
+            StatElevationUp = info.Ascent;
+            StatElevationDown = info.Descent;
+            StatMinDateTime = info.FirstTime;
+            StatMaxDateTime = info.LastTime;
+            StatMinDateTimeIdx = info.FirstTimeIdx;
+            StatMaxDateTimeIdx = info.LastTimeIdx;
+            StatLength = info.Length;
+            StatLengthWithTime = info.LengthWithTime;
          }
       }
 
@@ -397,12 +373,15 @@ namespace SpecialMapCtrl {
       public double Length(int fromidx, int toidx) {
          double length = 0;
          if (GpxSegment != null) {
-            if (fromidx < toidx &&
-                0 <= fromidx &&
-                toidx < GpxSegment.Points.Count) {
-               List<Gpx.GpxTrackPoint> pt = GpxSegment.Points;
-               for (int i = fromidx + 1; i <= toidx; i++)
-                  length += FSofTUtils.Geography.GeoHelper.Wgs84Distance(pt[i].Lon, pt[i - 1].Lon, pt[i].Lat, pt[i - 1].Lat);
+            if (fromidx < toidx) {
+               fromidx = Math.Max(0, fromidx);
+               Gpx.ListTS<Gpx.GpxTrackPoint> pt = GpxSegment.Points;
+               for (int i = fromidx + 1; i <= toidx && i < GpxSegment.Points.Count; i++)
+                  length += FSofTUtils.Geography.GeoHelper.Wgs84Distance(pt[i].Lon, 
+                                                                         pt[i - 1].Lon, 
+                                                                         pt[i].Lat, 
+                                                                         pt[i - 1].Lat, 
+                                                                         FSofTUtils.Geography.GeoHelper.Wgs84DistanceCompute.ellipsoid);
             }
          }
          return length;
@@ -410,6 +389,32 @@ namespace SpecialMapCtrl {
 
       public double Length() =>
          GpxSegment != null ? Length(0, GpxSegment.Points.Count - 1) : 0;
+
+      /// <summary>
+      /// Länge einer Teilstrecke (threadsicher)
+      /// </summary>
+      /// <param name="fromidx"></param>
+      /// <param name="toidx"></param>
+      /// <returns></returns>
+      public double LengthTS(int fromidx, int toidx) {
+         double length = 0;
+         if (GpxSegment != null) {
+            if (fromidx < toidx) {
+               fromidx = Math.Max(0, fromidx);
+
+               List<Gpx.GpxTrackPoint> pt = GpxSegment.Points.GetCopy();
+               for (int i = fromidx + 1; i <= toidx && i < GpxSegment.Points.Count; i++)
+                  length += FSofTUtils.Geography.GeoHelper.Wgs84Distance(pt[i].Lon, 
+                                                                         pt[i - 1].Lon, 
+                                                                         pt[i].Lat, 
+                                                                         pt[i - 1].Lat,
+                                                                         FSofTUtils.Geography.GeoHelper.Wgs84DistanceCompute.ellipsoid);
+            }
+         }
+         return length;
+      }
+
+      public double LengthTS() => GpxSegment != null ? LengthTS(0, int.MaxValue) : 0;
 
       /// <summary>
       /// liefert die stat. Daten als Text
@@ -423,11 +428,11 @@ namespace SpecialMapCtrl {
          if (StatMinHeigth != double.MaxValue &&
              StatMaxHeigth != double.MinValue) {
             sb.AppendFormat("Höhe: {0:F0} m .. {1:F0} m", StatMinHeigth, StatMaxHeigth);
-            if (StatElevationUp >= 0 && StatElevationDown <= 0)
-               sb.AppendFormat(", Anstieg {0:F0} m, Abstieg {1:F0} m", StatElevationUp, -StatElevationDown);
+            if (StatElevationUp >= 0 && StatElevationDown >= 0)
+               sb.AppendFormat(", Anstieg {0:F0} m, Abstieg {1:F0} m", StatElevationUp, StatElevationDown);
             sb.AppendLine();
          }
-         sb.AppendFormat("Punkte: {0}", GpxSegment.Points.Count);
+         sb.AppendFormat("Punkte: {0}", GpxSegment != null ? GpxSegment.Points.Count : 0);
          sb.AppendLine();
          if (StatMinDateTimeIdx >= 0 &&
              StatMaxDateTimeIdx > StatMinDateTimeIdx) {
@@ -451,13 +456,17 @@ namespace SpecialMapCtrl {
       public int GetNearestPtIdx(FSofTUtils.Geometry.PointD geopt) {
          int idx = -1;
          double dist = double.MaxValue;
-         for (int i = 0; i < GpxSegment.Points.Count; i++) {
-            double d = FSofTUtils.Geography.GeoHelper.Wgs84Distance(GpxSegment.Points[i].Lon, geopt.X, GpxSegment.Points[i].Lat, geopt.Y);
-            if (d < dist) {
-               dist = d;
-               idx = i;
+         if (GpxSegment != null)
+            for (int i = 0; i < GpxSegment.Points.Count; i++) {
+               double d = FSofTUtils.Geography.GeoHelper.Wgs84Distance(GpxSegment.Points[i].Lon, 
+                                                                       geopt.X, 
+                                                                       GpxSegment.Points[i].Lat, 
+                                                                       geopt.Y);
+               if (d < dist) {
+                  dist = d;
+                  idx = i;
+               }
             }
-         }
          return idx;
       }
 
@@ -466,26 +475,25 @@ namespace SpecialMapCtrl {
       /// </summary>
       /// <param name="idx"></param>
       /// <returns></returns>
-      public Gpx.GpxTrackPoint GetGpxPoint(int idx) {
-         return GpxSegment?.Points[idx];
-      }
+      public Gpx.GpxTrackPoint? GetGpxPoint(int idx) => GpxSegment?.Points[idx];
 
       /// <summary>
       /// Anzeige aktualisieren (falls akt. sichtbar)
       /// </summary>
       public void Refresh() {
-         if (IsVisible)
+         if (VisualTrack != null && IsVisible)
             VisualTrack.Refresh();
       }
 
       #region Punktliste ändern
 
       /// <summary>
-      /// ersetzt die Punkte des Tracks mit einer Kopie der gelieferten Tracks
+      /// ersetzt die Punkte des Tracks mit einer Kopie des gelieferten Tracks
       /// </summary>
       /// <param name="segment"></param>
       public void ReplaceAllPoints(Gpx.GpxTrackSegment segment) {
-         GpxSegment = new Gpx.GpxTrackSegment(segment);
+         GpxSegment.Points.Clear();
+         GpxSegment.Points.AddRange(segment.Points);
       }
 
       /// <summary>
@@ -493,61 +501,62 @@ namespace SpecialMapCtrl {
       /// </summary>
       /// <param name="idx"></param>
       public void RemovePoint(int idx) {
-         if (0 <= idx && idx < GpxSegment.Points.Count) {
+         if (GpxSegment != null && 0 <= idx && idx < GpxSegment.Points.Count) {
             GpxSegment.Points.RemoveAt(idx);
             if (VisualTrack != null)
                VisualTrack.Points.RemoveAt(idx);
          }
       }
 
-      /// <summary>
-      /// einen neuen Punkt an dieser Stelle einfügen
-      /// </summary>
-      /// <param name="idx"></param>
-      /// <param name="lat"></param>
-      /// <param name="lon"></param>
-      /// <param name="elevation"></param>
-      public void InsertPoint(int idx,
-                              double lat,
-                              double lon,
-                              double elevation = Gpx.BaseElement.NOTVALID_DOUBLE) {
-         Gpx.GpxTrackPoint newpt = new Gpx.GpxTrackPoint(lon, lat, elevation);
-         if (idx < 0 || GpxSegment.Points.Count <= idx) {
-            GpxSegment.Points.Add(newpt);
-            if (VisualTrack != null)
-               VisualTrack.Points.Add(new GMap.NET.PointLatLng(newpt.Lat, newpt.Lon));
-         } else {
-            GpxSegment.Points.Insert(idx, newpt);
-            if (VisualTrack != null)
-               VisualTrack.Points.Insert(idx, new GMap.NET.PointLatLng(newpt.Lat, newpt.Lon));
-         }
-      }
+      ///// <summary>
+      ///// einen neuen Punkt an dieser Stelle einfügen
+      ///// </summary>
+      ///// <param name="idx"></param>
+      ///// <param name="lat"></param>
+      ///// <param name="lon"></param>
+      ///// <param name="elevation"></param>
+      //public void InsertPoint(int idx,
+      //                        double lat,
+      //                        double lon,
+      //                        double elevation = Gpx.BaseElement.NOTVALID_DOUBLE) {
+      //   Gpx.GpxTrackPoint newpt = new Gpx.GpxTrackPoint(lon, lat, elevation);
+      //   if (GpxSegment != null && (idx < 0 || GpxSegment.Points.Count <= idx)) {
+      //      GpxSegment.Points.Add(newpt);
+      //      if (VisualTrack != null)
+      //         VisualTrack.Points.Add(new GMap.NET.PointLatLng(newpt.Lat, newpt.Lon));
+      //   } else {
+      //      if (GpxSegment != null)
+      //         GpxSegment.Points.Insert(idx, newpt);
+      //      if (VisualTrack != null)
+      //         VisualTrack.Points.Insert(idx, new GMap.NET.PointLatLng(newpt.Lat, newpt.Lon));
+      //   }
+      //}
 
-      /// <summary>
-      /// den Punkt an dieser Stelle verändern
-      /// </summary>
-      /// <param name="idx"></param>
-      /// <param name="lat"></param>
-      /// <param name="lon"></param>
-      /// <param name="elevation"></param>
-      public void ChangePoint(int idx,
-                              double lat = Gpx.BaseElement.NOTVALID_DOUBLE,
-                              double lon = Gpx.BaseElement.NOTVALID_DOUBLE,
-                              double elevation = Gpx.BaseElement.NOTVALID_DOUBLE) {
-         if (idx < 0 || idx >= GpxSegment.Points.Count) {
-            GpxSegment.Points[idx] = new Gpx.GpxTrackPoint(lat != Gpx.BaseElement.NOTVALID_DOUBLE ? lat : GpxSegment.Points[idx].Lat,
-                                                               lon != Gpx.BaseElement.NOTVALID_DOUBLE ? lon : GpxSegment.Points[idx].Lon,
-                                                               elevation != Gpx.BaseElement.NOTVALID_DOUBLE ? elevation : GpxSegment.Points[idx].Elevation);
-            if (VisualTrack != null)
-               VisualTrack.Points[idx] = new GMap.NET.PointLatLng(GpxSegment.Points[idx].Lat, GpxSegment.Points[idx].Lon);
-         }
-      }
+      ///// <summary>
+      ///// den Punkt an dieser Stelle verändern
+      ///// </summary>
+      ///// <param name="idx"></param>
+      ///// <param name="lat"></param>
+      ///// <param name="lon"></param>
+      ///// <param name="elevation"></param>
+      //public void ChangePoint(int idx,
+      //                        double lat = Gpx.BaseElement.NOTVALID_DOUBLE,
+      //                        double lon = Gpx.BaseElement.NOTVALID_DOUBLE,
+      //                        double elevation = Gpx.BaseElement.NOTVALID_DOUBLE) {
+      //   if (GpxSegment != null && (idx < 0 || idx >= GpxSegment.Points.Count)) {
+      //      GpxSegment.Points[idx] = new Gpx.GpxTrackPoint(lat != Gpx.BaseElement.NOTVALID_DOUBLE ? lat : GpxSegment.Points[idx].Lat,
+      //                                                         lon != Gpx.BaseElement.NOTVALID_DOUBLE ? lon : GpxSegment.Points[idx].Lon,
+      //                                                         elevation != Gpx.BaseElement.NOTVALID_DOUBLE ? elevation : GpxSegment.Points[idx].Elevation);
+      //      if (VisualTrack != null)
+      //         VisualTrack.Points[idx] = new GMap.NET.PointLatLng(GpxSegment.Points[idx].Lat, GpxSegment.Points[idx].Lon);
+      //   }
+      //}
 
       /// <summary>
       /// änder die Trackrichtung
       /// </summary>
       public void ChangeDirection() {
-         GpxSegment.ChangeDirection();
+         GpxSegment?.ChangeDirection();
          if (VisualTrack != null) {
             List<GMap.NET.PointLatLng> tmp = new List<GMap.NET.PointLatLng>();
             tmp.AddRange(VisualTrack.Points);
@@ -564,26 +573,29 @@ namespace SpecialMapCtrl {
       /// </summary>
       /// <param name="rect"></param>
       /// <returns></returns>
-      public bool IsCrossing(Gpx.GpxBounds rect) => RouteCrossing.IsRouteCrossing(rect, GpxSegment.Points);
+      public bool IsCrossing(Gpx.GpxBounds rect) => GpxSegment != null && GpxSegment.Points != null ?
+                                                         RouteCrossing.IsRouteCrossing(rect, GpxSegment.Points) :
+                                                         false;
 
       /// <summary>
-      /// liefert den <see cref="VisualTrack.VisualStyle"/> für den akt. Zustand
+      /// liefert den <see cref="VisualTrack.VisualStyle"/> für den akt. Zustand des Tracks
       /// </summary>
       /// <returns></returns>
       VisualTrack.VisualStyle getVisualStyle() {
-         // Style ev. nicht einfach nur "kaskadierend" festlegen (?)
          VisualTrack.VisualStyle style =
             IsSelectedPart ?
                VisualTrack.VisualStyle.SelectedPart :
-               IsOnEdit || IsMarked4Edit ?
+               IsOnEdit ?
                   VisualTrack.VisualStyle.InEdit :
-                  IsMarked ?
-                     VisualTrack.VisualStyle.Marked :
-                     IsOnLiveDraw ?
-                        VisualTrack.VisualStyle.LiveDraw :
-                        IsEditable ?
-                           VisualTrack.VisualStyle.Editable :
-                           VisualTrack.VisualStyle.Standard;
+                  IsMarked4Edit ?
+                  VisualTrack.VisualStyle.Marked4Edit :
+                     IsMarked ?
+                        VisualTrack.VisualStyle.Marked :
+                        IsOnLiveDraw ?
+                           VisualTrack.VisualStyle.LiveDraw :
+                           IsEditable ?
+                              VisualTrack.VisualStyle.Editable :
+                              VisualTrack.VisualStyle.Standard;
 
          if (style == VisualTrack.VisualStyle.Standard) {
             if (LineColor == VisualTrack.StandardColor) {
@@ -602,57 +614,53 @@ namespace SpecialMapCtrl {
       }
 
       /// <summary>
-      /// falls der <see cref="VisualTrack"/> ex. und sichtbar ist, wird der <see cref="VisualTrack.VisualStyle"/> für den akt. Zustand gesetzt
+      /// <para>
+      /// Falls der <see cref="VisualTrack"/> ex., wird der <see cref="VisualTrack.VisualStyle"/> 
+      /// des Tracks für den akt. Zustand gesetzt.
+      /// </para>
+      /// <para>
+      /// Nur wenn Track-Stil <see cref="VisualTrack.VisualStyle.Editable"/> oder StandardX ist, 
+      /// wird die individuelle Farbe/Linienbreite verwendet.
+      /// </para>
       /// </summary>
-      void setVisualStyle() {
-         if (IsVisible) {
-            VisualTrack.VisualStyle style = getVisualStyle();
-            if ((style == VisualTrack.VisualStyle.Standard &&        // nur wenn der Stil änderbar ist und die Daten nicht dem jeweiligen Stil entsprechen ...
-                 (LineColor != VisualTrack.StandardColor ||
-                  LineWidth != VisualTrack.StandardWidth)) ||
+      void setStyle4VisualTrack() {
+         //if (IsVisible) {
+         VisualTrack.VisualStyle style = getVisualStyle();
+         // Normalerweise erhält der VisualTrack die Farbe/Linienbreite die dem Track-Stil entspricht.
+         // Nur wenn Track-Stil Editable oder StandardX ist, wird die individuelle Farbe/Linienbreite verwendet.
 
-                (style == VisualTrack.VisualStyle.Standard2 &&
-                 (LineColor != VisualTrack.StandardColor2 ||
-                  LineWidth != VisualTrack.StandardWidth)) ||
-
-                (style == VisualTrack.VisualStyle.Standard3 &&
-                 (LineColor != VisualTrack.StandardColor3 ||
-                  LineWidth != VisualTrack.StandardWidth)) ||
-
-                (style == VisualTrack.VisualStyle.Standard4 &&
-                 (LineColor != VisualTrack.StandardColor4 ||
-                  LineWidth != VisualTrack.StandardWidth)) ||
-
-                (style == VisualTrack.VisualStyle.Standard5 &&
-                 (LineColor != VisualTrack.StandardColor5 ||
-                  LineWidth != VisualTrack.StandardWidth)) ||
-
-               (style == VisualTrack.VisualStyle.Editable &&
-                 (LineColor != VisualTrack.EditableColor ||
-                  LineWidth != VisualTrack.EditableWidth))) {
-
+         if (VisualTrack != null) {
+            if (VisualTrack.IsChangeableStyle(style))
                VisualTrack.SetVisualStyle(LineColor, LineWidth);
-
-            } else
+            else
                VisualTrack.SetVisualStyle(style);
          }
+         //}
       }
 
       /// <summary>
       /// <see cref="VisualTrack"/> (neu) erzeugen
       /// </summary>
       /// <param name="mapControl">wenn ungleich null, dann auch anzeigen</param>
-      public void UpdateVisualTrack(SpecialMapCtrl mapControl = null) {
+      public void UpdateVisualTrack(SpecialMapCtrl? mapControl = null) {
          bool visible = IsVisible;
 
          if (mapControl != null)
-            mapControl.SpecMapShowTrack(this, false, null); // ev. vorhandenen VisualTrack aus dem Control entfernen
-
+            mapControl.M_ShowTrack(this, false, null); // ev. vorhandenen VisualTrack aus dem Control entfernen
+         else {
+            //if (IsVisible)
+            //   IsVisible = false;
+            if (IsVisible &&
+                VisualTrack != null &&
+                VisualTrack.Overlay != null &&
+                VisualTrack.Overlay.Tracks.Contains(VisualTrack)) // es ex. noch ein VisualTrack und dieser ist in einem Overlay enthalten
+               VisualTrack.Overlay.Tracks.Remove(VisualTrack);
+         }
          VisualTrack = new VisualTrack(this, VisualName, LineColor, LineWidth, getVisualStyle()); // neuen VisualTrack erzeugen
 
          if (mapControl != null &&
              visible) { // neuen VisualTrack anzeigen
-            mapControl.SpecMapShowTrack(this,
+            mapControl.M_ShowTrack(this,
                                     true,
                                     IsEditable && GpxDataContainer != null ?
                                              GpxDataContainer.NextVisibleTrack(this) :
@@ -664,7 +672,7 @@ namespace SpecialMapCtrl {
          return string.Format("[Visualname={0}, IsVisible={1}, {2} points, Bounds={3}, LineWidth={4}, LineColor={5}]",
                               VisualName,
                               IsVisible,
-                              GpxSegment.Points.Count,
+                              GpxSegment != null ? GpxSegment.Points.Count : 0,
                               Bounds,
                               LineWidth,
                               LineColor.ToString());

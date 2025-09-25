@@ -12,7 +12,7 @@ namespace FSofTUtils.Threading {
          params object[] parameters)
          where ControlType : Control;
 
-      private delegate object PropertyValueReaderCallback<ControlType>(
+      private delegate object? PropertyValueReaderCallback<ControlType>(
           ControlType control, string propertyName)
           where ControlType : Control;
 
@@ -36,8 +36,8 @@ namespace FSofTUtils.Threading {
             MethodCaller<ControlType> callerDelegate = InvokeControlMethodCall;
             control.Invoke(callerDelegate, new object[] { control, methodName, parameters });
          } else {
-            System.Reflection.MethodInfo method = control.GetType().GetMethod(methodName);
-            method.Invoke(control, parameters);
+            System.Reflection.MethodInfo? method = control.GetType().GetMethod(methodName);
+            method?.Invoke(control, parameters);
          }
       }
 
@@ -48,16 +48,16 @@ namespace FSofTUtils.Threading {
       /// <param name="control">The control.</param>
       /// <param name="propertyName">Name of the property.</param>
       /// <returns></returns>
-      public static object InvokeControlPropertyReader<ControlType>(
+      public static object? InvokeControlPropertyReader<ControlType>(
          ControlType control,
          string propertyName)
          where ControlType : Control {
          if (control.InvokeRequired) {
             PropertyValueReaderCallback<ControlType> cb = InvokeControlPropertyReader;
-            return control.Invoke(cb, new object[] { control, propertyName });
+            return control.Invoke(cb, [control, propertyName]);
          }
-         System.Reflection.PropertyInfo property = control.GetType().GetProperty(propertyName);
-         return property.GetValue(control, null);
+         System.Reflection.PropertyInfo? property = control.GetType().GetProperty(propertyName);
+         return property?.GetValue(control, null);
       }
 
       /// <summary>
@@ -75,10 +75,10 @@ namespace FSofTUtils.Threading {
           where ControlType : Control {
          if (control.InvokeRequired) {
             PropertyValueWriterCallback<ControlType, PropertyType> cb = InvokeControlPropertyWriter;
-            control.Invoke(cb, new object[] { control, propertyName, value });
+            control.Invoke(cb, [control, propertyName, value]);
          } else {
-            System.Reflection.PropertyInfo property = control.GetType().GetProperty(propertyName);
-            property.SetValue(control, value, null);
+            System.Reflection.PropertyInfo? property = control.GetType().GetProperty(propertyName);
+            property?.SetValue(control, value, null);
          }
       }
 

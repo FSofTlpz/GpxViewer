@@ -39,7 +39,7 @@ namespace GarminImageCreator {
       /// <summary>
       /// "schräge" Rechtecke (bei <see cref="Angle"/> != 0) können nur als Region behandelt werden
       /// </summary>
-      RectangleCommon commonTextArea = null;
+      RectangleCommon? commonTextArea = null;
 
       bool textAreaIsCalculated = false;
 
@@ -306,31 +306,31 @@ namespace GarminImageCreator {
          }
       }
 
-      bool intersectsWith(RectangleF rect, RectangleCommon region2, Graphics canvas) {
+      bool intersectsWith(RectangleF rect, RectangleCommon? region2) {
          if (rect == Rectangle.Empty)
             return false;
 
          RectangleCommon rectcom = new RectangleCommon(rect.Location, rect.Width, rect.Height, 0, RectangleCommon.RotationPoint.TopLeft);
-         return rectcom.IsIntersect(region2);
+         return region2 != null ? rectcom.IsIntersect(region2) : true;
       }
 
       /// <summary>
       /// Vergleich auf Überlappung der Textbereiche
       /// </summary>
       /// <param name="ot"></param>
-      /// <param name="canvas"></param>
       /// <returns></returns>
-      public bool IntersectsWith(ObjectText ot, Graphics canvas) {
+      public bool IntersectsWith(ObjectText ot) {
          if (textAreaIsSimple && ot.textAreaIsSimple)
             return simpleTextArea.IntersectsWith(ot.simpleTextArea);
          else {
             if (textAreaIsSimple)
-               return intersectsWith(simpleTextArea, ot.commonTextArea, canvas);
+               return intersectsWith(simpleTextArea, ot.commonTextArea);
             else {
                if (ot.textAreaIsSimple)
-                  return ot.intersectsWith(ot.simpleTextArea, commonTextArea, canvas);
-               else
-                  return ot.commonTextArea.IsIntersect(commonTextArea);
+                  return ot.intersectsWith(ot.simpleTextArea, commonTextArea);
+               else 
+                  return commonTextArea != null &&
+                         ot.commonTextArea != null ? ot.commonTextArea.IsIntersect(commonTextArea) : false;
             }
          }
       }
@@ -340,7 +340,7 @@ namespace GarminImageCreator {
       /// </summary>
       /// <param name="obj"></param>
       /// <returns></returns>
-      public int CompareTo(object obj) {
+      public int CompareTo(object? obj) {
          // Liste spez. sortieren für die Reihenfolge der Ausgabe
          //    Punkte 0x01 .. 0x0b           Namen für Orte
          //    Linien 0x01 .. 0x0a           Straßen
@@ -348,7 +348,7 @@ namespace GarminImageCreator {
          //    restliche Linien nach GarminType
          //    restliche Punkte nach GarminType
          int s1 = getSortValue(this);
-         int s2 = getSortValue(obj as ObjectText);
+         int s2 = getSortValue((ObjectText?)obj);
          if (s1 < s2)
             return -1;
          if (s1 == s2)
@@ -361,7 +361,10 @@ namespace GarminImageCreator {
       /// </summary>
       /// <param name="ot"></param>
       /// <returns></returns>
-      int getSortValue(ObjectText ot) {
+      int getSortValue(ObjectText? ot) {
+         if (ot == null)
+            return GarminType + (5 << 18);
+
          int group;
          if (ot.ObjType == ObjectType.Point &&
              ot.GarminType <= 0x0b00) {
@@ -408,7 +411,7 @@ namespace GarminImageCreator {
       /// </summary>
       /// <param name="text"></param>
       /// <returns></returns>
-      public static string SimpleGarminTextConvert(string text) {
+      public static string SimpleGarminTextConvert(string? text) {
          if (!string.IsNullOrEmpty(text)) {
             string txt = text.ToLower();
             if (txt != text) {

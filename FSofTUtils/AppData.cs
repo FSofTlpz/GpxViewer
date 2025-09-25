@@ -17,10 +17,15 @@ namespace FSofTUtils {
       [Serializable]
       [DataContract]
       protected class PersistentDataXml {
-         string filename;
-         [DataMember]
-         ConcurrentDictionary<string, object> dict = new ConcurrentDictionary<string, object>();
 
+         string filename = string.Empty;
+
+         [DataMember]
+         //Dictionary<string, object> dict = new Dictionary<string, object>();
+
+         //ConcurrentDictionary<string, object> dict = new ConcurrentDictionary<string, object>();
+
+         ConcurrentDictionary<string, object> dict = new ConcurrentDictionary<string, object>();
 
          public PersistentDataXml() { }
 
@@ -33,7 +38,10 @@ namespace FSofTUtils {
          /// <param name="local"></param>
          /// <param name="file"></param>
          /// <param name="folder">expl. Verzeichnisvorgabe</param>
-         public PersistentDataXml(string name, bool local = false, string file = "persist.xml", string folder = null) {
+         public PersistentDataXml(string name,
+                                  bool local = false,
+                                  string file = "persist.xml",
+                                  string? folder = null) {
             filename = Path.Combine(string.IsNullOrEmpty(folder) ?
                                           Environment.GetFolderPath(local ?
                                                               Environment.SpecialFolder.LocalApplicationData :
@@ -41,53 +49,99 @@ namespace FSofTUtils {
                                           folder,
                                      name,
                                      file);
-            PersistentDataXml persistentDataXml = Load();
+            PersistentDataXml? persistentDataXml = Load();
             if (persistentDataXml != null)
                dict = persistentDataXml.dict;
          }
 
-         public void Save() {
-            if (!Directory.Exists(Path.GetDirectoryName(filename)))
-               Directory.CreateDirectory(Path.GetDirectoryName(filename));
+         /// <summary>
+         /// erzeugt, falls die Datei noch nicht existiert, eine leere Datei
+         /// </summary>
+         /// <param name="filename"></param>
+         void createFile(string filename) {
+            string? path = Path.GetDirectoryName(filename);
+            if (path != null)
+               if (!Directory.Exists(path))
+                  Directory.CreateDirectory(path);
+            if (!File.Exists(filename))
+               File.WriteAllText(filename, string.Empty);
+         }
 
+         /// <summary>
+         /// erzeugt aus dem <see cref="PersistentDataXml"/>-Objekt einen XML-Text
+         /// </summary>
+         /// <param name="obj"></param>
+         /// <returns></returns>
+         string serialize(PersistentDataXml obj) {
             // fkt. mit Dictionary NICHT
             //XmlSerializer writer = new XmlSerializer(typeof(PersistentDataXml));
             //using (FileStream stream = System.IO.File.Create(filename)) {
             //   writer.Serialize(stream, this);
             //}
 
-            string xmlString;
+            string xmlString = string.Empty;
             using (var sw = new StringWriter()) {
                using (var writer = new XmlTextWriter(sw)) {
                   writer.Formatting = Formatting.Indented; // indent the Xml so it’s human readable
                   var serializer = new DataContractSerializer(typeof(PersistentDataXml));
-                  serializer.WriteObject(writer, this);
+                  serializer.WriteObject(writer, obj);
                   writer.Flush();
                   xmlString = sw.ToString();
                }
             }
-            File.WriteAllText(filename, xmlString);
+            return xmlString;
          }
 
-         public PersistentDataXml Load() {
-            try {
-               // fkt. mit Dictionary NICHT
-               //XmlSerializer reader = new XmlSerializer(typeof(PersistentDataXml));
-               //using (StreamReader stream = new StreamReader(filename)) {
-               //   PersistentDataXml t = reader.Deserialize(stream) as PersistentDataXml;
-               //   return t;
-               //}
+         /// <summary>
+         /// erzeugt aus dem XML-Text ein <see cref="PersistentDataXml"/>-Objekt 
+         /// </summary>
+         /// <param name="xmlString"></param>
+         /// <returns></returns>
+         PersistentDataXml? deserialize(string xmlString) {
+            // fkt. mit Dictionary NICHT
+            //XmlSerializer reader = new XmlSerializer(typeof(PersistentDataXml));
+            //using (StreamReader stream = new StreamReader(filename)) {
+            //   PersistentDataXml t = reader.Deserialize(stream) as PersistentDataXml;
+            //   return t;
+            //}
 
-               string xmlString = File.ReadAllText(filename);
-               PersistentDataXml t = null;
-               using (var sr = new StringReader(xmlString)) {
-                  using (var r = new XmlTextReader(sr)) {
-                     var serializer = new DataContractSerializer(typeof(PersistentDataXml));
-                     t = serializer.ReadObject(r) as PersistentDataXml;
+            PersistentDataXml? t = null;
+            using (var sr = new StringReader(xmlString)) {
+               using (var r = new XmlTextReader(sr)) {
+                  var serializer = new DataContractSerializer(typeof(PersistentDataXml));
+                  t = serializer.ReadObject(r) as PersistentDataXml;
+                  if (t != null)
                      t.filename = filename;
-                  }
                }
-               return t;
+            }
+            return t;
+         }
+
+         /// <summary>
+         /// speichert dieses Objekt in der Datei
+         /// </summary>
+         /// <returns></returns>
+         public bool Save() {
+            createFile(filename);
+
+            string xmlString = serialize(this);
+            if (xmlString != string.Empty) {
+               File.WriteAllText(filename, xmlString);
+               return true;
+            }
+            return false;
+         }
+
+         /// <summary>
+         /// erzeugt nach Möglichkeit ein <see cref="PersistentDataXml"/>-Objekt aus den Dateidaten oder liefert null
+         /// und löscht die Datei
+         /// </summary>
+         /// <returns></returns>
+         public PersistentDataXml? Load() {
+            try {
+               createFile(filename);
+
+               return deserialize(File.ReadAllText(filename));
 
             } catch (DirectoryNotFoundException) {
             } catch (FileNotFoundException) {
@@ -98,25 +152,30 @@ namespace FSofTUtils {
             return null;
          }
 
-         public void Set(string name, object data) {
-            dict[name] = data;
-         }
+         public void Set(string name, object data) => dict[name] = data;
+
+         //public T? GetWithNull<T>(string name, T? dummy) {
+         //   object? v;
+         //   if (dict.TryGetValue(name, out v) &&
+         //       v.GetType() == typeof(T))
+         //      return (T)v;
+         //   return dummy;
+         //}
 
          public T Get<T>(string name, T dummy) {
-            object v;
+            object? v;
             if (dict.TryGetValue(name, out v) &&
                 v.GetType() == typeof(T))
                return (T)v;
             return dummy;
          }
 
-         public void SetList<T>(string name, List<T> lst, string separator = "\n") {
+         public void SetList<T>(string name, List<T> lst, string separator = "\n") =>
             Set(name, string.Join<T>(separator, lst));
-         }
 
          public List<T> GetList<T>(string name, string separator = "\n") {
             List<T> lst = new List<T>();
-            string txt = Get<string>(name, null);
+            string txt = Get(name, string.Empty);
             if (!string.IsNullOrEmpty(txt))
                foreach (string item in txt.Split(new string[] { separator }, StringSplitOptions.None)) {
                   lst.Add((T)Convert.ChangeType(item, typeof(T)));
@@ -161,17 +220,23 @@ namespace FSofTUtils {
       /// <param name="local"></param>
       /// <param name="file"></param>
       /// <param name="folder">expl. Verzeichnisvorgabe</param>
-      public AppData(string name, bool local = false, string file = "persist.xml", string folder = null) {
+      public AppData(string name,
+                     bool local = false,
+                     string file = "persist.xml",
+                     string? folder = null) =>
          data = new PersistentDataXml(name, local, file, folder);
+
+      public bool Save() => data.Save();
+
+      public bool Reload() {
+         PersistentDataXml? datanew = data.Load();
+         if (datanew != null) {
+            data = datanew;
+            return true;
+         }
+         return false;
       }
 
-      public void Save() {
-         data.Save();
-      }
-
-      public void Reload() {
-         data = data.Load();
-      }
 
    }
 }

@@ -61,16 +61,19 @@ namespace GarminImageCreator.Garmin {
       }
 
       public PointF[] Convert(GeoPoly poly) {
-         PointF[] pt = new PointF[poly.Points.Length];
-         if (poly.DirectionIndicator) // Richtung umkehren
-            for (int i = 0; i < pt.Length; i++) {
-               pt[pt.Length - 1 - i] = Convert(poly.Points[i].X, poly.Points[i].Y);
-            }
-         else
-            for (int i = 0; i < pt.Length; i++) {
-               pt[i] = Convert(poly.Points[i].X, poly.Points[i].Y);
-            }
-         return removeNearPoints(pt);
+         if (poly.Points != null) {
+            PointF[] pt = new PointF[poly.Points.Length];
+            if (poly.DirectionIndicator) // Richtung umkehren
+               for (int i = 0; i < pt.Length; i++) {
+                  pt[pt.Length - 1 - i] = Convert(poly.Points[i].X, poly.Points[i].Y);
+               }
+            else
+               for (int i = 0; i < pt.Length; i++) {
+                  pt[i] = Convert(poly.Points[i].X, poly.Points[i].Y);
+               }
+            return removeNearPoints(pt);
+         }
+         return Array.Empty<PointF>();
       }
 
       const float MINDELTA4POINTS = 1.0F;

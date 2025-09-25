@@ -8,15 +8,15 @@ namespace SpecialMapCtrl {
       /// <summary>
       /// Container alle GPX-Daten zu dem der <see cref="ExtMarker"/> gehört
       /// </summary>
-      public GpxAllExt GpxDataContainer { get; protected set; } = null;
+      public GpxData? GpxDataContainer { get; protected set; } = null;
 
       /// <summary>
       /// Gpx-Waypoint
       /// </summary>
-      public Gpx.GpxWaypoint Waypoint { get; protected set; } = null;
+      public Gpx.GpxWaypoint Waypoint { get; protected set; }
 
       /// <summary>
-      /// liefert den akt. Index des <see cref="Waypoint"/> in <see cref="GpxAllExt"/> oder -1
+      /// liefert den akt. Index des <see cref="Waypoint"/> in <see cref="GpxData"/> oder -1
       /// </summary>
       /// <returns></returns>
       public int GpxDataContainerIndex {
@@ -79,7 +79,8 @@ namespace SpecialMapCtrl {
                VisualMarker.IsVisible = value;
             else if (value == true) {
                UpdateVisualMarker(); // keine Anzeige
-               VisualMarker.IsVisible = value;
+               if (VisualMarker != null)
+                  VisualMarker.IsVisible = value;
             }
          }
       }
@@ -92,8 +93,10 @@ namespace SpecialMapCtrl {
          set {
             Waypoint.Name = value;
             int idx = GpxDataContainerIndex;
-            if (idx >= 0)
+            if (idx >= 0 && GpxDataContainer != null)
                GpxDataContainer.Waypoints[idx].Name = value;
+            if (VisualMarker != null)
+               VisualMarker.ToolTipText = value;
          }
       }
 
@@ -105,7 +108,7 @@ namespace SpecialMapCtrl {
          set {
             Waypoint.Lon = value;
             int idx = GpxDataContainerIndex;
-            if (idx >= 0)
+            if (idx >= 0 && GpxDataContainer != null)
                GpxDataContainer.Waypoints[idx].Lon = value;
          }
       }
@@ -118,7 +121,7 @@ namespace SpecialMapCtrl {
          set {
             Waypoint.Lat = value;
             int idx = GpxDataContainerIndex;
-            if (idx >= 0)
+            if (idx >= 0 && GpxDataContainer != null)
                GpxDataContainer.Waypoints[idx].Lat = value;
          }
       }
@@ -131,7 +134,7 @@ namespace SpecialMapCtrl {
          set {
             Waypoint.Elevation = value;
             int idx = GpxDataContainerIndex;
-            if (idx >= 0)
+            if (idx >= 0 && GpxDataContainer != null)
                GpxDataContainer.Waypoints[idx].Elevation = value;
          }
       }
@@ -144,17 +147,17 @@ namespace SpecialMapCtrl {
          set {
             Waypoint.Symbol = value;
             int idx = GpxDataContainerIndex;
-            if (idx >= 0)
+            if (idx >= 0 && GpxDataContainer != null)
                GpxDataContainer.Waypoints[idx].Symbol = value;
          }
       }
 
-      public Bitmap Bitmap => VisualMarker.Bitmap4Style(getVisualStyle(), Symbolname, Symbolzoom);
+      public Bitmap? Bitmap => VisualMarker.Bitmap4Style(getVisualStyle(), Symbolname, Symbolzoom);
 
       /// <summary>
       /// nur zum Anzeigen des Markers nötig
       /// </summary>
-      public VisualMarker VisualMarker { get; protected set; }
+      public VisualMarker? VisualMarker { get; protected set; }
 
       double _symbolzoom = 1;
       public double Symbolzoom {
@@ -170,10 +173,12 @@ namespace SpecialMapCtrl {
       /// <param name="markertype"></param>
       /// <param name="symbolname"></param>
       /// <param name="symbolzoom"></param>
-      public Marker(Gpx.GpxWaypoint wpt, MarkerType markertype, string symbolname, double symbolzoom = 1) {
+      public Marker(Gpx.GpxWaypoint? wpt, MarkerType markertype, string? symbolname, double symbolzoom = 1) {
+         if (wpt == null)
+            throw new ArgumentException("null-Argument", nameof(wpt));
          Waypoint = new Gpx.GpxWaypoint(wpt);
          Markertype = markertype;
-         Symbolname = symbolname;
+         Symbolname = symbolname != null ? symbolname : string.Empty;
          Symbolzoom = symbolzoom;
       }
 
@@ -186,32 +191,30 @@ namespace SpecialMapCtrl {
 
 
       /// <summary>
-      /// erzeugt einen <see cref="Marker"/> für den schon in <see cref="GpxAllExt"/> vorhandenen <see cref="Gpx.GpxWaypoint"/> mit dem angegebenen Index 
+      /// erzeugt einen <see cref="Marker"/> für den schon in <see cref="GpxData"/> vorhandenen <see cref="Gpx.GpxWaypoint"/> mit dem angegebenen Index 
       /// </summary>
       /// <param name="gpx"></param>
       /// <param name="wpidx"></param>
       /// <param name="markertype"></param>
       /// <param name="symbolzoom"></param>
       /// <returns></returns>
-      static public Marker Create(GpxAllExt gpx,
+      static public Marker Create(GpxData gpx,
                                   int wpidx,
                                   MarkerType markertype,
                                   double symbolzoom = 1) {
-         Marker marker = new Marker(gpx.Waypoints[wpidx], markertype, gpx.Waypoints[wpidx].Symbol, symbolzoom) {
-            GpxDataContainer = gpx,
-         };
-         return marker;
+         Gpx.GpxWaypoint wp = gpx.Waypoints[wpidx];
+         return Create(gpx, wp, markertype, symbolzoom);
       }
 
       /// <summary>
-      /// erzeugt einen <see cref="Marker"/> für den schon in <see cref="GpxAllExt"/> vorhandenen <see cref="Gpx.GpxWaypoint"/>
+      /// erzeugt einen <see cref="Marker"/> für den schon in <see cref="GpxData"/> vorhandenen <see cref="Gpx.GpxWaypoint"/>
       /// </summary>
       /// <param name="gpx"></param>
       /// <param name="wp"></param>
       /// <param name="markertype"></param>
       /// <param name="symbolzoom"></param>
       /// <returns></returns>
-      static public Marker Create(GpxAllExt gpx,
+      static public Marker Create(GpxData gpx,
                                   Gpx.GpxWaypoint wp,
                                   MarkerType markertype,
                                   double symbolzoom = 1) {
@@ -222,7 +225,7 @@ namespace SpecialMapCtrl {
       }
 
       /// <summary>
-      /// liefert den <see cref="VisualTrack.VisualStyle"/>
+      /// liefert den <see cref="VisualMarker.VisualStyle"/>
       /// </summary>
       /// <returns></returns>
       VisualMarker.VisualStyle getVisualStyle() {
@@ -246,14 +249,14 @@ namespace SpecialMapCtrl {
       /// <see cref="VisualMarker"/> entsprechend der akt. Daten (neu) erzeugen
       /// </summary>
       /// <param name="mapControl">wenn ungleich null, dann auch anzeigen</param>
-      public void UpdateVisualMarker(SpecialMapCtrl mapControl = null) {
+      public void UpdateVisualMarker(SpecialMapCtrl? mapControl = null) {
          bool visible = IsVisible;
 
          if (mapControl != null)
-            mapControl.SpecMapShowMarker(this, false);
+            mapControl.M_ShowMarker(this, false);
 
          VisualMarker = new VisualMarker(this,
-                                         "",
+                                         string.Empty,
                                          getVisualStyle(),
                                          Symbolname,
                                          Symbolzoom);
@@ -262,11 +265,11 @@ namespace SpecialMapCtrl {
 
          if (mapControl != null &&
              visible) {  // dann auch neu anzeigen
-            mapControl.SpecMapShowMarker(this,
-                                     true,
-                                     IsEditable && GpxDataContainer != null ?
-                                             GpxDataContainer.NextVisibleMarker(this) :
-                                             null);
+            mapControl.M_ShowMarker(this,
+                                         true,
+                                         IsEditable && GpxDataContainer != null ?
+                                                 GpxDataContainer.NextVisibleMarker(this) :
+                                                 null);
          }
       }
 
@@ -275,7 +278,7 @@ namespace SpecialMapCtrl {
       /// </summary>
       public void Refresh() {
          if (IsVisible)
-            VisualMarker.Refresh();
+            VisualMarker?.Refresh();
       }
 
       public override string ToString() {

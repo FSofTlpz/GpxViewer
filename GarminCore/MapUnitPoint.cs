@@ -121,8 +121,8 @@ namespace GarminCore {
       /// <param name="lon"></param>
       /// <param name="lat"></param>
       public MapUnitPoint(int lon = 0, int lat = 0) {
-         this._lon = new Longitude(lon);
-         this._lat = new Latitude(lat);
+         _lon = new Longitude(lon);
+         _lat = new Latitude(lat);
       }
 
       /// <summary>
@@ -131,8 +131,8 @@ namespace GarminCore {
       /// <param name="lon"></param>
       /// <param name="lat"></param>
       public MapUnitPoint(double lon, double lat) {
-         this._lon = new Longitude(lon);
-         this._lat = new Latitude(lat);
+         _lon = new Longitude(lon);
+         _lat = new Latitude(lat);
       }
 
       /// <summary>
@@ -183,18 +183,18 @@ namespace GarminCore {
       }
 
 
-      public bool Equals(MapUnitPoint p) {
-         if ((object)p == null) // NICHT "p == null" usw. --> führt zur Endlosschleife
+      public bool Equals(MapUnitPoint? p) {
+         if ((object?)p == null) // NICHT "p == null" usw. --> führt zur Endlosschleife
             return false;
          return Latitude == p.Latitude &&
                 Longitude == p.Longitude;
       }
 
-      public override bool Equals(Object obj) {
+      public override bool Equals(object? obj) {
          if (obj == null)
             return false;
 
-         MapUnitPoint p = obj as MapUnitPoint;
+         MapUnitPoint? p = (MapUnitPoint?)obj;
          if (p == null)
             return false;
 
@@ -206,11 +206,11 @@ namespace GarminCore {
          return Latitude ^ Longitude;
       }
 
-      public static bool operator ==(MapUnitPoint p1, MapUnitPoint p2) {
-         if (Object.ReferenceEquals(p1, p2))
+      public static bool operator ==(MapUnitPoint? p1, MapUnitPoint? p2) {
+         if (ReferenceEquals(p1, p2))
             return true;
 
-         return (object)p1 != null && // NICHT "a == null" usw. --> Endlosschleife
+         return (object?)p1 != null && // NICHT "a == null" usw. --> Endlosschleife
                  p1.Equals(p2);
       }
 

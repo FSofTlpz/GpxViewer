@@ -1,18 +1,16 @@
 ﻿using FSofTUtils.Geography.GeoCoding;
-using System;
 using System.ComponentModel;
-using System.Drawing;
-using System.Windows.Forms;
+using System.Text;
 
 namespace GpxViewer {
    public partial class FormSearch : Form {
 
       public class GoToPointEventArgs : EventArgs {
-         public readonly string Name;
+         public readonly string? Name;
          public readonly double Longitude;
          public readonly double Latitude;
 
-         public GoToPointEventArgs(double lon, double lat, string name = null) {
+         public GoToPointEventArgs(double lon, double lat, string? name = null) {
             Longitude = lon;
             Latitude = lat;
             Name = name;
@@ -25,7 +23,7 @@ namespace GpxViewer {
          public readonly double Top;
          public readonly double Bottom;
 
-         public GoToAreaEventArgs(double lon, double lat, double left, double right, double bottom, double top, string name = null) :
+         public GoToAreaEventArgs(double lon, double lat, double left, double right, double bottom, double top, string? name = null) :
             base(lon, lat, name) {
             Left = left;
             Right = right;
@@ -34,8 +32,8 @@ namespace GpxViewer {
          }
       }
 
-      public event EventHandler<GoToPointEventArgs> GoToPointEvent;
-      public event EventHandler<GoToAreaEventArgs> GoToAreaEvent;
+      public event EventHandler<GoToPointEventArgs>? GoToPointEvent;
+      public event EventHandler<GoToAreaEventArgs>? GoToAreaEvent;
 
 
 
@@ -64,24 +62,23 @@ namespace GpxViewer {
          button_Start.Enabled = (sender as TextBox).Text.Trim() != "";
       }
 
-      private void button_Start_Click(object sender, EventArgs e) {
+      private async void button_Start_Click(object sender, EventArgs e) {
          listView_Result.Items.Clear();
          button_Start.Enabled = false;
          Cursor cursor = Cursor;
          Cursor = Cursors.WaitCursor;
-         //GeoCodingResultBase[] geoCodingResult = null;
-         GeoCodingResultOsm[] geoCodingResultOsm = null;
+         GeoCodingResultOsm[]? geoCodingResultOsm = null;
          try {
-            geoCodingResultOsm = GeoCodingResultOsm.Get(textBox1.Text.Trim());
+            geoCodingResultOsm = await GeoCodingResultOsm.GetAsync(textBox1.Text.Trim(), 10);
             foreach (GeoCodingResultOsm item in geoCodingResultOsm) {
-               ListViewItem lvi = new ListViewItem(new string[] {
-               item.Name,
-               string.Format("{0:N6}° {1:N6}°, {2}: {3}",
-                             item.Longitude,
-                             item.Latitude,
-                             item.OsmClass,
-                             item.OsmValue),
-            }) {
+               ListViewItem lvi = new ListViewItem([
+                                                      item.Name,
+                                                      string.Format("{0:N6}° {1:N6}°, {2}: {3}",
+                                                                    item.Longitude,
+                                                                    item.Latitude,
+                                                                    item.OsmClass,
+                                                                    item.OsmValue),
+                                                   ]) {
                   Tag = item,
                };
                listView_Result.Items.Add(lvi);
@@ -97,14 +94,14 @@ namespace GpxViewer {
       }
 
 
-      GeoCodingResultOsm actualGeoCodingResult = null;
+      GeoCodingResultOsm? actualGeoCodingResult = null;
 
       private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
          actualGeoCodingResult = null;
          Point pt = listView_Result.PointToClient(MousePosition);
-         ListViewItem lvi = listView_Result.GetItemAt(pt.X, pt.Y);
+         ListViewItem? lvi = listView_Result.GetItemAt(pt.X, pt.Y);
          if (lvi != null && lvi.Tag != null && lvi.Tag is GeoCodingResultOsm) {
-            actualGeoCodingResult = lvi.Tag as GeoCodingResultOsm;
+            actualGeoCodingResult = (GeoCodingResultOsm)lvi.Tag;
             ToolStripMenuItem_ShowArea.Enabled =
             ToolStripMenuItem_ShowAreaAndMarker.Enabled = actualGeoCodingResult.BoundingRight - actualGeoCodingResult.BoundingLeft != 0;
          } else
@@ -159,5 +156,35 @@ namespace GpxViewer {
                actualGeoCodingResult = null;
             }
       }
+
+      private void ToolStripMenuItem_Copy_Click(object sender, EventArgs e) {
+         if (listView_Result.SelectedIndices?.Count > 0)
+            copyListViewText(listView_Result.SelectedIndices[0]);
+      }
+
+      private void ToolStripMenuItem_CopyAll_Click(object sender, EventArgs e) {
+         copyListViewText(-1);
+      }
+
+      void copyListViewText(int idx) {
+         if (listView_Result.Items != null) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < listView_Result.Items.Count; i++) {
+               if (idx < 0 || idx == i) {
+                  ListViewItem lvi = listView_Result.Items[i];
+                  for (int j = 0; j < lvi.SubItems.Count; j++) {
+                     ListViewItem.ListViewSubItem slvi = lvi.SubItems[j];
+                     if (j > 0)
+                        sb.Append("\t");
+                     sb.Append(slvi.Text);
+                  }
+                  sb.AppendLine();
+               }
+            }
+            if (sb.Length > 0)
+               Clipboard.SetText(sb.ToString());
+         }
+      }
+
    }
 }

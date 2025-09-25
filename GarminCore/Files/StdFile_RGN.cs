@@ -53,32 +53,32 @@ namespace GarminCore.Files {
       /// <summary>
       /// Datenbereich für den <see cref="SubdivData"/>-Inhalt (0x15)
       /// </summary>
-      public DataBlock SubdivContentBlock { get; private set; }
+      public DataBlock? SubdivContentBlock { get; private set; }
 
       // --------- Headerlänge > 29 Byte
 
       /// <summary>
       /// Datenbereich für erweiterte Polygone
       /// </summary>
-      public DataBlock ExtAreasBlock { get; private set; }
+      public DataBlock? ExtAreasBlock { get; private set; }
 
       public byte[] Unknown_0x25 = new byte[0x14];
 
       /// <summary>
       /// Datenbereich für erweiterte Polylinien
       /// </summary>
-      public DataBlock ExtLinesBlock { get; private set; }
+      public DataBlock? ExtLinesBlock { get; private set; }
 
       public byte[] Unknown_0x41 = new byte[0x14];
 
       /// <summary>
       /// Datenbereich für erweiterte Punkte
       /// </summary>
-      public DataBlock ExtPointsBlock { get; private set; }
+      public DataBlock? ExtPointsBlock { get; private set; }
 
       public byte[] Unknown_0x5D = new byte[0x14];
 
-      public DataBlock UnknownBlock_0x71 { get; private set; }
+      public DataBlock? UnknownBlock_0x71 { get; private set; }
 
       public byte[] Unknown_0x79 = new byte[4];
 
@@ -153,7 +153,9 @@ namespace GarminCore.Files {
             ExtPointList = new List<ExtRawPointData>();
          }
 
-         public override void Read(BinaryReaderWriter br, object extdata) {
+         public override void Read(BinaryReaderWriter br, object? extdata) {
+            if (extdata == null)
+               return;
             UInt32 ext = (UInt32)extdata;
             StdFile_TRE.SubdivInfoBasic.SubdivContent Content = (StdFile_TRE.SubdivInfoBasic.SubdivContent)(ext >> 24);
             uint SubdivLength = ext & 0xFFFF;
@@ -317,14 +319,14 @@ namespace GarminCore.Files {
             }
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata = null) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata = null) { }
 
          /// <summary>
          /// <see cref="Bound"/> aller Objekte der Subdiv
          /// </summary>
          /// <returns></returns>
-         public Bound GetBound4Deltas(int coordbits, MapUnitPoint subdiv_center) {
-            Bound br = GetRawBound4Deltas();
+         public Bound? GetBound4Deltas(int coordbits, MapUnitPoint subdiv_center) {
+            Bound? br = GetRawBound4Deltas();
             return br != null ? new Bound(Longitude.RawUnits2MapUnits(br.Left, coordbits) + subdiv_center.Longitude,
                                           Longitude.RawUnits2MapUnits(br.Right, coordbits) + subdiv_center.Longitude,
                                           Longitude.RawUnits2MapUnits(br.Bottom, coordbits) + subdiv_center.Latitude,
@@ -336,8 +338,8 @@ namespace GarminCore.Files {
          /// <see cref="Bound"/> der "rohen" Differenzen zum Mittelpunkt der Subdiv
          /// </summary>
          /// <returns>null, wenn keine Punkte x.</returns>
-         protected Bound GetRawBound4Deltas() {
-            List<Bound> rbs = new List<Bound> {
+         protected Bound? GetRawBound4Deltas() {
+            List<Bound?> rbs = new List<Bound?> {
                GetRawBoundDelta4PointDataList(PointList1),
                GetRawBoundDelta4PointDataList(PointList2),
                GetRawBoundDelta4PolyDataList(LineList),
@@ -347,7 +349,7 @@ namespace GarminCore.Files {
                GetRawBoundDelta4ExtPolyDataList(ExtAreaList)
             };
 
-            Bound rb = null;
+            Bound? rb = null;
             int idx = -1;
             for (int i = 0; i < rbs.Count; i++) {
                if (rbs[i] != null) {
@@ -360,13 +362,15 @@ namespace GarminCore.Files {
             if (rb != null)
                for (int i = 0; i < rbs.Count; i++)
                   if (i != idx && rbs[i] != null)
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
                      rb.Embed(rbs[i]);
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
 
             return rb;
          }
 
-         protected Bound GetRawBoundDelta4PointDataList(List<RawPointData> lst) {
-            Bound rb = null;
+         protected Bound? GetRawBoundDelta4PointDataList(List<RawPointData> lst) {
+            Bound? rb = null;
             if (lst.Count > 0) {
                rb = new Bound(lst[0].RawDeltaLongitude, lst[0].RawDeltaLatitude);
                for (int i = 1; i < lst.Count; i++)
@@ -375,8 +379,8 @@ namespace GarminCore.Files {
             return rb;
          }
 
-         protected Bound GetRawBoundDelta4ExtPointDataList(List<ExtRawPointData> lst) {
-            Bound rb = null;
+         protected Bound? GetRawBoundDelta4ExtPointDataList(List<ExtRawPointData> lst) {
+            Bound? rb = null;
             if (lst.Count > 0) {
                rb = new Bound(lst[0].RawDeltaLongitude, lst[0].RawDeltaLatitude);
                for (int i = 1; i < lst.Count; i++)
@@ -385,22 +389,32 @@ namespace GarminCore.Files {
             return rb;
          }
 
-         protected Bound GetRawBoundDelta4PolyDataList(List<RawPolyData> lst) {
-            Bound rb = null;
+         protected Bound? GetRawBoundDelta4PolyDataList(List<RawPolyData> lst) {
+            Bound? rb = null;
             if (lst.Count > 0) {
-               rb = new Bound(lst[0].GetRawBoundDelta());
-               for (int i = 1; i < lst.Count; i++)
-                  rb.Embed(lst[i].GetRawBoundDelta());
+               for (int i = 1; i < lst.Count; i++) {
+                  Bound? b = lst[i].GetRawBoundDelta();
+                  if (b != null)
+                     if (rb != null)
+                        rb.Embed(b);
+                     else
+                        rb = new Bound(b);
+               }
             }
             return rb;
          }
 
-         protected Bound GetRawBoundDelta4ExtPolyDataList(List<ExtRawPolyData> lst) {
-            Bound rb = null;
+         protected Bound? GetRawBoundDelta4ExtPolyDataList(List<ExtRawPolyData> lst) {
+            Bound? rb = null;
             if (lst.Count > 0) {
-               rb = new Bound(lst[0].GetRawBoundDelta());
-               for (int i = 1; i < lst.Count; i++)
-                  rb.Embed(lst[i].GetRawBoundDelta());
+               for (int i = 0; i < lst.Count; i++) {
+                  Bound? b = lst[i].GetRawBoundDelta();
+                  if (b != null)
+                     if (rb != null)
+                        rb.Embed(b);
+                     else
+                        rb = new Bound(b);
+               }
             }
             return rb;
          }
@@ -529,7 +543,7 @@ namespace GarminCore.Files {
          /// Bound der Differenzen zum Mittelpunkt der zugehörigen Subdiv
          /// </summary>
          /// <returns></returns>
-         public virtual Bound GetRawBoundDelta() {
+         public virtual Bound? GetRawBoundDelta() {
             return new Bound(RawDeltaLongitude, RawDeltaLatitude);
          }
 
@@ -538,7 +552,7 @@ namespace GarminCore.Files {
          /// </summary>
          /// <param name="lbl"></param>
          /// <returns></returns>
-         public virtual string GetText(StdFile_LBL lbl, bool clear = false) {
+         public virtual string? GetText(StdFile_LBL lbl, bool clear = false) {
             if (LabelOffsetInLBL > 0)
                return lbl.GetText(LabelOffsetInLBL, clear);
             return "";
@@ -549,7 +563,7 @@ namespace GarminCore.Files {
          /// </summary>
          /// <param name="obj"></param>
          /// <returns></returns>
-         public int CompareTo(object obj) {
+         public int CompareTo(object? obj) {
             if (obj is GraphicObjectData go) {
                if (go == null)
                   return 1;
@@ -589,9 +603,9 @@ namespace GarminCore.Files {
       abstract public class ExtGraphicObjectData : GraphicObjectData {
 
          protected byte _Subtype;
-         protected byte[] _ExtraBytes;
-         protected byte[] _UnknownKey;
-         protected byte[] _UnknownBytes;
+         protected byte[]? _ExtraBytes;
+         protected byte[]? _UnknownKey;
+         protected byte[]? _UnknownBytes;
 
          /// <summary>
          /// 8-Bit-Werte
@@ -688,7 +702,7 @@ namespace GarminCore.Files {
          /// <summary>
          /// Array der Extra-Bytes (oder null)
          /// </summary>
-         public byte[] ExtraBytes {
+         public byte[]? ExtraBytes {
             get {
                return HasExtraBytes ? _ExtraBytes : null;
             }
@@ -707,14 +721,15 @@ namespace GarminCore.Files {
          /// <summary>
          /// 3-Byte Key wenn <see cref="HasUnknownFlag"/> gesetzt ist
          /// </summary>
-         public byte[] UnknownKey {
+         public byte[]? UnknownKey {
             get {
                return HasUnknownFlag ? _UnknownKey : null;
             }
             set {
                if (value != null && value.Length > 0) {
                   _UnknownKey = new byte[value.Length];
-                  value.CopyTo(_ExtraBytes, 0);
+                  if (_ExtraBytes != null && _ExtraBytes.Length >= value.Length)
+                     value.CopyTo(_ExtraBytes, 0);
                   HasUnknownFlag = true;
                } else {
                   HasUnknownFlag = false;
@@ -726,7 +741,7 @@ namespace GarminCore.Files {
          /// <summary>
          /// zusätzliche Bytes
          /// </summary>
-         public byte[] UnknownBytes {
+         public byte[]? UnknownBytes {
             get {
                return HasUnknownFlag ? _UnknownBytes : null;
             }
@@ -750,7 +765,7 @@ namespace GarminCore.Files {
                return 5 +                                                     // Typ + 2 * Delta
                       1 +                                                     // Subtyp
                       (uint)(HasLabel ? 3 : 0) +                              // Label
-                      (uint)(HasExtraBytes ? _ExtraBytes.Length : 0);         // Extrabytes
+                      (uint)(HasExtraBytes && _ExtraBytes != null ? _ExtraBytes.Length : 0);         // Extrabytes
             }
          }
 
@@ -768,7 +783,7 @@ namespace GarminCore.Files {
          /// </summary>
          /// <param name="br"></param>
          /// <returns></returns>
-         protected byte[] ReadExtraBytes(BinaryReaderWriter br) {
+         protected byte[]? ReadExtraBytes(BinaryReaderWriter br) {
             if (HasExtraBytes) {
                // vgl. Funktion encodeExtraBytes() in ExtTypeAttributes.java in MKGMAP
                /*    Vermutlich wird in Bit 7..5 des ersten Bytes die Anzahl der verwendeten Extrabytes codiert:
@@ -859,7 +874,7 @@ namespace GarminCore.Files {
                sb.AppendFormat(", LabelOffset {0}", LabelOffsetInLBL);
             sb.AppendFormat(", RawDeltaLongitude {0}", RawDeltaLongitude);
             sb.AppendFormat(", RawDeltaLatitude {0}", RawDeltaLatitude);
-            if (HasExtraBytes)
+            if (HasExtraBytes && ExtraBytes != null)
                sb.AppendFormat(", Anzahl ExtraBytes {0}", ExtraBytes.Length);
             return sb.ToString();
          }
@@ -983,7 +998,7 @@ namespace GarminCore.Files {
          /// <param name="lbl"></param>
          /// <param name="clear"></param>
          /// <returns></returns>
-         public override string GetText(StdFile_LBL lbl, bool clear = false) {
+         public override string? GetText(StdFile_LBL lbl, bool clear = false) {
             if (!IsPoiOffset) {
                if (LabelOffsetInLBL > 0)
                   return lbl.GetText(LabelOffsetInLBL, clear);
@@ -1064,9 +1079,9 @@ namespace GarminCore.Files {
          /// <summary>
          /// Bitstream der Geodaten
          /// </summary>
-         byte[] _bitstream;
+         byte[]? _bitstream;
 
-         public byte[] bitstream { get { return _bitstream; } }
+         public byte[]? bitstream { get { return _bitstream; } }
 
          /// <summary>
          /// Längenangabe für den gesamten Datenbereich in 1 oder 2 Byte (wenn der Bitstream länger als 255 Byte ist)
@@ -1184,12 +1199,14 @@ namespace GarminCore.Files {
             bw.Write3(_LabelOffset);
             bw.Write((Int16)RawDeltaLongitude);
             bw.Write((Int16)RawDeltaLatitude);
-            if (TwoByteLength)
-               bw.Write((UInt16)_bitstream.Length);
-            else
-               bw.Write((byte)_bitstream.Length);
+            if (_bitstream != null)
+               if (TwoByteLength)
+                  bw.Write((UInt16)_bitstream.Length);
+               else
+                  bw.Write((byte)_bitstream.Length);
             bw.Write(bitstreamInfo);
-            bw.Write(_bitstream);
+            if (_bitstream != null)
+               bw.Write(_bitstream);
          }
 
          /// <summary>
@@ -1197,9 +1214,17 @@ namespace GarminCore.Files {
          /// <para><see cref="RawDeltaLongitude"/> und <see cref="RawDeltaLatitude"/> stellen den Startpunkt dar. Die Koordinaten beziehen sich auf den Mittelpunkt der zugehörigen Subdiv.</para>
          /// </summary>
          /// <returns></returns>
-         public List<GeoDataBitstream.RawPoint> GetRawPoints() {
+         public List<GeoDataBitstream.RawPoint>? GetRawPoints() {
             ExtraBit.Clear();
-            return GeoDataBitstream.GetRawPoints(ref _bitstream, bitstreamInfo & 0x0F, (bitstreamInfo & 0xF0) >> 4, RawDeltaLongitude, RawDeltaLatitude, WithExtraBit ? ExtraBit : null, false);
+            return _bitstream != null ?
+               GeoDataBitstream.GetRawPoints(ref _bitstream,
+                                             bitstreamInfo & 0x0F,
+                                             (bitstreamInfo & 0xF0) >> 4,
+                                             RawDeltaLongitude,
+                                             RawDeltaLatitude,
+                                             WithExtraBit ? ExtraBit : null,
+                                             false) :
+               null;
          }
 
          /// <summary>
@@ -1210,8 +1235,10 @@ namespace GarminCore.Files {
          /// <returns></returns>
          public List<MapUnitPoint> GetMapUnitPoints(int coordbits, MapUnitPoint subdiv_center) {
             List<MapUnitPoint> lst = new List<MapUnitPoint>();
-            foreach (var item in GetRawPoints())
-               lst.Add(item.GetMapUnitPoint(coordbits, subdiv_center));
+            List<GeoDataBitstream.RawPoint>? rpt = GetRawPoints();
+            if (rpt != null)
+               foreach (var item in rpt)
+                  lst.Add(item.GetMapUnitPoint(coordbits, subdiv_center));
             return lst;
          }
 
@@ -1222,11 +1249,14 @@ namespace GarminCore.Files {
          /// <param name="subdiv_center"></param>
          /// <returns></returns>
          public MapUnitPoint[] GetMapUnitPoints2(int coordbits, MapUnitPoint subdiv_center) {
-            List<GeoDataBitstream.RawPoint> rpt = GetRawPoints();
-            MapUnitPoint[] lst = new MapUnitPoint[rpt.Count];
-            for (int i = 0; i < rpt.Count; i++)
-               lst[i] = rpt[i].GetMapUnitPoint(coordbits, subdiv_center);
-            return lst;
+            List<GeoDataBitstream.RawPoint>? rpt = GetRawPoints();
+            if (rpt != null) {
+               MapUnitPoint[] lst = new MapUnitPoint[rpt.Count];
+               for (int i = 0; i < rpt.Count; i++)
+                  lst[i] = rpt[i].GetMapUnitPoint(coordbits, subdiv_center);
+               return lst;
+            } else
+               return new MapUnitPoint[0];
          }
 
          /// <summary>
@@ -1235,12 +1265,12 @@ namespace GarminCore.Files {
          /// <param name="pt">Punkte</param>
          /// <param name="extra">Liste der Extrabist je Punkt</param>
          /// <returns></returns>
-         bool SetRawPoints(IList<GeoDataBitstream.RawPoint> pt, IList<bool> extra = null) {
+         bool SetRawPoints(IList<GeoDataBitstream.RawPoint> pt, IList<bool>? extra = null) {
             ExtraBit.Clear();
             if (extra != null &&
                 extra.Count == pt.Count)
                ExtraBit.AddRange(extra);
-            byte[] tmp = GeoDataBitstream.SetRawPoints(pt, out int basebits4lon, out int basebits4lat, ExtraBit, false);
+            byte[]? tmp = GeoDataBitstream.SetRawPoints(pt, out int basebits4lon, out int basebits4lat, ExtraBit, false);
             if (tmp != null) {
                _bitstream = tmp;
                bitstreamInfo = (byte)(basebits4lat << 4 | basebits4lon);
@@ -1261,7 +1291,7 @@ namespace GarminCore.Files {
          /// <param name="pt"></param>
          /// <param name="extra"></param>
          /// <returns></returns>
-         public bool SetMapUnitPoints(int coordbits, MapUnitPoint subdiv_center, IList<MapUnitPoint> pt, IList<bool> extra = null) {
+         public bool SetMapUnitPoints(int coordbits, MapUnitPoint subdiv_center, IList<MapUnitPoint> pt, IList<bool>? extra = null) {
             GeoDataBitstream.RawPoint[] ptlst = new GeoDataBitstream.RawPoint[pt.Count];
             for (int i = 0; i < pt.Count; i++)
                ptlst[i] = new GeoDataBitstream.RawPoint(pt[i], coordbits, subdiv_center);
@@ -1274,9 +1304,9 @@ namespace GarminCore.Files {
                 x.RawDeltaLatitude == y.RawDeltaLatitude &&
                 x.WithExtraBit == y.WithExtraBit) {
 
-               List<GeoDataBitstream.RawPoint> px = x.GetRawPoints();
-               List<GeoDataBitstream.RawPoint> py = y.GetRawPoints();
-               if (px.Count != py.Count)
+               List<GeoDataBitstream.RawPoint>? px = x.GetRawPoints();
+               List<GeoDataBitstream.RawPoint>? py = y.GetRawPoints();
+               if (px == null || py == null || px.Count != py.Count)
                   return false;
                for (int i = 0; i < px.Count; i++)
                   if (px[i] != py[i])
@@ -1304,10 +1334,10 @@ namespace GarminCore.Files {
          /// RawBound der Differenzen zum Mittelpunkt der zugehörigen Subdiv
          /// </summary>
          /// <returns>null, wenn keine Punkte x.</returns>
-         public override Bound GetRawBoundDelta() {
-            Bound rb = null;
-            List<GeoDataBitstream.RawPoint> pts = GetRawPoints();
-            if (pts.Count > 0) {
+         public override Bound? GetRawBoundDelta() {
+            Bound? rb = null;
+            List<GeoDataBitstream.RawPoint>? pts = GetRawPoints();
+            if (pts != null && pts.Count > 0) {
                rb = new Bound(pts[0].RawUnitsLon, pts[0].RawUnitsLat);
                for (int i = 1; i < pts.Count; i++)
                   rb.Embed(pts[i].RawUnitsLon, pts[i].RawUnitsLat);
@@ -1323,7 +1353,7 @@ namespace GarminCore.Files {
                                  RawDeltaLongitude,
                                  RawDeltaLatitude,
                                  WithExtraBit,
-                                 _bitstream.Length);
+                                 _bitstream != null ? _bitstream.Length : 0);
          }
 
       }
@@ -1400,11 +1430,14 @@ namespace GarminCore.Files {
                if (!x.HasExtraBytes)
                   return true;
                else {
-                  if (x._ExtraBytes.Length != y._ExtraBytes.Length)
-                     return false;
-                  for (int i = 0; i < x._ExtraBytes.Length; i++)
-                     if (x._ExtraBytes[i] != y._ExtraBytes[i])
+                  if (x._ExtraBytes != null &&
+                      y._ExtraBytes != null) {
+                     if (x._ExtraBytes.Length != y._ExtraBytes.Length)
                         return false;
+                     for (int i = 0; i < x._ExtraBytes.Length; i++)
+                        if (x._ExtraBytes[i] != y._ExtraBytes[i])
+                           return false;
+                  }
                   return true;
                }
             return false;
@@ -1422,9 +1455,9 @@ namespace GarminCore.Files {
 
          public byte bitstreamInfo { get; private set; }
 
-         byte[] _bitstream;
+         byte[]? _bitstream;
 
-         public byte[] bitstream { get { return _bitstream; } }
+         public byte[]? bitstream { get { return _bitstream; } }
 
          /// <summary>
          /// Ex. Punkte?
@@ -1462,7 +1495,7 @@ namespace GarminCore.Files {
          /// <summary>
          /// Originalbytes für die gelesene Bitstreamlänge
          /// </summary>
-         public byte[] RawBitStreamLengthBytes { get; private set; }
+         public byte[]? RawBitStreamLengthBytes { get; private set; }
 
          /// <summary>
          /// Länge des gelesenen Bitstreams
@@ -1567,7 +1600,7 @@ namespace GarminCore.Files {
             bw.Write((Int16)RawDeltaLongitude);
             bw.Write((Int16)RawDeltaLatitude);
 
-            uint bitstreamLength = (uint)(_bitstream.Length + 1);
+            uint bitstreamLength = (uint)(_bitstream != null ? _bitstream.Length + 1 : 0);
             if (bitstreamLength < 0x7F) {
                bitstreamLength <<= 1;
                bitstreamLength |= 0x01;         // Bit 0 Kennung für 1 Byte-Länge
@@ -1580,7 +1613,8 @@ namespace GarminCore.Files {
             }
 
             bw.Write(bitstreamInfo);
-            bw.Write(_bitstream);
+            if (_bitstream != null)
+               bw.Write(_bitstream);
 
             if (HasLabel)
                bw.Write3(_LabelOffset);
@@ -1595,7 +1629,13 @@ namespace GarminCore.Files {
          /// </summary>
          /// <returns></returns>
          public List<GeoDataBitstream.RawPoint> GetRawPoints() {
-            return GeoDataBitstream.GetRawPoints(ref _bitstream, bitstreamInfo & 0x0F, (bitstreamInfo & 0xF0) >> 4, RawDeltaLongitude, RawDeltaLatitude, null, true);
+            return GeoDataBitstream.GetRawPoints(ref _bitstream,
+                                                 bitstreamInfo & 0x0F,
+                                                 (bitstreamInfo & 0xF0) >> 4,
+                                                 RawDeltaLongitude,
+                                                 RawDeltaLatitude,
+                                                 null,
+                                                 true);
          }
 
          public List<MapUnitPoint> GetMapUnitPoints(int coordbits, MapUnitPoint subdiv_center) {
@@ -1615,7 +1655,7 @@ namespace GarminCore.Files {
          /// <param name="pt">Punkte</param>
          /// <returns></returns>
          bool SetRawPoints(IList<GeoDataBitstream.RawPoint> pt) {
-            byte[] tmp = GeoDataBitstream.SetRawPoints(pt, out int basebits4lon, out int basebits4lat, null, true);
+            byte[]? tmp = GeoDataBitstream.SetRawPoints(pt, out int basebits4lon, out int basebits4lat, null, true);
             if (tmp != null) {
                _bitstream = tmp;
                bitstreamInfo = (byte)(basebits4lat << 4 | basebits4lon);
@@ -1651,11 +1691,14 @@ namespace GarminCore.Files {
                if (!x.HasExtraBytes)
                   return true;
                else {
-                  if (x._ExtraBytes.Length != y._ExtraBytes.Length)
-                     return false;
-                  for (int i = 0; i < x._ExtraBytes.Length; i++)
-                     if (x._ExtraBytes[i] != y._ExtraBytes[i])
+                  if (x._ExtraBytes != null &&
+                      y._ExtraBytes != null) {
+                     if (x._ExtraBytes.Length != y._ExtraBytes.Length)
                         return false;
+                     for (int i = 0; i < x._ExtraBytes.Length; i++)
+                        if (x._ExtraBytes[i] != y._ExtraBytes[i])
+                           return false;
+                  }
 
                   List<GeoDataBitstream.RawPoint> px = x.GetRawPoints();
                   List<GeoDataBitstream.RawPoint> py = y.GetRawPoints();
@@ -1678,8 +1721,8 @@ namespace GarminCore.Files {
          /// RawBound der Differenzen zum Mittelpunkt der zugehörigen Subdiv
          /// </summary>
          /// <returns>null, wenn keine Punkte x.</returns>
-         public override Bound GetRawBoundDelta() {
-            Bound rb = null;
+         public override Bound? GetRawBoundDelta() {
+            Bound? rb = null;
             List<GeoDataBitstream.RawPoint> pts = GetRawPoints();
             if (pts.Count > 0) {
                rb = new Bound(pts[0].RawUnitsLon, pts[0].RawUnitsLat);
@@ -1690,7 +1733,7 @@ namespace GarminCore.Files {
          }
 
          public override string ToString() {
-            return base.ToString() + string.Format(", Länge Bitstream {0}", _bitstream.Length);
+            return base.ToString() + string.Format(", Länge Bitstream {0}", _bitstream != null ? _bitstream.Length : 0);
          }
 
       }
@@ -1701,7 +1744,7 @@ namespace GarminCore.Files {
       /// liefert den PostHeader-Datenbereich
       /// </summary>
       /// <returns></returns>
-      public DataBlock PostHeaderDataBlock { get; private set; }
+      public DataBlock? PostHeaderDataBlock { get; private set; }
 
 
       /// <summary>
@@ -2001,12 +2044,12 @@ namespace GarminCore.Files {
          /// <param name="extrabit">Liste die die Extrabits aufnimmt (oder null)</param>
          /// <param name="extendedtype">true wenn es sich um Daten für einen extended Typ handelt</param>
          /// <returns></returns>
-         static public List<RawPoint> GetRawPoints(ref byte[] bitstream,
+         static public List<RawPoint> GetRawPoints(ref byte[]? bitstream,
                                                    int basebits4lon,
                                                    int basebits4lat,
                                                    int start_lon,
                                                    int start_lat,
-                                                   List<bool> extrabit,
+                                                   List<bool>? extrabit,
                                                    bool extendedtype) {
             List<RawPoint> rawpoints = new List<RawPoint>();
 
@@ -2227,7 +2270,13 @@ namespace GarminCore.Files {
          /// <param name="extra">Liste der Extrabits</param>
          /// <param name="extendedtype"></param>
          /// <returns></returns>
-         static List<byte> buildBitstreamBuffer(IList<RawPoint> delta, int basebits4lon, int basebits4lat, SignType lon_sign, SignType lat_sign, IList<bool> extra, bool extendedtype) {
+         static List<byte> buildBitstreamBuffer(IList<RawPoint> delta,
+                                                int basebits4lon,
+                                                int basebits4lat,
+                                                SignType lon_sign,
+                                                SignType lat_sign,
+                                                IList<bool>? extra,
+                                                bool extendedtype) {
             // Bit-Anzahl ev. regelkonform machen
             int bits4lon = RealBits4BaseBits(basebits4lon);
             int bits4lat = RealBits4BaseBits(basebits4lat);
@@ -2281,7 +2330,7 @@ namespace GarminCore.Files {
                else
                   bitstreampos = SetNBitSignedValue(delta[i].RawUnitsLat, bits4lat, bitstreampos, bitstream);
 
-               if (bWithExtraBit)
+               if (bWithExtraBit && extra != null)
                   if (extra[i + 1])
                      Set1Bit(bitstreampos++, bitstream);
                   else
@@ -2369,7 +2418,7 @@ namespace GarminCore.Files {
          /// <param name="extra">Extrabits je Punkt oder null</param>
          /// <param name="extendedtype">true wenn es sich um Daten für einen extended Typ handelt</param>
          /// <returns></returns>
-         static public byte[] SetRawPoints(IList<RawPoint> pt, out int basebits4lon, out int basebits4lat, IList<bool> extra, bool extendedtype) {
+         static public byte[]? SetRawPoints(IList<RawPoint> pt, out int basebits4lon, out int basebits4lat, IList<bool>? extra, bool extendedtype) {
             basebits4lon = basebits4lat = 0;
 
             if (0xFFFF < Math.Abs(pt[0].RawUnitsLon) ||    // nur UInt16 möglich
@@ -2454,7 +2503,9 @@ namespace GarminCore.Files {
          }
 
          static void SimpleTest(List<RawPoint> orgpt) {
-            byte[] encoded = SetRawPoints(orgpt, out int basebits4lon_org, out int basebits4lat_org, null, false);
+            byte[]? encoded = SetRawPoints(orgpt, out int basebits4lon_org, out int basebits4lat_org, null, false);
+            if (encoded == null)
+               return;
             List<RawPoint> decodedpt = GetRawPoints(ref encoded, basebits4lon_org, basebits4lat_org, orgpt[0].RawUnitsLon, orgpt[0].RawUnitsLat, null, false);
 
             // Vergleich
@@ -2507,16 +2558,15 @@ namespace GarminCore.Files {
       /// <summary>
       /// Liste aller Subdivs mit ihren Daten
       /// </summary>
-      public List<SubdivData> SubdivList { get; private set; }
+      public List<SubdivData?> SubdivList { get; private set; }
 
 
 
-      public StdFile_RGN(StdFile_TRE tre)
-            : base("RGN") {
+      public StdFile_RGN(StdFile_TRE tre) : base("RGN") {
          Headerlength = 0x7D;
 
          TREFile = tre;
-         SubdivList = new List<SubdivData>();
+         SubdivList = new List<SubdivData?>();
       }
 
       public override void ReadHeader(BinaryReaderWriter br) {
@@ -2572,7 +2622,7 @@ namespace GarminCore.Files {
 
          // Datenblöcke "interpretieren"
          int filesectiontype;
-         DataBlockWithRecordsize tmpblrs;
+         DataBlockWithRecordsize? tmpblrs;
 
          if (TREFile == null)
             throw new Exception("Ohne dazugehörende TRE-Datei können keine Subdiv-Infos gelesen werden.");
@@ -2636,7 +2686,7 @@ namespace GarminCore.Files {
       /// <summary>
       /// Liste der gültigen Subdiv-Index bei unvollständigem Einlesen
       /// </summary>
-      int[] validsubdividx = new int[0];
+      int[]? validsubdividx = new int[0];
 
       /// <summary>
       /// erzeugt eine (neue) Subdiv-Liste mit den Daten der Subdivs
@@ -2646,7 +2696,7 @@ namespace GarminCore.Files {
       /// <param name="br"></param>
       /// <param name="subdividxlst">Indexe der gewünschtenSubdivs oder null (alles einlesen)</param>
       /// <param name="tre"><see cref="TREFile"/> kann, wenn ungleich null, neu gesetzt werden</param>
-      public void ReadOnlySpecialSubdivs(BinaryReaderWriter br, IList<int> subdividxlst, StdFile_TRE tre = null) {
+      public void ReadOnlySpecialSubdivs(BinaryReaderWriter br, IList<int> subdividxlst, StdFile_TRE? tre = null) {
          if (subdividxlst != null) {
             List<int> tmp = new List<int>();
             foreach (var item in subdividxlst)
@@ -2682,7 +2732,7 @@ namespace GarminCore.Files {
                 SubdivList[subdivIdx[idx]] != null ? idx : -1;
       }
 
-      void Decode_SubdivContentBlock(BinaryReaderWriter br, DataBlock src) { //, bool selftest = false) {
+      void Decode_SubdivContentBlock(BinaryReaderWriter? br, DataBlock src) { //, bool selftest = false) {
          if (br != null) {
             List<StdFile_TRE.SubdivInfoBasic> subdivinfoList = TREFile.SubdivInfoList;
             // Länge und Inhalt als Zusatzdaten liefern
@@ -2709,7 +2759,7 @@ namespace GarminCore.Files {
             }
             if (validsubdividx == null ||
                 validsubdividx.Length == 0)   // Standard -> alles einlesen
-               SubdivList = br.ReadArray<SubdivData>(src, extdata);
+               SubdivList = br.ReadArray<SubdivData?>(src, extdata);
             else {
                while (SubdivList.Count < subdivinfoList.Count) // ev. Standardliste mit null für jede Subdiv erzeugen
                   SubdivList.Add(null);
@@ -2728,10 +2778,9 @@ namespace GarminCore.Files {
          }
       }
 
-      void Decode_ExtAreasBlock(BinaryReaderWriter br, DataBlock src) {
+      void Decode_ExtAreasBlock(BinaryReaderWriter? br, DataBlock src) {
          long startadr = src.Offset;
          long endpos = src.Offset + src.Length;
-         br.Seek(startadr);
 
          // Indexliste aller Subdiv's aus der TRE-Datei erzeugen/kopieren, die erweiterte Polygone enthalten
          int[] SubdivIdx = new int[TREFile.ExtAreaBlock4Subdiv.Count];
@@ -2746,8 +2795,9 @@ namespace GarminCore.Files {
             int subdividx;
             DataBlock tre_block;
             long blockend = br.Position; // Blockende simulieren
-            List<ExtRawPolyData> lst = null;
+            List<ExtRawPolyData>? lst = null;
 
+            br.Seek(startadr);
             while (br.Position < endpos) {
                if (br.Position >= blockend) {          // alles für die aktuelle Subdiv eingelesen
                   if (br.Position > blockend)
@@ -2776,18 +2826,20 @@ namespace GarminCore.Files {
                      continue;
                   }
 
-                  lst = SubdivList[subdividx].ExtAreaList;
-                  lst.Clear();
+                  SubdivData? sd = SubdivList[subdividx];
+                  if (sd != null) {
+                     lst = sd.ExtAreaList;
+                     lst.Clear();
+                  }
                }
-               lst.Add(new ExtRawPolyData(br));
+               lst?.Add(new ExtRawPolyData(br));
             }
          }
       }
 
-      void Decode_ExtLinesBlock(BinaryReaderWriter br, DataBlock src) {
+      void Decode_ExtLinesBlock(BinaryReaderWriter? br, DataBlock src) {
          long startadr = src.Offset;
          long endpos = src.Offset + src.Length;
-         br.Seek(startadr);
 
          // Indexliste aller Subdiv's aus der TRE-Datei erzeugen/kopieren, die erweiterte Polygone enthalten
          int[] SubdivIdx = new int[TREFile.ExtLineBlock4Subdiv.Count];
@@ -2798,8 +2850,9 @@ namespace GarminCore.Files {
             int subdividx;
             DataBlock tre_block;
             long blockend = br.Position; // Blockende simulieren
-            List<ExtRawPolyData> lst = null;
+            List<ExtRawPolyData>? lst = null;
 
+            br.Seek(startadr);
             while (br.Position < endpos) {
                if (br.Position >= blockend) {
                   if (br.Position > blockend)
@@ -2828,18 +2881,20 @@ namespace GarminCore.Files {
                      continue;
                   }
 
-                  lst = SubdivList[subdividx].ExtLineList;
-                  lst.Clear();
+                  SubdivData? sd = SubdivList[subdividx];
+                  if (sd != null) {
+                     lst = sd.ExtLineList;
+                     lst.Clear();
+                  }
                }
-               lst.Add(new ExtRawPolyData(br));
+               lst?.Add(new ExtRawPolyData(br));
             }
          }
       }
 
-      void Decode_ExtPointsBlock(BinaryReaderWriter br, DataBlock src) {
+      void Decode_ExtPointsBlock(BinaryReaderWriter? br, DataBlock src) {
          long startadr = src.Offset;
          long endpos = src.Offset + src.Length;
-         br.Seek(startadr);
 
          // Indexliste aller Subdiv's aus der TRE-Datei erzeugen/kopieren, die erweiterte Punkte enthalten
          int[] SubdivIdx = new int[TREFile.ExtPointBlock4Subdiv.Count];
@@ -2850,8 +2905,9 @@ namespace GarminCore.Files {
             int subdividx;
             DataBlock tre_block;
             long blockend = br.Position; // Blockende simulieren
-            List<ExtRawPointData> lst = null;
+            List<ExtRawPointData>? lst = null;
 
+            br.Seek(startadr);
             while (br.Position < endpos) {
                //if (br.Position > blockend - 6) {      // min. 6 Byte sind für einen Punkt nötig; jetzt neue Subdiv
                if (br.Position >= blockend) {
@@ -2880,10 +2936,13 @@ namespace GarminCore.Files {
                      continue;
                   }
 
-                  lst = SubdivList[subdividx].ExtPointList;
-                  lst.Clear();
+                  SubdivData? sd = SubdivList[subdividx];
+                  if (sd != null) {
+                     lst = sd.ExtPointList;
+                     lst.Clear();
+                  }
                }
-               lst.Add(new ExtRawPointData(br));
+               lst?.Add(new ExtRawPointData(br));
 
                //if (lst[lst.Count - 1].HasUnknownFlag) {
                //   if (lst[lst.Count - 1].UnknownKey[0] == 0x41) {
@@ -2979,11 +3038,13 @@ namespace GarminCore.Files {
       /// <param name="subdividx"></param>
       /// <param name="ptidx"></param>
       /// <returns></returns>
-      public RawPointData GetPoint1(int subdividx, int ptidx) {
-         if (subdividx < SubdivList.Count &&
-             SubdivList[subdividx] != null &&
-             ptidx < SubdivList[subdividx].PointList1.Count)
-            return SubdivList[subdividx].PointList1[ptidx];
+      public RawPointData? GetPoint1(int subdividx, int ptidx) {
+         if (subdividx < SubdivList.Count) {
+            SubdivData? lst = SubdivList[subdividx];
+            if (lst != null &&
+                ptidx < lst.PointList1.Count)
+               return lst.PointList1[ptidx];
+         }
          return null;
       }
 

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Text;
-using System.Xml.XPath;
 
 namespace FSofTUtils.Geography.PoorGpx {
 
@@ -9,37 +8,82 @@ namespace FSofTUtils.Geography.PoorGpx {
    /// </summary>
    public class GpxTrack : BaseElement {
 
+      /*
+       https://www.topografix.com/GPX/1/1/#type_trkType 
+       
+         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="cmt" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="desc" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="src" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="link" type="linkType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="number" type="xsd:nonNegativeInteger" minOccurs="0"/>
+            <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="extensions" type="extensionsType" minOccurs="0"/>
+            <xsd:element name="trkseg" type="trksegType" minOccurs="0" maxOccurs="unbounded"/>
+         </xsd:sequence>
+      */
+
+      /// <summary>
+      /// mögliche Childnodes (in DIESER Reihenfolge)
+      /// </summary>
+      protected static string[] definedChildnodeNames = {
+         "<name>",
+         "<cmt>",
+         "<desc>",
+         "<src>",
+         "<link>",  // mehrfach möglich
+         "<number>",
+         "<type>",
+         "<type>",
+         "<extensions>",
+         "<trkseg>",  // mehrfach möglich
+      };
+
       public const string NODENAME = "trk";
 
-      public List<GpxTrackSegment> Segments;
+      public ListTS<GpxTrackSegment> Segments = new ListTS<GpxTrackSegment>();
 
-      public string Name;
+      public string Name = string.Empty;
 
-      public string Comment;
+      public string Comment = string.Empty;
 
-      public string Description;
+      public string Description = string.Empty;
 
-      public string Source;
+      public string Source = string.Empty;
+
+      protected static string[] unhandledChildExceptions = {
+         "<name>",
+         "<cmt>",
+         "<desc>",
+         "<src>",
+         "<" + GpxTrackSegment.NODENAME + ">",
+      };
 
 
-      public GpxTrack(string xmltext = null, bool removenamespace = false) :
+      public GpxTrack(string? xmltext = null, bool removenamespace = false) :
          base(xmltext, removenamespace) { }
 
+      /// <summary>
+      /// Es wird keine "echte" Kopie erzeugt. Es werden zwar eigene Segmente erzeugt, aber diese enthalten dieselben
+      /// Punkte (Verweise auf die Originalpunkte) wie der Originaltrack.
+      /// </summary>
+      /// <param name="t"></param>
       public GpxTrack(GpxTrack t) : base() {
          Name = t.Name;
          Comment = t.Comment;
          Description = t.Description;
          Source = t.Source;
+         Segments = new ListTS<GpxTrackSegment>();
          for (int s = 0; s < t.Segments.Count; s++)
             Segments.Add(new GpxTrackSegment(t.Segments[s]));
       }
 
       protected override void Init() {
-         if (Segments == null)
-            Segments = new List<GpxTrackSegment>();
-         else
-            Segments.Clear();
+         Segments.Clear();
       }
+
+      #region liest das Objekt aus einem XML-Text ein
 
       /// <summary>
       /// setzt die Objektdaten aus dem XML-Text
@@ -48,28 +92,52 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="removenamespace"></param>
       public override void FromXml(string xmltxt, bool removenamespace = false) {
          Init();
-         XPathNavigator nav = GetNavigator4XmlText(removenamespace ? RemoveNamespace(xmltxt) : xmltxt);
 
-         string[] tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxTrackSegment.NODENAME);
-         for (int s = 0; s < tmp.Length; s++)
-            Segments.Add(new GpxTrackSegment(tmp[s]));
-         string prefix = "/" + NODENAME + "/";
-         Name = XReadString(nav, prefix + "name");
-         Comment = XReadString(nav, prefix + "cmt");
-         Description = XReadString(nav, prefix + "desc");
-         Source = XReadString(nav, prefix + "src");
+         UnhandledChildXml = getChildCollection(xmltxt, removenamespace);  // alle Childs erstmal als UnhandledChildXml registrieren
+         if (UnhandledChildXml != null &&
+             UnhandledChildXml.Count > 0) {
+            int found = 0;
+            for (int i = 0; i < UnhandledChildXml.Count && found < 5; i++) {
+               if (checkChilds(i)) {
+                  found++;
+                  i--;
+               }
+            }
 
-         // registrieren der unbehandelten Childs
-         RegisterUnhandledChild(nav,
-                                "/" + NODENAME + "/*",
-                                new string[] {
-                                   "<name>",
-                                   "<cmt>",
-                                   "<desc>",
-                                   "<src>",
-                                   "<" + GpxTrackSegment.NODENAME + ">",
-                                });
+            if (UnhandledChildXml.Count == 0)
+               UnhandledChildXml = null;        // wird nicht mehr benötigt
+         }
       }
+
+      protected bool checkChilds(int idx) {
+         bool getit = false;
+         string childtxt = UnhandledChildXml != null ? UnhandledChildXml[idx] : string.Empty;
+         string? tmp;
+         if (getString4ChildXml(childtxt, "<name>", out tmp)) {
+            Name = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<cmt>", out tmp)) {
+            Comment = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<desc>", out tmp)) {
+            Description = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<src>", out tmp)) {
+            Source = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (childtxt.StartsWith("<" + GpxTrackSegment.NODENAME + ">")) {
+            Segments.Add(new GpxTrackSegment(childtxt));
+            getit = true;
+         }
+
+         if (getit && UnhandledChildXml != null)
+            UnhandledChildXml.RemoveAt(idx);
+         return getit;
+      }
+
+      #endregion
+
+      #region liefert das Objekt als XML
 
       /// <summary>
       /// liefert den vollständigen XML-Text für das Objekt
@@ -77,66 +145,48 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="scale">Umfang der Ausgabe</param>
       /// <returns></returns>
       public override string AsXml(int scale = int.MaxValue) {
-         StringBuilder sb = new StringBuilder();
+         return xWriteNode(NODENAME, asxml(scale).ToString());
+      }
 
-         // Sequenz: name, cmt, desc, src, link (mehrfach), number, type, extensions, trseg (mehrfach)
-         int handled = 0; // für die Reihenfolge der handled Childs
-         int lastidx = -1;
-         string txt;
-         foreach (KeyValuePair<int, string> item in UnhandledChildXml) {
-            while (item.Key - 1 != lastidx) { // Lücke in der Folge der Childs, d.h. davor liegt min. 1 behandeltes Child
-               txt = HandledAsXml(handled++, scale);
-               if (txt != null)
-                  sb.Append(txt);
-               lastidx++;
-            }
-            if (scale > 1)
-               sb.Append(item.Value);
-            lastidx = item.Key;
-         }
-         while ((txt = HandledAsXml(handled++, scale)) != null) // noch alle behandelten Childs ausgegeben
-            sb.Append(txt);
+      public void AsXml(StringBuilder sb, int scale = int.MaxValue) {
+         StringBuilder sbtmp = asxml(scale);
+         xWriteNode(sbtmp, NODENAME);
+         sb.Append(sbtmp);
+      }
 
+      StringBuilder asxml(int scale = int.MaxValue) {
+         StringBuilder sbtmp = collectAllChilds(definedChildnodeNames, getChildTxt4Props(scale), UnhandledChildXml, scale);
          for (int p = 0; p < Segments.Count; p++)
-            sb.Append(Segments[p].AsXml(scale));
-
-         return XWriteNode(NODENAME, sb.ToString());
+            sbtmp.Append(Segments[p].AsXml(scale));
+         return sbtmp;
       }
 
-      protected string HandledAsXml(int handled, int scale) {
-         switch (handled) {
-            case 0:
-               if (!string.IsNullOrEmpty(Name))
-                  return XWriteNode("name", XmlClean(Name));
-               break;
-
-            case 1:
-               if (!string.IsNullOrEmpty(Comment) && scale > 0)
-                  return XWriteNode("cmt", XmlClean(Comment));
-               break;
-
-            case 2:
-               if (!string.IsNullOrEmpty(Description) && scale > 0)
-                  return XWriteNode("desc", XmlClean(Description));
-               break;
-
-            case 3:
-               if (!string.IsNullOrEmpty(Source) && scale > 0)
-                  return XWriteNode("src", XmlClean(Source));
-               break;
-
-            default:
-               return null; // keine behandelten Childs mehr
-         }
-         return "";
+      /// <summary>
+      /// liefert alle Childtexte für die Properties
+      /// </summary>
+      /// <param name="scale"></param>
+      /// <returns></returns>
+      protected override List<string> getChildTxt4Props(int scale) {
+         List<string> childtxt = new List<string>();
+         if (!string.IsNullOrEmpty(Name))
+            childtxt.Add(xWriteNode("name", XmlEncode(Name)));
+         if (!string.IsNullOrEmpty(Comment) && scale > 0)
+            childtxt.Add(xWriteNode("cmt", XmlEncode(Comment)));
+         if (!string.IsNullOrEmpty(Description) && scale > 0)
+            childtxt.Add(xWriteNode("desc", XmlEncode(Description)));
+         if (!string.IsNullOrEmpty(Source) && scale > 0)
+            childtxt.Add(xWriteNode("src", XmlEncode(Source)));
+         return childtxt;
       }
+
+      #endregion
 
       /// <summary>
       /// liefert das <see cref="GpxTrackSegment"/> aus der Liste oder null
       /// </summary>
       /// <param name="s"></param>
       /// <returns></returns>
-      public GpxTrackSegment GetSegment(int s) {
+      public GpxTrackSegment? GetSegment(int s) {
          return s < Segments.Count ? Segments[s] : null;
       }
 
@@ -145,7 +195,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// </summary>
       /// <param name="s"></param>
       /// <returns></returns>
-      public GpxTrackPoint GetSegmentPoint(int s, int p) {
+      public GpxTrackPoint? GetSegmentPoint(int s, int p) {
          return GetSegment(s)?.GetPoint(p);
       }
 
@@ -173,7 +223,6 @@ namespace FSofTUtils.Geography.PoorGpx {
             return Segments[s].RemovePoint(p);
          return false;
       }
-
 
       /// <summary>
       /// fügt ein <see cref="GpxTrackSegment"/> ein oder an

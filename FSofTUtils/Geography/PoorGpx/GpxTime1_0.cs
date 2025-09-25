@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Xml.XPath;
 
 namespace FSofTUtils.Geography.PoorGpx {
 
@@ -14,7 +13,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       public DateTime Time;
 
 
-      public GpxTime1_0(string xmltext = null, bool removenamespace = false) :
+      public GpxTime1_0(string? xmltext = null, bool removenamespace = false) :
          base(xmltext, removenamespace) { }
 
       public GpxTime1_0(GpxTime1_0 t) : base() {
@@ -33,9 +32,8 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="removenamespace"></param>
       public override void FromXml(string xmltxt, bool removenamespace = false) {
          Init();
-         XPathNavigator nav = GetNavigator4XmlText(removenamespace ? RemoveNamespace(xmltxt) : xmltxt);
-
-         Time = XReadDateTime(nav, "/" + NODENAME);
+         if (getDateTime4ChildXml(xmltxt, "<" + NODENAME + ">", out DateTime dt))
+            Time = dt;
       }
 
       /// <summary>
@@ -43,29 +41,31 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// </summary>
       /// <param name="scale">Umfang der Ausgabe</param>
       /// <returns></returns>
-      public override string AsXml(int scale) {
-         return Time != NOTVALID_TIME ?
-                           XWriteNode(NODENAME, Time) :
-                           "";
-      }
+      public override string AsXml(int scale) =>
+         Time != NOTVALID_TIME ?
+                           xWriteNode(NODENAME, Time) :
+                           string.Empty;
+
+      /// <summary>
+      /// hängt den vollständigen XML-Text für das Objekt an den StringBuilder an
+      /// </summary>
+      /// <param name="sb"></param>
+      /// <param name="scale">Umfang der Ausgabe</param>
+      public void AsXml(StringBuilder sb, int scale) => sb.Append(AsXml(scale));
 
       /// <summary>
       /// interpretiert den Text als <see cref="DateTime"/>
       /// </summary>
       /// <param name="txt"></param>
       /// <returns></returns>
-      public static DateTime String2DateTime(string txt) {
-         return ReadDateTime(txt);
-      }
+      public static DateTime String2DateTime(string txt) => xDateTime(txt);
 
       /// <summary>
       /// liefert <see cref="DateTime"/> als (GPX-)Text
       /// </summary>
       /// <param name="dt"></param>
       /// <returns></returns>
-      public static string DateTime2String(DateTime dt) {
-         return XWrite(dt);
-      }
+      public static string DateTime2String(DateTime dt) => xWriteText(dt);
 
 
       public override string ToString() {

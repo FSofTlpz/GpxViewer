@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
 
@@ -55,33 +56,41 @@ Neues Augusteum, Augustusplatz, Leipzig-Zentrum, Mitte, Leipzig, Sachsen, 04109,
          BoundingBottom = boundbottom;
       }
 
-      public static new GeoCodingReverseResultOsm[] Get(double lon, double lat) {
-         GeoCodingReverseResultOsm[] result = new GeoCodingReverseResultOsm[0];
+      public static new async Task<GeoCodingReverseResultOsm[]> GetAsync(double lon, double lat, double timeout = 0) {
+         GeoCodingReverseResultOsm[] result = Array.Empty<GeoCodingReverseResultOsm>();
 
          string[] param = new string[] {
-                                 System.Net.WebUtility.UrlEncode(lat.ToString(CultureInfo.InvariantCulture)),
-                                 System.Net.WebUtility.UrlEncode(lon.ToString(CultureInfo.InvariantCulture)),
-                             };
+                              System.Net.WebUtility.UrlEncode(lat.ToString(CultureInfo.InvariantCulture)),
+                              System.Net.WebUtility.UrlEncode(lon.ToString(CultureInfo.InvariantCulture)),
+                          };
 
 #if TESTDATA
+         System.Net.HttpStatusCode? status2 = System.Net.HttpStatusCode.OK;
          string httpResult = testxml;
 #else
-         string httpResult = httpGet(string.Format(osmformat, param));
+         (System.Net.HttpStatusCode? status, string httpResult) = await HttpHelper.GetStringAsync(string.Format(osmformat, param),
+                                                                                                  timeout);
 #endif
-         if (httpResult != null) {
+
+         if (status != null &&
+             status == System.Net.HttpStatusCode.OK &&
+             !string.IsNullOrEmpty(httpResult)) {
             XmlDocument xmldata = new XmlDocument();
             xmldata.LoadXml(httpResult);
 
-            XmlNamespaceManager NsMng = null;
-            XmlAttributeCollection attributeCollection = xmldata.DocumentElement.Attributes;
-            if (attributeCollection.Count > 0) {
-               NsMng = new XmlNamespaceManager(xmldata.NameTable);
+            XmlNamespaceManager? NsMng = null;
+            if (xmldata.DocumentElement != null) {
+               XmlAttributeCollection attributeCollection = xmldata.DocumentElement.Attributes;
+               if (attributeCollection.Count > 0) {
+                  NsMng = new XmlNamespaceManager(xmldata.NameTable);
+               }
             }
 
-            XPathNavigator navigator = xmldata.CreateNavigator();
+            XPathNavigator? navigator = xmldata.CreateNavigator();
 
             if (navigator != null && NsMng != null) {
                List<string> txt = getXmlValues("/reversegeocode", navigator, NsMng);
+               List<string> resulttxt = getXmlValues("/reversegeocode/result", navigator, NsMng);
                List<string> lattxt = getXmlValues("/reversegeocode/result/@lat", navigator, NsMng);
                List<string> lontxt = getXmlValues("/reversegeocode/result/@lon", navigator, NsMng);
                List<string> bbtxt = getXmlValues("/reversegeocode/result/@boundingbox", navigator, NsMng);
@@ -92,7 +101,7 @@ Neues Augusteum, Augustusplatz, Leipzig-Zentrum, Mitte, Leipzig, Sachsen, 04109,
                   if (tmp.Length != 4)
                      tmp = new string[] { "0", "0", "0", "0" };
                   result[i] = new GeoCodingReverseResultOsm(
-                                          txt[i],
+                                          string.IsNullOrEmpty(resulttxt[i]) ? txt[i] : resulttxt[i],
                                           Convert.ToDouble(lontxt[i], CultureInfo.InvariantCulture),
                                           Convert.ToDouble(lattxt[i], CultureInfo.InvariantCulture),
                                           Convert.ToDouble(tmp[2], CultureInfo.InvariantCulture),
@@ -103,7 +112,7 @@ Neues Augusteum, Augustusplatz, Leipzig-Zentrum, Mitte, Leipzig, Sachsen, 04109,
                }
 
             }
-         }
+         } else throw new Exception("Error in " + nameof(GetAsync) + ":" + httpResult);
          return result;
       }
 

@@ -1,31 +1,104 @@
 ﻿using FSofTUtils.Geography;
 using FSofTUtils.Geography.PoorGpx;
 using SpecialMapCtrl;
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Windows.Forms;
 
 namespace GpxViewer {
    public partial class FormTrackSimplificationcs : Form {
 
-      public static List<string> SimplificationDataList;
+      public static List<string>? SimplificationDataList;
 
+      public Track? SrcTrack;
+
+      public Track? DestTrack { get; private set; }
 
       class SimplificationData {
 
-         public string Name;
+         /// <summary>
+         /// einige einfache Standarddefinitionen
+         /// </summary>
+         public static string[] StdDefs = [
+               new SimplificationData() {
+               Name = "Wandern",
+               AscendOutlier = 40,
+               AscendOutlierLength = 50,
+               SpeedOutlier = 10,
+               GapFill4Time = true,
+               HSimplification = GpxSimplification.HSimplification.Douglas_Peucker,
+               HSimplificationWidth = 0.2,
+               VSimplification = GpxSimplification.VSimplification.SlidingIntegral,
+               VSimplificationWidth = 100,
+               VSimplificationFractionalDigits = 1,
+            }.AsString(),
+               new SimplificationData() {
+               Name = "Wandern (Smartphon)",
+               AscendOutlier = 40,
+               AscendOutlierLength = 50,
+               RemoveSpikes = true,
+               SpeedOutlier = 10,
+               GapFill4Time = true,
+               HSimplification = GpxSimplification.HSimplification.Douglas_Peucker,
+               HSimplificationWidth = 0.2,
+               VSimplification = GpxSimplification.VSimplification.SlidingIntegral,
+               VSimplificationWidth = 400,
+               VSimplificationFractionalDigits = 1,
+            }.AsString(),
+            new SimplificationData() {
+               Name = "Radfahren",
+               AscendOutlier = 25,
+               AscendOutlierLength = 50,
+               SpeedOutlier = 60,
+               GapFill4Time = true,
+               HSimplification = GpxSimplification.HSimplification.Douglas_Peucker,
+               HSimplificationWidth = 0.2,
+               VSimplification = GpxSimplification.VSimplification.SlidingIntegral,
+               VSimplificationWidth = 100,
+               VSimplificationFractionalDigits = 1,
+            }.AsString(),
+            new SimplificationData() {
+               Name = "Radfahren (Smartphon)",
+               AscendOutlier = 25,
+               AscendOutlierLength = 50,
+               RemoveSpikes = true,
+               SpeedOutlier = 60,
+               GapFill4Time = true,
+               HSimplification = GpxSimplification.HSimplification.Douglas_Peucker,
+               HSimplificationWidth = 0.2,
+               VSimplification = GpxSimplification.VSimplification.SlidingIntegral,
+               VSimplificationWidth = 400,
+               VSimplificationFractionalDigits = 1,
+            }.AsString(),
+         ];
+
+         public string Name = string.Empty;
 
          public GpxSimplification.HSimplification HSimplification = GpxSimplification.HSimplification.Nothing;
-         public double HSimplificationWidth = 0;
+         public double HSimplificationWidth = 0.2;
 
          public GpxSimplification.VSimplification VSimplification = GpxSimplification.VSimplification.Nothing;
-         public double VSimplificationWidth = 0;
+         public double VSimplificationWidth = 100;
+         public int VSimplificationWidthPt = 50;
+         public double VSimplificationLowPassFreq = 0.00140;
+         public int VSimplificationLowPassSamplerate = 10;
+         public double VSimplificationLowPassDelay = 0.023;
+         public int VSimplificationFractionalDigits = 1;
+         public int VSimplificationRRWidth = 50;
+         public int VSimplificationRROverlap = 5;
+         public double VSimplificationRRLambda = 0.0001;
 
+         /// <summary>
+         /// max. Geschwindigkeit in km/h
+         /// </summary>
          public double SpeedOutlier = 0;
 
+         /// <summary>
+         /// max. An-/Abstieg in Prozent
+         /// </summary>
          public double AscendOutlier = 0;
-         public int AscendOutlierPointCount = 0;
+         /// <summary>
+         /// Testwegstrecke in m
+         /// </summary>
+         public int AscendOutlierLength = 0;
 
          public bool RemoveTimestamps = false;
          public bool RemoveHeights = false;
@@ -36,17 +109,32 @@ namespace GpxViewer {
          public bool MaximalHeightIsActiv = false;
          public double MaximalHeight = 0;
 
-         public bool HSimplificationIsActiv => HSimplification != GpxSimplification.HSimplification.Nothing && 0 < HSimplificationWidth;
-         public bool VSimplificationIsActiv => VSimplification != GpxSimplification.VSimplification.Nothing && 0 < VSimplificationWidth;
+         public bool HSimplificationIsActiv => HSimplification != GpxSimplification.HSimplification.Nothing &&
+                                                      0 < HSimplificationWidth;
+         public bool VSimplificationIsActiv => (VSimplification == GpxSimplification.VSimplification.SlidingIntegral &&
+                                                      0 < VSimplificationWidth) ||
+                                               (VSimplification == GpxSimplification.VSimplification.SlidingMean &&
+                                                      0 < VSimplificationWidth) ||
+                                               (VSimplification == GpxSimplification.VSimplification.LowPassFilter &&
+                                                      0 < VSimplificationLowPassFreq &&
+                                                      0 < VSimplificationLowPassSamplerate &&
+                                                      0 <= VSimplificationLowPassDelay) ||
+                                               (VSimplification == GpxSimplification.VSimplification.RidgeRegression &&
+                                                      0 < VSimplificationRRLambda &&
+                                                      0 <= VSimplificationRROverlap &&
+                                                      2 < VSimplificationRRWidth);
          public bool SpeedOutlierIsActiv => 0 < SpeedOutlier;
-         public bool AscendOutlierIsActiv => 0 < AscendOutlier && 1 < AscendOutlierPointCount;
+         public bool RemoveSpikes = false;
+         public bool AscendOutlierIsActiv => 0 < AscendOutlier && 1 < AscendOutlierLength;
 
          public bool PointRangeIsActiv = false;
          public double PointRangeHeight = 0;
          public int PointRangeStart = 0;
          public int PointRangeCount = 0;
 
-         public bool GapFill = false;
+         public bool GapFill4Time = false;
+
+         public bool GapFill4Height = false;
 
 
          public SimplificationData() { }
@@ -57,7 +145,10 @@ namespace GpxViewer {
 
          public string AsString() => AsString(this);
 
+         // Muss mit FromString() korrespondieren.
+
          public static string AsString(SimplificationData sd) {
+            // Neue Parameter immer an das Ende!
             StringBuilder sb = new StringBuilder(sd.Name);
             sb.Append("\t");
             sb.Append((int)sd.HSimplification);
@@ -72,7 +163,7 @@ namespace GpxViewer {
             sb.Append("\t");
             sb.Append(sd.AscendOutlier);
             sb.Append("\t");
-            sb.Append(sd.AscendOutlierPointCount);
+            sb.Append(sd.AscendOutlierLength);
             sb.Append("\t");
             sb.Append(sd.RemoveTimestamps);
             sb.Append("\t");
@@ -94,10 +185,32 @@ namespace GpxViewer {
             sb.Append("\t");
             sb.Append(sd.PointRangeCount);
             sb.Append("\t");
-            sb.Append(sd.GapFill);
+            sb.Append(sd.GapFill4Time);
+            sb.Append("\t");
+            sb.Append(sd.GapFill4Height);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationLowPassFreq);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationLowPassSamplerate);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationLowPassDelay);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationFractionalDigits);
+            sb.Append("\t");
+            sb.Append(sd.RemoveSpikes);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationRRWidth);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationRROverlap);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationRRLambda);
+            sb.Append("\t");
+            sb.Append(sd.VSimplificationWidthPt);
 
             return sb.ToString();
          }
+
+         // Muss mit AsString() korrespondieren.
 
          public static SimplificationData FromString(string txt) {
             SimplificationData sd = new SimplificationData();
@@ -118,7 +231,7 @@ namespace GpxViewer {
             if (i < tmp.Length)
                sd.AscendOutlier = Convert.ToDouble(tmp[i++]);
             if (i < tmp.Length)
-               sd.AscendOutlierPointCount = Convert.ToInt32(tmp[i++]);
+               sd.AscendOutlierLength = Convert.ToInt32(tmp[i++]);
             if (i < tmp.Length)
                sd.RemoveTimestamps = Convert.ToBoolean(tmp[i++]);
             if (i < tmp.Length)
@@ -140,16 +253,37 @@ namespace GpxViewer {
             if (i < tmp.Length)
                sd.PointRangeCount = Convert.ToInt32(tmp[i++]);
             if (i < tmp.Length)
-               sd.GapFill = Convert.ToBoolean(tmp[i++]);
+               sd.GapFill4Time = Convert.ToBoolean(tmp[i++]);
+            if (i < tmp.Length)
+               sd.GapFill4Height = Convert.ToBoolean(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationLowPassFreq = Convert.ToDouble(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationLowPassSamplerate = Convert.ToInt32(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationLowPassDelay = Convert.ToDouble(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationFractionalDigits = Convert.ToInt32(tmp[i++]);
+            if (i < tmp.Length)
+               sd.RemoveSpikes = Convert.ToBoolean(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationRRWidth = Convert.ToInt32(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationRROverlap = Convert.ToInt32(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationRRLambda = Convert.ToDouble(tmp[i++]);
+            if (i < tmp.Length)
+               sd.VSimplificationWidthPt = Convert.ToInt32(tmp[i++]);
 
             return sd;
          }
 
       }
 
-      public Track SrcTrack;
-
-      public Track DestTrack { get; private set; }
+      /// <summary>
+      /// einige einfache Standarddefinitionen (nützlich wenn <see cref="SimplificationDataList"/> noch leer ist)
+      /// </summary>
+      public static string[] StdDefs => SimplificationData.StdDefs;
 
 
       public FormTrackSimplificationcs() {
@@ -162,15 +296,18 @@ namespace GpxViewer {
          base.OnLoad(e);
          Text = "Vereinfachung: " + SrcTrack.VisualName;
 
+         if (SimplificationDataList.Count == 0)    // wenn keine Def. vorhanden sind werden Standarddefs. verwendet
+            SimplificationDataList.AddRange(SimplificationData.StdDefs);
+
          DestTrack = null;
 
-         checkBoxMinimalHeightIsActiv_CheckedChanged(checkBoxMinimalHeightIsActiv, null);
-         checkBoxMaximalHeightIsActiv_CheckedChanged(checkBoxMaximalHeightIsActiv, null);
-         checkBoxPointRangeIsActiv_CheckedChanged(checkBoxPointRangeIsActiv, null);
-         checkBoxSpeedOutlier_CheckedChanged(checkBoxSpeedOutlier, null);
-         checkBoxAscendOutlier_CheckedChanged(checkBoxAscendOutlier, null);
-         radioButtonHSimplicationNothing_CheckedChanged(radioButtonHSimplicationNothing, null);
-         radioButtonVSimplicationNothing_CheckedChanged(radioButtonVSimplicationNothing, null);
+         checkBoxMinimalHeightIsActiv_CheckedChanged(checkBoxMinimalHeightIsActiv, EventArgs.Empty);
+         checkBoxMaximalHeightIsActiv_CheckedChanged(checkBoxMaximalHeightIsActiv, EventArgs.Empty);
+         checkBoxPointRangeIsActiv_CheckedChanged(checkBoxPointRangeIsActiv, EventArgs.Empty);
+         checkBoxSpeedOutlier_CheckedChanged(checkBoxSpeedOutlier, EventArgs.Empty);
+         checkBoxAscendOutlier_CheckedChanged(checkBoxAscendOutlier, EventArgs.Empty);
+         radioButtonHSimplicationNothing_CheckedChanged(radioButtonHSimplicationNothing, EventArgs.Empty);
+         radioButtonVSimplication_CheckedChanged(radioButtonVSimplicationNothing, EventArgs.Empty);
 
          for (int i = 0; i < SimplificationDataList.Count; i++) {
             SimplificationData sd = SimplificationData.FromString(SimplificationDataList[i]);
@@ -185,32 +322,42 @@ namespace GpxViewer {
       /// liefert ein <see cref="SimplificationData"/>-Objekt entsprechend der akt. Daten im Form
       /// </summary>
       /// <returns></returns>
-      SimplificationData getActualData() {
-         return new SimplificationData() {
-            HSimplification = radioButtonHSimplicationDP.Checked ? GpxSimplification.HSimplification.Douglas_Peucker :
+      SimplificationData getActualData() => new SimplificationData() {
+         HSimplification = radioButtonHSimplicationDP.Checked ? GpxSimplification.HSimplification.Douglas_Peucker :
                               radioButtonHSimplicationRW.Checked ? GpxSimplification.HSimplification.Reumann_Witkam :
                                                                    GpxSimplification.HSimplification.Nothing,
-            HSimplificationWidth = (double)numericUpDownHSimplicationWidth.Value,
-            VSimplification = radioButtonVSimplicationSI.Checked ? GpxSimplification.VSimplification.SlidingIntegral :
-                              radioButtonVSimplicationSM.Checked ? GpxSimplification.VSimplification.SlidingMean :
-                                                                   GpxSimplification.VSimplification.Nothing,
-            VSimplificationWidth = (double)numericUpDownVSimplicationWidth.Value,
-            SpeedOutlier = checkBoxSpeedOutlier.Checked ? (double)numericUpDownSpeedOutlier.Value : -1,
-            AscendOutlier = checkBoxAscendOutlier.Checked ? (double)numericUpDownAscendOutlier.Value : -1,
-            AscendOutlierPointCount = checkBoxAscendOutlier.Checked ? (int)numericUpDownAscendOutlierPoints.Value : -1,
-            RemoveTimestamps = checkBoxRemoveTimestamps.Checked,
-            RemoveHeights = checkBoxRemoveHeights.Checked,
-            MinimalHeightIsActiv = checkBoxMinimalHeightIsActiv.Checked,
-            MinimalHeight = (double)numericUpDownMinimalHeight.Value,
-            MaximalHeightIsActiv = checkBoxMaximalHeightIsActiv.Checked,
-            MaximalHeight = (double)numericUpDownMaximalHeight.Value,
-            PointRangeIsActiv = checkBoxPointRangeIsActiv.Checked,
-            PointRangeHeight = (double)numericUpDownPointRangeHeight.Value,
-            PointRangeStart = (int)numericUpDownPointRangeStart.Value,
-            PointRangeCount = (int)numericUpDownPointRangeCount.Value,
-            GapFill = checkBoxGapFill.Checked,
-         };
-      }
+         HSimplificationWidth = (double)numericUpDownHSimplicationWidth.Value,
+         VSimplification = radioButtonVSimplicationSI.Checked ? GpxSimplification.VSimplification.SlidingIntegral :
+                           radioButtonVSimplicationSM.Checked ? GpxSimplification.VSimplification.SlidingMean :
+                           radioButtonVSimplicationLP.Checked ? GpxSimplification.VSimplification.LowPassFilter :
+                           radioButtonVSimplicationRR.Checked ? GpxSimplification.VSimplification.RidgeRegression :
+                                                                GpxSimplification.VSimplification.Nothing,
+         VSimplificationWidth = (double)numericUpDownVSimplicationWidth.Value,
+         VSimplificationWidthPt = (int)numericUpDownVSimplicationWidthPt.Value,
+         VSimplificationLowPassFreq = (double)numericUpDownVSimplicationFreq.Value,
+         VSimplificationLowPassSamplerate = (int)numericUpDownVSimplicationSamplerate.Value,
+         VSimplificationLowPassDelay = (double)numericUpDownVSimplicationDelay.Value,
+         VSimplificationFractionalDigits = (int)numericUpDownVSimplicationDigits.Value,
+         VSimplificationRRWidth = (int)numericUpDownVSimplicationRRWidth.Value,
+         VSimplificationRROverlap = (int)numericUpDownVSimplicationRROverlap.Value,
+         VSimplificationRRLambda = (double)numericUpDownVSimplicationRRLambda.Value,
+         RemoveSpikes = checkBoxSpikes.Checked,
+         SpeedOutlier = checkBoxSpeedOutlier.Checked ? (double)numericUpDownSpeedOutlier.Value : -1,
+         AscendOutlier = checkBoxAscendOutlier.Checked ? (double)numericUpDownAscendOutlier.Value : -1,
+         AscendOutlierLength = checkBoxAscendOutlier.Checked ? (int)numericUpDownAscendOutlierLength.Value : -1,
+         RemoveTimestamps = checkBoxRemoveTimestamps.Checked,
+         RemoveHeights = checkBoxRemoveHeights.Checked,
+         MinimalHeightIsActiv = checkBoxMinimalHeightIsActiv.Checked,
+         MinimalHeight = (double)numericUpDownMinimalHeight.Value,
+         MaximalHeightIsActiv = checkBoxMaximalHeightIsActiv.Checked,
+         MaximalHeight = (double)numericUpDownMaximalHeight.Value,
+         PointRangeIsActiv = checkBoxPointRangeIsActiv.Checked,
+         PointRangeHeight = (double)numericUpDownPointRangeHeight.Value,
+         PointRangeStart = (int)numericUpDownPointRangeStart.Value,
+         PointRangeCount = (int)numericUpDownPointRangeCount.Value,
+         GapFill4Time = checkBoxGapFill4Time.Checked,
+         GapFill4Height = checkBoxGapFill4Height.Checked,
+      };
 
       /// <summary>
       /// setzt die Daten im Form entsprechend des <see cref="SimplificationData"/>
@@ -222,39 +369,53 @@ namespace GpxViewer {
             case GpxSimplification.HSimplification.Reumann_Witkam: radioButtonHSimplicationRW.Checked = true; break;
             default: radioButtonHSimplicationNothing.Checked = true; break;
          }
-         numericUpDownHSimplicationWidth.Value = Math.Max(numericUpDownHSimplicationWidth.Minimum, Convert.ToDecimal(sd.HSimplificationWidth));
+         setNumericUpDown(numericUpDownHSimplicationWidth, sd.HSimplificationWidth);
 
          switch (sd.VSimplification) {
             case GpxSimplification.VSimplification.SlidingMean: radioButtonVSimplicationSM.Checked = true; break;
             case GpxSimplification.VSimplification.SlidingIntegral: radioButtonVSimplicationSI.Checked = true; break;
+            case GpxSimplification.VSimplification.LowPassFilter: radioButtonVSimplicationLP.Checked = true; break;
+            case GpxSimplification.VSimplification.RidgeRegression: radioButtonVSimplicationRR.Checked = true; break;
             default: radioButtonVSimplicationNothing.Checked = true; break;
          }
-         numericUpDownVSimplicationWidth.Value = Math.Max(numericUpDownVSimplicationWidth.Minimum, Convert.ToDecimal(sd.VSimplificationWidth));
+         setNumericUpDown(numericUpDownVSimplicationWidth, sd.VSimplificationWidth);
+         setNumericUpDown(numericUpDownVSimplicationWidthPt, sd.VSimplificationWidthPt);
+         setNumericUpDown(numericUpDownVSimplicationFreq, sd.VSimplificationLowPassFreq);
+         setNumericUpDown(numericUpDownVSimplicationSamplerate, sd.VSimplificationLowPassSamplerate);
+         setNumericUpDown(numericUpDownVSimplicationDelay, sd.VSimplificationLowPassDelay);
+         setNumericUpDown(numericUpDownVSimplicationDigits, sd.VSimplificationFractionalDigits);
+         setNumericUpDown(numericUpDownVSimplicationRRWidth, sd.VSimplificationRRWidth);
+         setNumericUpDown(numericUpDownVSimplicationRROverlap, sd.VSimplificationRROverlap);
+         setNumericUpDown(numericUpDownVSimplicationRRLambda, sd.VSimplificationRRLambda);
 
          checkBoxSpeedOutlier.Checked = sd.SpeedOutlierIsActiv;
-         numericUpDownSpeedOutlier.Value = Math.Max(numericUpDownSpeedOutlier.Minimum, Convert.ToDecimal(sd.SpeedOutlier));
+         setNumericUpDown(numericUpDownSpeedOutlier, sd.SpeedOutlier);
+
+         checkBoxSpikes.Checked = sd.RemoveSpikes;
 
          checkBoxAscendOutlier.Checked = sd.AscendOutlierIsActiv;
-         numericUpDownAscendOutlier.Value = Math.Max(numericUpDownAscendOutlier.Minimum, Convert.ToDecimal(sd.AscendOutlier));
-         numericUpDownAscendOutlierPoints.Value = Math.Max(numericUpDownAscendOutlierPoints.Minimum, sd.AscendOutlierPointCount);
+         setNumericUpDown(numericUpDownAscendOutlier, sd.AscendOutlier);
+         setNumericUpDown(numericUpDownAscendOutlierLength, sd.AscendOutlierLength);
 
          checkBoxRemoveTimestamps.Checked = sd.RemoveTimestamps;
 
          checkBoxRemoveHeights.Checked = sd.RemoveHeights;
 
          checkBoxMinimalHeightIsActiv.Checked = sd.MinimalHeightIsActiv;
-         numericUpDownMinimalHeight.Value = Math.Max(numericUpDownMinimalHeight.Minimum, Convert.ToDecimal(sd.MinimalHeight));
+         setNumericUpDown(numericUpDownMinimalHeight, sd.MinimalHeight);
 
          checkBoxMaximalHeightIsActiv.Checked = sd.MaximalHeightIsActiv;
-         numericUpDownMaximalHeight.Value = Math.Max(numericUpDownMaximalHeight.Minimum, Convert.ToDecimal(sd.MaximalHeight));
+         setNumericUpDown(numericUpDownMaximalHeight, sd.MaximalHeight);
 
          checkBoxPointRangeIsActiv.Checked = sd.PointRangeIsActiv;
-         numericUpDownPointRangeHeight.Value = Math.Max(numericUpDownPointRangeHeight.Minimum, Convert.ToDecimal(sd.PointRangeHeight));
-         numericUpDownPointRangeStart.Value = Math.Max(numericUpDownPointRangeStart.Minimum, Convert.ToInt32(sd.PointRangeStart));
-         numericUpDownPointRangeCount.Value = Math.Max(numericUpDownPointRangeCount.Minimum, Convert.ToInt32(sd.PointRangeCount));
+         setNumericUpDown(numericUpDownPointRangeHeight, sd.PointRangeHeight);
+         setNumericUpDown(numericUpDownPointRangeStart, sd.PointRangeStart);
+         setNumericUpDown(numericUpDownPointRangeCount, sd.PointRangeCount);
 
-         checkBoxGapFill.Checked = sd.GapFill;
+         checkBoxGapFill4Time.Checked = sd.GapFill4Time;
       }
+
+      void setNumericUpDown(NumericUpDown numericUpDown, double value) => numericUpDown.Value = Math.Min(Math.Max(numericUpDown.Minimum, Convert.ToDecimal(value)), numericUpDown.Maximum);
 
       private void checkBoxMinimalHeightIsActiv_CheckedChanged(object sender, EventArgs e) {
          numericUpDownMinimalHeight.Enabled = (sender as CheckBox).Checked;
@@ -276,15 +437,25 @@ namespace GpxViewer {
 
       private void checkBoxAscendOutlier_CheckedChanged(object sender, EventArgs e) {
          numericUpDownAscendOutlier.Enabled =
-         numericUpDownAscendOutlierPoints.Enabled = (sender as CheckBox).Checked;
+         numericUpDownAscendOutlierLength.Enabled = (sender as CheckBox).Checked;
       }
 
       private void radioButtonHSimplicationNothing_CheckedChanged(object sender, EventArgs e) {
          numericUpDownHSimplicationWidth.Enabled = !(sender as RadioButton).Checked;
       }
 
-      private void radioButtonVSimplicationNothing_CheckedChanged(object sender, EventArgs e) {
-         numericUpDownVSimplicationWidth.Enabled = !(sender as RadioButton).Checked;
+      private void radioButtonVSimplication_CheckedChanged(object sender, EventArgs e) {
+         if ((sender as RadioButton).Checked) {
+            numericUpDownVSimplicationWidth.Enabled = radioButtonVSimplicationSI.Checked;
+            numericUpDownVSimplicationWidthPt.Enabled = radioButtonVSimplicationSM.Checked;
+            numericUpDownVSimplicationFreq.Enabled =
+            numericUpDownVSimplicationSamplerate.Enabled =
+            numericUpDownVSimplicationDelay.Enabled = radioButtonVSimplicationLP.Checked;
+            numericUpDownVSimplicationDigits.Enabled = !radioButtonVSimplicationNothing.Checked;
+            numericUpDownVSimplicationRRWidth.Enabled =
+            numericUpDownVSimplicationRROverlap.Enabled =
+            numericUpDownVSimplicationRRLambda.Enabled = radioButtonVSimplicationRR.Checked;
+         }
       }
 
       private void comboBoxDatasets_SelectedIndexChanged(object sender, EventArgs e) {
@@ -292,6 +463,20 @@ namespace GpxViewer {
             SimplificationData sd = SimplificationData.FromString(SimplificationDataList[comboBoxDatasets.SelectedIndex]);
             setActualData(sd);
          }
+      }
+
+      private void checkBoxRemoveTimestamps_CheckedChanged(object sender, EventArgs e) {
+         groupBoxSpeedOutlier.Enabled =
+         checkBoxGapFill4Time.Enabled = !checkBoxRemoveTimestamps.Checked;
+      }
+
+      private void checkBoxRemoveHeights_CheckedChanged(object sender, EventArgs e) {
+         groupBoxAscendOutlier.Enabled =
+         groupBoxMinHeight.Enabled =
+         groupBoxMaxHeight.Enabled =
+         groupBoxSetHeight.Enabled =
+         groupBoxSimplificationHeight.Enabled =
+         checkBoxGapFill4Height.Enabled = !checkBoxRemoveHeights.Checked;
       }
 
       private void contextMenuStripDatasets_Opening(object sender, System.ComponentModel.CancelEventArgs e) {
@@ -317,7 +502,7 @@ namespace GpxViewer {
             string txt = SimplificationDataList[idx];
             SimplificationDataList.RemoveAt(idx);
             SimplificationDataList.Insert(idx - 1, txt);
-            txt = comboBoxDatasets.Items[idx].ToString();
+            txt = comboBoxDatasets.Items[idx].ToString() ?? string.Empty;
             comboBoxDatasets.Items.RemoveAt(idx);
             comboBoxDatasets.Items.Insert(idx - 1, txt);
             comboBoxDatasets.SelectedIndex = idx - 1;
@@ -330,7 +515,7 @@ namespace GpxViewer {
             string txt = SimplificationDataList[idx];
             SimplificationDataList.RemoveAt(idx);
             SimplificationDataList.Insert(idx + 1, txt);
-            txt = comboBoxDatasets.Items[idx].ToString();
+            txt = comboBoxDatasets.Items[idx].ToString() ?? string.Empty;
             comboBoxDatasets.Items.RemoveAt(idx);
             comboBoxDatasets.Items.Insert(idx + 1, txt);
             comboBoxDatasets.SelectedIndex = idx - 1;
@@ -349,12 +534,15 @@ namespace GpxViewer {
          }
       }
 
-      private void button_Save_Click(object sender, EventArgs e) {
+      private async void button_Save_Click(object sender, EventArgs e) {
+         ((Button)sender).Enabled = false;      // damit keine Mehrfachaufrufe im Task möglich sind
+
          int removedtimestamps = 0;
          int removedheights = 0;
          int setminheights = 0;
          int setmaxheights = 0;
          int setheights = 0;
+         int spikes = 0;
          int speedoutliers = 0;
          int heightoutliers = 0;
          int gapfilledheights = 0;
@@ -363,53 +551,101 @@ namespace GpxViewer {
          int changedvsimpl = 0;
 
          SimplificationData sd = getActualData();
-
          List<GpxTrackPoint> gpxTrackPoints = new List<GpxTrackPoint>();
-         for (int i = 0; i < SrcTrack.GpxSegment.Points.Count; i++)
-            gpxTrackPoints.Add(new GpxTrackPoint(SrcTrack.GpxSegment.Points[i]));
 
-         if (sd.RemoveTimestamps)
-            removedtimestamps = GpxSimplification.RemoveTimestamp(gpxTrackPoints);
+         Cursor orgcursor = Cursor;
+         Cursor = Cursors.WaitCursor;
 
-         if (sd.RemoveHeights)
-            removedheights = GpxSimplification.RemoveHeight(gpxTrackPoints);
+         await Task.Run(() => {
+            for (int i = 0; i < SrcTrack.GpxSegment.Points.Count; i++)
+               gpxTrackPoints.Add(new GpxTrackPoint(SrcTrack.GpxSegment.Points[i]));
 
-         if (sd.MinimalHeightIsActiv)
-            GpxSimplification.SetHeight(gpxTrackPoints, out setminheights, out _, sd.MinimalHeight);
+            if (sd.RemoveTimestamps)
+               removedtimestamps = GpxSimplification.RemoveTimestamp(gpxTrackPoints);
 
-         if (sd.MaximalHeightIsActiv)
-            GpxSimplification.SetHeight(gpxTrackPoints, out _, out setmaxheights, double.MinValue, sd.MaximalHeight);
+            if (sd.RemoveHeights)
+               removedheights = GpxSimplification.RemoveHeight(gpxTrackPoints);
 
-         if (sd.PointRangeIsActiv)
-            setheights = GpxSimplification.SetHeight(gpxTrackPoints, sd.PointRangeHeight, sd.PointRangeStart, sd.PointRangeCount);
+            if (!sd.RemoveHeights && sd.MinimalHeightIsActiv)
+               GpxSimplification.SetHeight(gpxTrackPoints, out setminheights, out _, sd.MinimalHeight);
 
-         if (sd.SpeedOutlierIsActiv)
-            speedoutliers = GpxSimplification.RemoveSpeedOutlier(gpxTrackPoints, sd.SpeedOutlier / 3.6);
+            if (!sd.RemoveHeights && sd.MaximalHeightIsActiv)
+               GpxSimplification.SetHeight(gpxTrackPoints, out _, out setmaxheights, double.MinValue, sd.MaximalHeight);
 
-         if (sd.AscendOutlierIsActiv)
-            heightoutliers = GpxSimplification.RemoveHeigthOutlier(gpxTrackPoints, sd.AscendOutlier, sd.AscendOutlierPointCount);
-         
-         if (sd.GapFill)
-            GpxSimplification.GapFill(gpxTrackPoints, out gapfilledheights, out gapfilledtimestamps);
+            if (sd.PointRangeIsActiv)
+               setheights = GpxSimplification.SetHeight(gpxTrackPoints, sd.PointRangeHeight, sd.PointRangeStart, sd.PointRangeCount);
 
-         if (sd.HSimplificationIsActiv)
-            removedhsimpl = GpxSimplification.HorizontalSimplification(gpxTrackPoints, sd.HSimplification, sd.HSimplificationWidth);
+            if (sd.RemoveSpikes)
+               spikes = GpxSimplification.RemoveSpikes(gpxTrackPoints).Length;
 
-         if (sd.VSimplificationIsActiv)
-            changedvsimpl = GpxSimplification.VerticalSimplification(gpxTrackPoints, sd.VSimplification, sd.VSimplificationWidth);
+            if (sd.SpeedOutlierIsActiv)
+               speedoutliers = GpxSimplification.RemoveSpeedOutlier(gpxTrackPoints, sd.SpeedOutlier / 3.6).Length;
+
+            if (!sd.RemoveHeights && sd.AscendOutlierIsActiv)
+               heightoutliers = GpxSimplification.RemoveHeigthOutlier(gpxTrackPoints, sd.AscendOutlierLength, sd.AscendOutlier).Length;
+
+            if (!sd.RemoveTimestamps && sd.GapFill4Time)
+               gapfilledtimestamps = GpxSimplification.GapFill4Time(gpxTrackPoints).Length;
+
+            if (!sd.RemoveHeights && sd.GapFill4Height)
+               gapfilledheights = GpxSimplification.GapFill4Height(gpxTrackPoints).Length;
+
+            if (!sd.RemoveHeights && sd.HSimplificationIsActiv)
+               removedhsimpl = GpxSimplification.HorizontalSimplification(gpxTrackPoints, sd.HSimplification, sd.HSimplificationWidth).Length;
+
+            if (sd.VSimplificationIsActiv) {
+               double[] vparams = sd.VSimplification == GpxSimplification.VSimplification.SlidingMean ?
+                                    [
+                                    sd.VSimplificationWidthPt,
+                                    sd.VSimplificationFractionalDigits,
+                                    ] :
+                                  sd.VSimplification == GpxSimplification.VSimplification.SlidingIntegral ?
+                                    [
+                                    sd.VSimplificationWidth,
+                                    sd.VSimplificationFractionalDigits,
+                                    ] :
+                                  sd.VSimplification == GpxSimplification.VSimplification.LowPassFilter ?
+                                    [
+                                    sd.VSimplificationLowPassFreq,
+                                    sd.VSimplificationLowPassSamplerate,
+                                    sd.VSimplificationLowPassDelay,
+                                    sd.VSimplificationFractionalDigits,
+                                    ] :
+                                    [
+                                    sd.VSimplificationRRWidth,
+                                    sd.VSimplificationRROverlap,
+                                    sd.VSimplificationRRLambda,
+                                    sd.VSimplificationFractionalDigits,
+                                    ];
+
+               changedvsimpl = GpxSimplification.VerticalSimplification(gpxTrackPoints, sd.VSimplification, vparams).Length;
+            }
+         });
+
+         Cursor = orgcursor;
 
          if (removedtimestamps > 0 ||
              removedheights > 0 ||
              setminheights > 0 ||
              setmaxheights > 0 ||
              setheights > 0 ||
+             spikes > 0 ||
              speedoutliers > 0 ||
              heightoutliers > 0 ||
              gapfilledheights > 0 ||
              gapfilledtimestamps > 0 ||
              removedhsimpl > 0 ||
              changedvsimpl > 0) {
-            DestTrack = new Track(gpxTrackPoints, SrcTrack.VisualName + " (vereinfacht)");
+            GpxTrack t = new GpxTrack();
+            t.InsertSegment(new GpxTrackSegment(gpxTrackPoints));
+            GpxSimplification.SimplifyFormat(t);
+
+            //DestTrack = new Track(gpxTrackPoints, SrcTrack.VisualName + " (vereinfacht)") {
+            DestTrack = new Track(t.Segments[0].Points.ToArray(), SrcTrack.VisualName + " (vereinfacht)") {
+               LineColor = SrcTrack.LineColor,
+               LineWidth = SrcTrack.LineWidth,
+            };
+
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine("Änderungen:");
@@ -424,8 +660,10 @@ namespace GpxViewer {
                sb.AppendLine("* " + setmaxheights + " Höhen auf Maximum " + sd.MaximalHeight + "m gesetzt");
             if (setheights > 0)
                sb.AppendLine("* " + setmaxheights + " Höhen auf " + sd.PointRangeHeight + "m gesetzt");
+            if (spikes > 0)
+               sb.AppendLine("* " + spikes + " Punkte als Spikes entfernt");
             if (speedoutliers > 0)
-               sb.AppendLine("* " + speedoutliers + " Punkte wegen Überschreitung der Maximalgeschwindigkeit " + sd.PointRangeHeight + "km/h entfernt");
+               sb.AppendLine("* " + speedoutliers + " Punkte wegen Überschreitung der Maximalgeschwindigkeit " + sd.SpeedOutlier + "km/h entfernt");
             if (heightoutliers > 0)
                sb.AppendLine("* " + heightoutliers + " Höhen wegen Überschreitung der max. Anstiegs " + sd.AscendOutlier + "% angepasst");
             if (gapfilledheights > 0)
@@ -441,6 +679,7 @@ namespace GpxViewer {
          } else
             MessageBox.Show("Es gab keine Veränderungen am Track.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
+         DialogResult = DialogResult.OK;
          Close();
       }
    }

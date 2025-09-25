@@ -1,13 +1,9 @@
 ﻿using SpecialMapCtrl;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
 
 namespace GpxViewer {
    public partial class FormPictureMarkers : Form {
 
-      List<Marker> MarkerLst;
+      List<Marker>? MarkerLst;
 
       public FormPictureMarkers() {
          InitializeComponent();
@@ -21,7 +17,7 @@ namespace GpxViewer {
       private void FormPictureMarkers_Load(object sender, EventArgs e) {
          foreach (Marker marker in MarkerLst) {
             if (marker.Markertype == Marker.MarkerType.Foto) {
-               FormPicture pictform = (Owner as FormMain).GetForm4Picture(marker.Waypoint.Name);
+               FormPicture? pictform = (Owner as FormMain).GetForm4Picture(marker.Waypoint.Name);
                checkedListBox1.Items.Add(Path.GetFileName(marker.Waypoint.Name), pictform != null);
             }
          }
@@ -31,11 +27,11 @@ namespace GpxViewer {
          Marker marker = MarkerLst[e.Index];
          switch (e.NewValue) {
             case CheckState.Checked:
-               (Owner as FormMain).ShowPicture(marker.Waypoint);
+               (Owner as FormMain).ShowFoto4Marker(marker.Waypoint);
                break;
 
             case CheckState.Unchecked:
-               FormPicture pictform = (Owner as FormMain).GetForm4Picture(marker.Waypoint.Name);
+               FormPicture? pictform = (Owner as FormMain).GetForm4Picture(marker.Waypoint.Name);
                if (pictform != null)
                   pictform.Close();
                break;

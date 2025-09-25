@@ -260,7 +260,7 @@ namespace GarminCore.Files.Typ {
                   XBitmapNight.SetNewColors(colNightColor);
                   break;
             }
-            if (WithDayBitmap) {
+            if (WithDayBitmap && XBitmapDay != null) {
                // sicherheitshalber nochmal die Bitmapfarben übernehmen
                DayColor1 = XBitmapDay.GetColor(0);
                if (XBitmapDay.Colors > 1)
@@ -308,37 +308,37 @@ namespace GarminCore.Files.Typ {
                break;
 
             case ColorType.BM_Day2:
-               XBitmapDay.WriteColorTable(bw);
-               XBitmapDay.WriteRawdata(bw);
+               XBitmapDay?.WriteColorTable(bw);
+               XBitmapDay?.WriteRawdata(bw);
                break;
 
             case ColorType.BM_Day2_Night2:
                BinaryColor.WriteColorTable(bw, colDayColor);
                BinaryColor.WriteColorTable(bw, colNightColor);
-               XBitmapDay.WriteRawdata(bw);
+               XBitmapDay?.WriteRawdata(bw);
                break;
 
             case ColorType.BM_Day1_Night2:
                BinaryColor.WriteColor(bw, colDayColor[0]);
                BinaryColor.WriteColorTable(bw, colNightColor);
-               XBitmapDay.WriteRawdata(bw);
+               XBitmapDay?.WriteRawdata(bw);
                break;
 
             case ColorType.BM_Day2_Night1:
                BinaryColor.WriteColorTable(bw, colDayColor);
                BinaryColor.WriteColor(bw, colNightColor[0]);
-               XBitmapDay.WriteRawdata(bw);
+               XBitmapDay?.WriteRawdata(bw);
                break;
 
             case ColorType.BM_Day1:
                BinaryColor.WriteColor(bw, colDayColor[0]);
-               XBitmapDay.WriteRawdata(bw);
+               XBitmapDay?.WriteRawdata(bw);
                break;
 
             case ColorType.BM_Day1_Night1:
                BinaryColor.WriteColor(bw, colDayColor[0]);
                BinaryColor.WriteColor(bw, colNightColor[0]);
-               XBitmapDay.WriteRawdata(bw);
+               XBitmapDay?.WriteRawdata(bw);
                break;
          }
          if (WithString)
@@ -360,20 +360,20 @@ namespace GarminCore.Files.Typ {
 
       }
 
-      private PixMap GetDummyXPixMap(BitmapColorMode bcm, bool b4Day, PixMap old) {
+      private PixMap GetDummyXPixMap(BitmapColorMode bcm, bool b4Day, PixMap? old) {
          if (old != null) {
             if (old.Colormode != bcm) {
                switch (old.Colormode) {
                   case BitmapColorMode.POLY1TR:
                      old.ChangeColorMode(BitmapColorMode.POLY2);
                      old.InvertBits();
-                     old.SetNewColors(new Color[] { old.GetColor(0), Color.White });        // 2. Farbe einfach Weiß
+                     old.SetNewColors([old.GetColor(0), Color.White]);        // 2. Farbe einfach Weiß
                      break;
 
                   case BitmapColorMode.POLY2:
                      old.ChangeColorMode(BitmapColorMode.POLY1TR);
                      old.InvertBits();
-                     old.SetNewColors(new Color[] { old.GetColor(0) });
+                     old.SetNewColors([old.GetColor(0)]);
                      break;
                }
             }
@@ -417,7 +417,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="typ"></param>
       /// <param name="bmday"></param>
       /// <param name="bmnight"></param>
-      public void SetBitmaps(ColorType typ, Bitmap bmday, Bitmap bmnight = null) {
+      public void SetBitmaps(ColorType typ, Bitmap bmday, Bitmap? bmnight = null) {
          if (bmday == null)
             throw new Exception("Kein Bitmap angegeben.");
          if (typ == ColorType.Day1 ||
@@ -502,7 +502,7 @@ namespace GarminCore.Files.Typ {
                case Polygone.ColorType.BM_Day1:
                case Polygone.ColorType.BM_Day1_Night2:
                case Polygone.ColorType.BM_Day1_Night1:
-                  XBitmapDay.InvertBits();
+                  XBitmapDay?.InvertBits();
                   break;
                case Polygone.ColorType.BM_Day2_Night1:
                case Polygone.ColorType.BM_Day2:
@@ -521,7 +521,7 @@ namespace GarminCore.Files.Typ {
                   break;
                case Polygone.ColorType.BM_Day1_Night1:
                case Polygone.ColorType.BM_Day2_Night1:
-                  XBitmapNight.InvertBits();
+                  XBitmapNight?.InvertBits();
                   break;
                case Polygone.ColorType.BM_Day1_Night2:
                case Polygone.ColorType.BM_Day2_Night2:
@@ -564,35 +564,35 @@ namespace GarminCore.Files.Typ {
             case ColorType.BM_Day1_Night1:
                sb.Append(colDayColor[0].ToString());
                sb.Append(colNightColor[0].ToString());
-               sb.Append(XBitmapDay.ToString());
+               sb.Append(XBitmapDay?.ToString());
                break;
             case ColorType.BM_Day1_Night2:
                sb.Append(colDayColor[0].ToString());
                sb.Append(colNightColor[0].ToString());
                sb.Append(colNightColor[1].ToString());
-               sb.Append(XBitmapDay.ToString());
+               sb.Append(XBitmapDay?.ToString());
                break;
             case ColorType.BM_Day2_Night2:
                sb.Append(colDayColor[0].ToString());
                sb.Append(colDayColor[1].ToString());
                sb.Append(colNightColor[0].ToString());
                sb.Append(colNightColor[1].ToString());
-               sb.Append(XBitmapDay.ToString());
+               sb.Append(XBitmapDay?.ToString());
                break;
             case ColorType.BM_Day2:
                sb.Append(colDayColor[0].ToString());
                sb.Append(colDayColor[1].ToString());
-               sb.Append(XBitmapDay.ToString());
+               sb.Append(XBitmapDay?.ToString());
                break;
             case ColorType.BM_Day2_Night1:
                sb.Append(colDayColor[0].ToString());
                sb.Append(colDayColor[1].ToString());
                sb.Append(colNightColor[0].ToString());
-               sb.Append(XBitmapDay.ToString());
+               sb.Append(XBitmapDay?.ToString());
                break;
             case ColorType.BM_Day1:
                sb.Append(colDayColor[0].ToString());
-               sb.Append(XBitmapDay.ToString());
+               sb.Append(XBitmapDay?.ToString());
                break;
          }
          if (WithExtendedOptions)

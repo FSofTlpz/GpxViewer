@@ -1,5 +1,4 @@
 ﻿using FSofTUtils.Geography.PoorGpx;
-using System.Collections.Generic;
 
 namespace SpecialMapCtrl {
    internal class RouteCrossing {
@@ -11,7 +10,7 @@ namespace SpecialMapCtrl {
       /// <param name="points">Punktliste der Polylinie</param>
       /// <param name="boundofpoints">umgebendes Rechteck der Polylinie (wird bei null automatisch gebildet)</param>
       /// <returns></returns>
-      public static bool IsRouteCrossing<T>(GpxBounds bounds, IList<T> points, GpxBounds boundofpoints = null) where T : GpxPointBase {
+      public static bool IsRouteCrossing<T>(GpxBounds bounds, ListTS<T> points, GpxBounds? boundofpoints = null) where T : GpxPointBase {
          if (boundofpoints == null) {
             boundofpoints = new GpxBounds();
             boundofpoints.Union(points);
@@ -20,9 +19,9 @@ namespace SpecialMapCtrl {
          //Debug.WriteLine(string.Format("IsCrossing(): {0}", this));
          if (bounds.IntersectsWith(boundofpoints)) {   // sonst lohnt eine Untersuchung nicht
 
-            foreach (var pt in points) {  // min. 1 Punkt innerhalb des Rechtecks?
-               if (bounds.MinLon <= pt.Lon && pt.Lon <= bounds.MaxLon &&
-                   bounds.MinLat <= pt.Lat && pt.Lat <= bounds.MaxLat) {
+            for (int i = 0; i < points.Count; i++) {  // min. 1 Punkt innerhalb des Rechtecks?
+               if (bounds.MinLon <= points[i].Lon && points[i].Lon <= bounds.MaxLon &&
+                   bounds.MinLat <= points[i].Lat && points[i].Lat <= bounds.MaxLat) {
                   //Debug.WriteLine(string.Format("IsCrossing(): Point in rect: {0} / {1}", pt, this));
                   return true;
                }

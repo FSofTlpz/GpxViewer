@@ -94,32 +94,28 @@ namespace GarminCore.Files {
          /// <summary>
          /// Tabelleneintrages des Subtiles
          /// </summary>
-         public SubtileTableitem Tableitem { get; set; }
+         public SubtileTableitem? Tableitem { get; set; }
          /// <summary>
          /// codierte Höhendaten
          /// </summary>
-         public byte[] Data { get; set; }
+         public byte[]? Data { get; set; }
          /// <summary>
          /// Länge der Höhendaten
          /// </summary>
-         public int DataLength {
-            get {
-               return Data.Length;
-            }
-         }
+         public int DataLength => Data != null ? Data.Length : 0;
 
 
-         public Subtile(byte[] data, SubtileTableitem tableitem = null) {
+         public Subtile(byte[] data, SubtileTableitem? tableitem = null) {
             SetData(data, tableitem);
          }
 
-         public Subtile(string file, SubtileTableitem tableitem = null) {
+         public Subtile(string file, SubtileTableitem? tableitem = null) {
             using (BinaryReader r = new BinaryReader(File.OpenRead(file))) {
                SetData(r.ReadBytes((int)r.BaseStream.Length), tableitem);
             }
          }
 
-         void SetData(byte[] data, SubtileTableitem tableitem) {
+         void SetData(byte[] data, SubtileTableitem? tableitem) {
             if (data == null || data.Length == 0)
                Data = new byte[0];
             else {
@@ -156,7 +152,10 @@ namespace GarminCore.Files {
          public void CalculateOffsets() {
             uint offs = 0;
             for (int i = 0; i < Subtiles.Count; i++) {
-               Subtiles[i].Tableitem.Offset = offs;
+               if (Subtiles[i].Tableitem != null)
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  Subtiles[i].Tableitem.Offset = offs;
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
                offs += (uint)Subtiles[i].DataLength;
             }
          }
@@ -169,10 +168,13 @@ namespace GarminCore.Files {
             int maxbase = int.MinValue;
             uint maxdiff = uint.MinValue;
             for (int i = 0; i < Subtiles.Count; i++) {
-               maxoffs = Math.Max(maxoffs, Subtiles[i].Tableitem.Offset);
-               maxbase = Math.Max(maxbase, Subtiles[i].Tableitem.Baseheight);
-               maxdiff = Math.Max(maxdiff, Subtiles[i].Tableitem.Diff);
-
+               if (Subtiles[i].Tableitem != null) {
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  maxoffs = Math.Max(maxoffs, Subtiles[i].Tableitem.Offset);
+                  maxbase = Math.Max(maxbase, Subtiles[i].Tableitem.Baseheight);
+                  maxdiff = Math.Max(maxdiff, Subtiles[i].Tableitem.Diff);
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
+               }
             }
 
             if (maxoffs >= 65536)
@@ -239,7 +241,7 @@ namespace GarminCore.Files {
 
             br.Seek(ZoomlevelItem.PtrHeightdata);
             for (int i = 0; i < stilst.Count; i++) {
-               byte[] data = null;
+               byte[]? data = null;
                if (stilst[i].Diff > 0) {
                   // Datenlänge: vom akt. Offset bis zum nächsten gültigen Offset
                   int j = i + 1;
@@ -253,7 +255,8 @@ namespace GarminCore.Files {
                                     dataendpos - (uint)br.Position;
                   data = br.ReadBytes((int)len);
                }
-               Subtiles.Add(new Subtile(data, stilst[i]));
+               if (data != null)
+                  Subtiles.Add(new Subtile(data, stilst[i]));
             }
 
             br.Seek(pos);
@@ -266,9 +269,12 @@ namespace GarminCore.Files {
          public void WriteData(BinaryReaderWriter bw) {
             CalculateOffsets();
             for (int i = 0; i < Subtiles.Count; i++)
-               Subtiles[i].Tableitem.Write(bw, ZoomlevelItem.Structure_OffsetSize, ZoomlevelItem.Structure_BaseheightSize, ZoomlevelItem.Structure_DiffSize, ZoomlevelItem.Structure_CodingtypeSize);
+               Subtiles[i].Tableitem?.Write(bw, ZoomlevelItem.Structure_OffsetSize, ZoomlevelItem.Structure_BaseheightSize, ZoomlevelItem.Structure_DiffSize, ZoomlevelItem.Structure_CodingtypeSize);
             for (int i = 0; i < Subtiles.Count; i++)
-               bw.Write(Subtiles[i].Data);
+               if (Subtiles[i] != null && Subtiles[i].Data != null)
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
+                  bw.Write(Subtiles[i].Data);
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
          }
 
          /// <summary>
@@ -652,11 +658,16 @@ namespace GarminCore.Files {
             // Subtile-Tabelle schreiben
             for (int i = 0; i < ZoomLevel[z].Subtiles.Count; i++) {
                ZoomlevelTableitem zti = ZoomLevel[z].ZoomlevelItem;
-               ZoomLevel[z].Subtiles[i].Tableitem.Write(bw, zti.Structure_OffsetSize, zti.Structure_BaseheightSize, zti.Structure_DiffSize, zti.Structure_CodingtypeSize);
+               ZoomLevel[z].Subtiles[i].Tableitem?.Write(bw, zti.Structure_OffsetSize, zti.Structure_BaseheightSize, zti.Structure_DiffSize, zti.Structure_CodingtypeSize);
             }
             // Subtile-Daten schreiben
             for (int i = 0; i < ZoomLevel[z].Subtiles.Count; i++)
-               bw.Write(ZoomLevel[z].Subtiles[i].Data);
+               if (ZoomLevel[z] != null &&
+                   ZoomLevel[z].Subtiles[i] != null &&
+                   ZoomLevel[z].Subtiles[i].Data != null)
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
+                  bw.Write(ZoomLevel[z].Subtiles[i].Data);
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
          }
 
          // Zoomleveltabelle schreiben

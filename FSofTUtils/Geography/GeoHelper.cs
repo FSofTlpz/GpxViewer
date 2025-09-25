@@ -14,7 +14,7 @@ namespace FSofTUtils.Geography {
       /// </summary>
       public enum Wgs84DistanceCompute {
          /// <summary>
-         /// für kurze Entfernungen; die Erdoberfläche wird näherungsweise als Fläche angesehen
+         /// für kurze Entfernungen; die Erdoberfläche wird näherungsweise als Fläche angesehen (im Vgl. zu <see cref="ellipsoid"/> etwa 0,2..0,3% zu wenig)
          /// </summary>
          simple,
          /// <summary>

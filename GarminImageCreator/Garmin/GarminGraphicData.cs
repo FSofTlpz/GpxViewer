@@ -25,35 +25,25 @@ namespace GarminImageCreator.Garmin {
 
          public uint Subtype { get; protected set; }
 
-         public uint Fulltype {
-            get {
-               return GetFulltype(Type, Subtype);
-            }
-         }
+         public uint Fulltype => GetFulltype(Type, Subtype);
 
-         public static uint GetFulltype(uint type, uint subtype) {
-            return (type << 8) + subtype;
-         }
+         public static uint GetFulltype(uint type, uint subtype) => (type << 8) + subtype;
 
-         public string Name { get; protected set; }
+         public string? Name { get; protected set; }
 
-         public bool WithBitmap {
-            get {
-               return Bitmap != null;
-            }
-         }
+         public bool WithBitmap => Bitmap != null;
 
-         protected Bitmap Bitmap;
+         protected Bitmap? Bitmap;
 
          /// <summary>
          /// liefert threadsicher eine Kopie des Bitmaps oder null (bei Multithreading nötig)
          /// </summary>
-         public Bitmap BitmapClone {
+         public Bitmap? BitmapClone {
             get {
                lock (bitmap_locker) {
                   return Bitmap != null ?
-                           Bitmap.Clone() as Bitmap :
-                           null;
+                              Bitmap.Clone() as Bitmap :
+                              null;
                }
             }
          }
@@ -61,10 +51,10 @@ namespace GarminImageCreator.Garmin {
          /// <summary>
          /// liefert threadsicher einen TextureBrush für das Bitmap oder null (bei Multithreading nötig)
          /// </summary>
-         public TextureBrush BitmapAsTextureBrush {
+         public TextureBrush? BitmapAsTextureBrush {
             get {
-               Bitmap bm = BitmapClone;
-               TextureBrush tb = null;
+               Bitmap? bm = BitmapClone;
+               TextureBrush? tb = null;
                if (bm != null) {
                   tb = new TextureBrush(bm) {
                      WrapMode = System.Drawing.Drawing2D.WrapMode.Tile,
@@ -100,10 +90,10 @@ namespace GarminImageCreator.Garmin {
          /// <summary>
          /// liefert threadsicher eine Textur aus dem <see cref="Bitmap"/> für Linien (etwas breiter als das normale Bitmap)
          /// </summary>
-         public TextureBrush GetTextureBrush(float factor) {
+         public TextureBrush? GetTextureBrush(float factor) {
             lock (bitmap_locker) {
                if (Bitmap != null) {
-                  TextureBrush tb = null;
+                  TextureBrush? tb = null;
                   int h = (int)(factor * (Bitmap.Height + 2 * AdditionalEdge)); // etwas breiter, damit beim "Kacheln" kein "Schatten" vom anderen Rand auftaucht
                   using (Bitmap bm = new Bitmap(Bitmap.Width, h)) {
                      using (Graphics g = Graphics.FromImage(bm)) {
@@ -113,7 +103,6 @@ namespace GarminImageCreator.Garmin {
                            g.DrawImage(Bitmap, 0, edge, Bitmap.Width, h - 2 * edge);
                         } else
                            g.DrawImageUnscaled(Bitmap, 0, 2);
-                        g.Flush();
                      }
 
                      tb = new TextureBrush(bm);
@@ -237,17 +226,18 @@ namespace GarminImageCreator.Garmin {
 
          public Bitmap GetAsBitmap(int length) {
             Bitmap bm = new Bitmap(length, Bitmap != null ? Bitmap.Height : length);
-            Graphics g = Graphics.FromImage(bm);
-            g.Clear(Color.Transparent);
-            if (WithBitmap) {
-               for (int x = 0; x < length; x += Bitmap.Width)
-                  g.DrawImageUnscaled(Bitmap, x, 0);
-            } else {
+            using (Graphics g = Graphics.FromImage(bm)) {
+               g.Clear(Color.Transparent);
+               if (WithBitmap) {
+                  if (Bitmap != null)
+                     for (int x = 0; x < length; x += Bitmap.Width)
+                        g.DrawImageUnscaled(Bitmap, x, 0);
+               } else {
 
-               g.Clear(InnerColor);
+                  g.Clear(InnerColor);
 
+               }
             }
-            g.Flush();
             return bm;
          }
 
@@ -255,12 +245,7 @@ namespace GarminImageCreator.Garmin {
          /// erzeugt einen Brush
          /// </summary>
          /// <returns></returns>
-         public Brush GetBrush() {
-            if (!WithBitmap)
-               return new SolidBrush(InnerColor);
-            else
-               return BitmapAsTextureBrush;
-         }
+         public Brush? GetBrush() => !WithBitmap ? new SolidBrush(InnerColor) : BitmapAsTextureBrush;
 
          public override string ToString() {
             return string.Format("[Fulltype={0:x4}, Name={1}, Bitmap={2}x{3}]",
@@ -322,15 +307,17 @@ namespace GarminImageCreator.Garmin {
                //   g.Flush();
                //}
 
-               Width = InnerWidth = (uint)Bitmap.Height;
+               if (Bitmap != null) {
+                  Width = InnerWidth = (uint)Bitmap.Height;
 
-               IsTransparent = true;
-               for (int x = 0; x < Bitmap.Width; x++)
-                  for (int y = 0; y < Bitmap.Height; y++)
-                     if (Bitmap.GetPixel(x, y).A != 0) {     // wenigstens 1 nicht volltransparentes Pixel
-                        IsTransparent = false;
-                        break;
-                     }
+                  IsTransparent = true;
+                  for (int x = 0; x < Bitmap.Width; x++)
+                     for (int y = 0; y < Bitmap.Height; y++)
+                        if (Bitmap.GetPixel(x, y).A != 0) {     // wenigstens 1 nicht volltransparentes Pixel
+                           IsTransparent = false;
+                           break;
+                        }
+               }
 
             } else {
                switch (line.Polylinetype) {
@@ -376,24 +363,25 @@ namespace GarminImageCreator.Garmin {
          /// erzeugt einen neuen Pen (auch als Rand bei Linien mit Rand)
          /// </summary>
          /// <returns></returns>
-         public Pen GetPen() {
+         public Pen? GetPen() {
             if (WithBitmap) {
-               Pen pen = null;
+               Pen? pen = null;
 
-               using (TextureBrush tb = GetTextureBrush(widthFactor)) {
-                  pen = new Pen(tb,
-                                widthFactor * (tb.Image.Height - AdditionalEdge)) {    // in Win nötig!!!
-                     StartCap = System.Drawing.Drawing2D.LineCap.Round,
-                     EndCap = System.Drawing.Drawing2D.LineCap.Round,
-                     Alignment = System.Drawing.Drawing2D.PenAlignment.Outset,
-                     /*
-                           Center   0 	Gibt an, dass das Pen-Objekt auf der theoretischen Linie zentriert ist.
-                           Inset    1 	Gibt an, dass sich das Pen-Objekt auf der Innenseite der theoretischen Linie befindet.
-                           Left     3 	Gibt an, dass das Pen-Objekt links von der theoretischen Linie positioniert ist.
-                           Outset   2 	Gibt an, dass das Pen-Objekt außerhalb der theoretischen Linie positioniert ist.
-                           Right    4 	Gibt an, dass das Pen-Objekt rechts von der theoretischen Linie positioniert ist.
-                      */
-                  };
+               using (TextureBrush? tb = GetTextureBrush(widthFactor)) {
+                  if (tb != null)
+                     pen = new Pen(tb,
+                                   widthFactor * (tb.Image.Height - AdditionalEdge)) {    // in Win nötig!!!
+                        StartCap = System.Drawing.Drawing2D.LineCap.Round,
+                        EndCap = System.Drawing.Drawing2D.LineCap.Round,
+                        Alignment = System.Drawing.Drawing2D.PenAlignment.Outset,
+                        /*
+                              Center   0 	Gibt an, dass das Pen-Objekt auf der theoretischen Linie zentriert ist.
+                              Inset    1 	Gibt an, dass sich das Pen-Objekt auf der Innenseite der theoretischen Linie befindet.
+                              Left     3 	Gibt an, dass das Pen-Objekt links von der theoretischen Linie positioniert ist.
+                              Outset   2 	Gibt an, dass das Pen-Objekt außerhalb der theoretischen Linie positioniert ist.
+                              Right    4 	Gibt an, dass das Pen-Objekt rechts von der theoretischen Linie positioniert ist.
+                         */
+                     };
                }
 
 
@@ -430,9 +418,7 @@ namespace GarminImageCreator.Garmin {
          /// erzeugt einen neuen Pen für das Innere wenn die Linie einen Rand hat
          /// </summary>
          /// <returns></returns>
-         public Pen GetInnerPen() {
-            return getPen(InnerColor, widthFactor * InnerWidth);
-         }
+         public Pen GetInnerPen() => getPen(InnerColor, widthFactor * InnerWidth);
 
          /// <summary>
          /// erzeugt ein Bitmap für die Linie
@@ -442,17 +428,19 @@ namespace GarminImageCreator.Garmin {
          public Bitmap GetAsBitmap(int length) {
             Bitmap bm = new Bitmap(length,
                                    WithBitmap ?
-                                       Bitmap.Height :
+                                       Bitmap != null ? Bitmap.Height : 1 :
                                        AdditionalEdge + (int)Width);
             Graphics g = Graphics.FromImage(bm);
             g.Clear(Color.Transparent);
 
             if (WithBitmap) {
-               g.DrawImage(Bitmap, 0, (bm.Height - Bitmap.Height) / 2);
+               if (Bitmap != null)
+                  g.DrawImage(Bitmap, 0, (bm.Height - Bitmap.Height) / 2);
             } else {
-               Pen pen = GetPen();
-               g.DrawLine(pen, 0, bm.Height / 2, length, bm.Height / 2);
-               pen.Dispose();
+               Pen? pen = GetPen();
+               if (pen != null)
+                  g.DrawLine(pen, 0, bm.Height / 2, length, bm.Height / 2);
+               pen?.Dispose();
             }
 
             if (WithBorder) {
@@ -465,13 +453,11 @@ namespace GarminImageCreator.Garmin {
             return bm;
          }
 
-         Pen getPen(Color col, float width) {
-            return new Pen(col, width) {
-               LineJoin = System.Drawing.Drawing2D.LineJoin.Round,
-               EndCap = System.Drawing.Drawing2D.LineCap.Round,
-               StartCap = System.Drawing.Drawing2D.LineCap.Round,
-            };
-         }
+         Pen getPen(Color col, float width) => new Pen(col, width) {
+            LineJoin = System.Drawing.Drawing2D.LineJoin.Round,
+            EndCap = System.Drawing.Drawing2D.LineCap.Round,
+            StartCap = System.Drawing.Drawing2D.LineCap.Round,
+         };
 
          public override string ToString() {
             return string.Format("[Fulltype={0:x4}, Name={1}, Width={2}, InnerWidth={3}, Bitmap={4}x{5}]",
@@ -494,16 +480,17 @@ namespace GarminImageCreator.Garmin {
             Name = point.Text.Get(GarminCore.Files.Typ.Text.LanguageCode.german);
             if (string.IsNullOrEmpty(Name))
                Name = point.Text.Get(0).Txt;
-            Bitmap bmorg = point.AsBitmap(true);
+            Bitmap? bmorg = point.AsBitmap(true);
             if (symbolfactor == 1.0)
                Bitmap = bmorg;
             else if (symbolfactor > 0) {
-               Bitmap = new Bitmap((int)Math.Round(symbolfactor * bmorg.Width),
-                                   (int)Math.Round(symbolfactor * bmorg.Height));
-               Graphics graphics = Graphics.FromImage(Bitmap);
-               graphics.DrawImage(bmorg, 0, 0, Bitmap.Width, Bitmap.Height);
-               graphics.Flush();
-               graphics.Dispose();
+               if (bmorg != null) {
+                  Bitmap = new Bitmap((int)Math.Round(symbolfactor * bmorg.Width),
+                                      (int)Math.Round(symbolfactor * bmorg.Height));
+                  if (Bitmap != null)
+                     using (Graphics graphics = Graphics.FromImage(Bitmap))
+                        graphics.DrawImage(bmorg, 0, 0, Bitmap.Width, Bitmap.Height);
+               }
             }
 
             setFontIndex(point.FontType);
@@ -529,7 +516,7 @@ namespace GarminImageCreator.Garmin {
 
          public readonly double Factor;
 
-         readonly Font[] textFont;
+         readonly Font?[] textFont;
 
 
          public ObjectFonts(double fontfactor, string fontname) {
@@ -538,6 +525,7 @@ namespace GarminImageCreator.Garmin {
             textFont = new Font[1 + (int)ObjectData.FontSize.Large];    // VORSICHT: nur korrekt wenn FontSize.Large die höchste Indexnummer hat
             textFont[(int)ObjectData.FontSize.NoFont] = null;
 #if DRAWWITHSKIA
+            dataStdTypeface = Array.Empty<byte>();
             loadExternFontdata(fontname);
 
             textFont[(int)ObjectData.FontSize.Small] = new Font(getStdSKTypeface(), 5 * (float)fontfactor);
@@ -552,20 +540,25 @@ namespace GarminImageCreator.Garmin {
 #endif
          }
 
-         public Font TextFont(ObjectData.FontSize size) {
-            return textFont[(int)size];
-         }
-
+         public Font? TextFont(ObjectData.FontSize size) => textFont[(int)size];
 
 #if DRAWWITHSKIA
          byte[] dataStdTypeface;
 
          void loadExternFontdata(string fontname) {
             var assembly = Assembly.GetExecutingAssembly();
-            System.IO.Stream stream = assembly.GetManifestResourceStream(assembly.GetName().Name + "." + fontname + ".ttf");
-            dataStdTypeface = new byte[stream.Length];
-            stream.Read(dataStdTypeface, 0, dataStdTypeface.Length);
-            stream?.Dispose();
+            try {
+               using (Stream? stream = assembly.GetManifestResourceStream(assembly.GetName().Name + "." + fontname + ".ttf")) {
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  dataStdTypeface = new byte[stream.Length];
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
+                  int len = stream.Read(dataStdTypeface, 0, dataStdTypeface.Length);
+                  if (len != dataStdTypeface.Length)
+                     throw new Exception(nameof(GarminGraphicData) + "." + nameof(loadExternFontdata) + "(): Nicht genug Daten gelesen.");
+               }
+            } catch (Exception) {
+               throw new Exception("Der Font '" + fontname + "' konnte nicht aus den Ressourcen geladen werden.");
+            }
          }
 
          SKTypeface getStdSKTypeface() {
@@ -602,10 +595,10 @@ namespace GarminImageCreator.Garmin {
          /// </summary>
          /// <param name="notfromfinalizer">falls, wenn intern vom Finalizer aufgerufen</param>
          protected virtual void Dispose(bool notfromfinalizer) {
-            if (!this._isdisposed) {            // bisher noch kein Dispose erfolgt
+            if (!_isdisposed) {            // bisher noch kein Dispose erfolgt
                if (notfromfinalizer) {          // nur dann alle managed Ressourcen freigeben
                   for (int i = 0; i < textFont.Length; i++)
-                     textFont[i].Dispose();
+                     textFont[i]?.Dispose();
                }
                // jetzt immer alle unmanaged Ressourcen freigeben (z.B. Win32)
 
@@ -641,11 +634,7 @@ namespace GarminImageCreator.Garmin {
 
       public readonly ObjectFonts Fonts;
 
-      public double FontFactor {
-         get {
-            return Fonts.Factor;
-         }
-      }
+      public double FontFactor => Fonts.Factor;
 
 
       /// <summary>
@@ -680,22 +669,26 @@ namespace GarminImageCreator.Garmin {
                typ.Read(br);
 
                for (int i = 0; i < typ.PolylineCount; i++) {
-                  GarminCore.Files.Typ.Polyline polylinetyp = typ.GetPolyline(i);
-                  Lines.Add(LineData.GetFulltype(polylinetyp.Type, polylinetyp.Subtype), new LineData(polylinetyp, linefactor));
+                  GarminCore.Files.Typ.Polyline? polylinetyp = typ.GetPolyline(i);
+                  if (polylinetyp != null)
+                     Lines.Add(LineData.GetFulltype(polylinetyp.Type, polylinetyp.Subtype), new LineData(polylinetyp, linefactor));
                }
 
                for (int i = 0; i < typ.PoiCount; i++) {
-                  GarminCore.Files.Typ.POI point = typ.GetPoi(i);
-                  Points.Add(PointData.GetFulltype(point.Type, point.Subtype), new PointData(point, symbolfactor));
+                  GarminCore.Files.Typ.POI? point = typ.GetPoi(i);
+                  if (point != null)
+                     Points.Add(PointData.GetFulltype(point.Type, point.Subtype), new PointData(point, symbolfactor));
                }
 
                uint draworderdelta = 0;
                for (int i = 0; i < typ.PolygonCount; i++) {
-                  GarminCore.Files.Typ.Polygone area = typ.GetPolygone(i);
-                  while (AreaDrawOrder.ContainsKey(area.Draworder + draworderdelta))
-                     draworderdelta++;
-                  AreaDrawOrder.Add(area.Draworder + draworderdelta, (area.Type << 8) | area.Subtype);
-                  Areas.Add(AreaData.GetFulltype(area.Type, area.Subtype), new AreaData(area));
+                  GarminCore.Files.Typ.Polygone? area = typ.GetPolygone(i);
+                  if (area != null) {
+                     while (AreaDrawOrder.ContainsKey(area.Draworder + draworderdelta))
+                        draworderdelta++;
+                     AreaDrawOrder.Add(area.Draworder + draworderdelta, (area.Type << 8) | area.Subtype);
+                     Areas.Add(AreaData.GetFulltype(area.Type, area.Subtype), new AreaData(area));
+                  }
                }
                typ.Dispose();
             }

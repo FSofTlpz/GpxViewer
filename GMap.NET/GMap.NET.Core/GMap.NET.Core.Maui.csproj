@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>GMap.NET.Core</PackageId>
+    <Product>GMap.NET.Core</Product>
+    <AssemblyTitle>GMap.NET.Core</AssemblyTitle>
+    <RootNamespace>GMap.NET</RootNamespace>
+    <!-- TargetFrameworks>net46;net47;net48;netstandard2.0;netcoreapp3.1;net5.0;net6.0</TargetFrameworks -->
+    <TargetFrameworks>net9.0</TargetFrameworks>
+    <!-- MONO_disabled; -->
+    <DefineConstants>SQLite;MySQL_disabled;PostgreSQL_disabled;$(DefineConstants)</DefineConstants>
+    <PackageReleaseNotes>
+- .Net Core 3.1 support added
+- .Net 5.0 support added
+- .Net 6.0 support added
+- New GMap.NET.WinAvalonia library
+
+History Release Notes
+https://github.com/judero01col/GMap.NET/blob/master/README.md#release-notes
+    </PackageReleaseNotes>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0|AnyCPU'">
+    <DefineConstants>$(DefineConstants);FILECACHE;MONO;MySQL_disabled;NETFRAMEWORK;PostgreSQL_disabled;USEHTTPCLIENT;GMAP4SKIA</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0|AnyCPU'">
+    <DefineConstants>$(DefineConstants);FILECACHE;MONO;MySQL_disabled;NETFRAMEWORK;PostgreSQL_disabled;USEHTTPCLIENT;GMAP4SKIA</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="CacheProviders\MsSQLCePureImageCache.cs" />
+    <Compile Remove="CacheProviders\MSSQLPureImageCache.cs" />
+    <Compile Remove="CacheProviders\MySQLPureImageCache.cs" />
+    <Compile Remove="CacheProviders\SQLitePureImageCache.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="CacheProviders\SQLitePureImageCache.org" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="GeoAPI.CoordinateSystems" Version="1.7.5" />
+    <PackageReference Include="GeoAPI.Core" Version="1.7.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FSofTUtils\FSofTUtils.Skia.csproj" />
+    <ProjectReference Include="..\..\GarminImageCreator\GarminImageCreator.Skia.csproj" />
+  </ItemGroup>
+  <!--
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Data.SqlClient">
+      <Version>4.8.3</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Principal.Windows">
+      <Version>5.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  -->
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

@@ -44,7 +44,7 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Typ-Zeichenkette z.B. "GARMIN RGN" (0x02)
       /// </summary>
-      protected string GarminTyp { get; private set; }
+      protected string GarminTyp { get; private set; } = "";
       /// <summary>
       /// immer 0x01 ? (0x0C)
       /// </summary>
@@ -117,7 +117,7 @@ namespace GarminCore.OptimizedReader {
       /// Erzeugt ein Dateiobjekt
       /// </summary>
       /// <param name="typ">Dateityp ("LBL" oder ähnlich); wenn null wird intern nur "xxx" gesetzt</param>
-      public StdFile(string typ = null) {
+      public StdFile(string? typ = null) {
          Headerlength = 0;
          Type = typ != null && typ.Length == 3 ? typ : "xxx";
          Unknown_0x0C = 0x01;
@@ -135,7 +135,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       /// <param name="br"></param>
       /// <param name="expectedtyp">Extension des erwarteten Typs z.B. 'LBL', sonst null</param>
-      protected void readCommonHeader(BinaryReaderWriter br, string expectedtyp = null) {
+      protected void readCommonHeader(BinaryReaderWriter br, string? expectedtyp = null) {
          br.Position = HeaderOffset;
 
          Headerlength = br.Read2AsUShort();

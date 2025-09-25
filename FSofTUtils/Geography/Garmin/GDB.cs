@@ -15,14 +15,14 @@ namespace FSofTUtils.Geography.Garmin {
          /// <summary>
          /// i.A. "MapSource" oder "BaseCamp"
          /// </summary>
-         public string Progname = "";
+         public string? Progname = "";
 
-         public Version Version;
+         public Version Version = new Version();
 
          /// <summary>
          /// z.B.: "Oct 14 2010", "08:33:45"
          /// </summary>
-         public DateTime DateTime;
+         public DateTime DateTime = new DateTime();
 
 
          public Header(BinaryReader reader) {
@@ -138,7 +138,8 @@ namespace FSofTUtils.Geography.Garmin {
          public Object(BinaryReader reader, ObjectHeader header) {
             ObjectHeader = header;
             dataStart = reader.BaseStream.Position;
-            Name = read_CString(reader);
+            string? tmp = read_CString(reader);
+            Name = tmp != null ? tmp : string.Empty;
          }
 
          /// <summary>
@@ -147,7 +148,7 @@ namespace FSofTUtils.Geography.Garmin {
          /// <param name="reader"></param>
          /// <returns></returns>
          public byte[] ReadDummy(BinaryReader reader) {
-            return reader.ReadBytes(ObjectHeader.Length - Name.Length - 1);
+            return Name != null ? reader.ReadBytes(ObjectHeader.Length - Name.Length - 1) : [];
          }
 
          /// <summary>
@@ -155,7 +156,7 @@ namespace FSofTUtils.Geography.Garmin {
          /// </summary>
          /// <param name="reader"></param>
          /// <returns></returns>
-         public static string read_CString(BinaryReader reader) {
+         public static string? read_CString(BinaryReader reader) {
             return read_CString(reader, Encoding.UTF8);
          }
 
@@ -175,7 +176,7 @@ namespace FSofTUtils.Geography.Garmin {
          /// </summary>
          /// <param name="reader"></param>
          /// <returns></returns>
-         public static string read_CString(BinaryReader reader, Encoding encoding) {
+         public static string? read_CString(BinaryReader reader, Encoding encoding) {
             List<byte> bytes = new List<byte>();
             byte b = reader.ReadByte();
             while (b != 0) {
@@ -189,8 +190,11 @@ namespace FSofTUtils.Geography.Garmin {
          public static List<string> read_CStringArray(BinaryReader reader, Encoding encoding) {
             List<string> lst = new List<string>();
             int count = reader.ReadInt32();
-            for (int i = 0; i < count; i++)
-               lst.Add(read_CString(reader, encoding));
+            for (int i = 0; i < count; i++) {
+               string? str = read_CString(reader, encoding);
+               if (str != null)
+                  lst.Add(str);
+            }
             return lst;
          }
 
@@ -200,7 +204,7 @@ namespace FSofTUtils.Geography.Garmin {
          /// <param name="buffer"></param>
          /// <param name="start"></param>
          /// <returns></returns>
-         static string read_CString(IList<byte> buffer, int start, Encoding encoding) {
+         static string? read_CString(IList<byte> buffer, int start, Encoding encoding) {
             List<byte> bytes = new List<byte>();
             bool found0 = false;
             for (int i = start; i < buffer.Count; i++) {
@@ -247,6 +251,8 @@ namespace FSofTUtils.Geography.Garmin {
 
          public Version(BinaryReader reader, ObjectHeader header) :
             base(reader, header) {
+            if (Name == null || Name.Length == 0)
+               throw new Exception("no Version");
             GDBVersion = (VersionKey)Name[0];
          }
 
@@ -268,8 +274,13 @@ namespace FSofTUtils.Geography.Garmin {
 
          public DateTime(BinaryReader reader, ObjectHeader header) :
             base(reader, header) {
-            Data.Add(read_CString(reader, Encoding.ASCII));
-            Data.Add(read_CString(reader, Encoding.ASCII));
+            string? str = read_CString(reader, Encoding.ASCII);
+            if (str != null) {
+               Data.Add(str);
+               str = read_CString(reader, Encoding.ASCII);
+               if (str != null)
+                  Data.Add(str);
+            }
          }
 
          public override string ToString() {
@@ -356,15 +367,21 @@ namespace FSofTUtils.Geography.Garmin {
             for (int i = 0; i < points; i++)
                Points.Add(new TrackPoint(reader));
 
+            string? str;
             switch (version.GDBVersion) {
                case Version.VersionKey.V2:
-                  Url.Add(read_CString(reader));
+                  str = read_CString(reader);
+                  if (str != null)
+                     Url.Add(str);
                   break;
 
                case Version.VersionKey.V3:
                   int urls = reader.ReadInt32();
-                  for (int i = 0; i < urls; i++)
-                     Url.Add(read_CString(reader));
+                  for (int i = 0; i < urls; i++) {
+                     str = read_CString(reader);
+                     if (str != null)
+                        Url.Add(str);
+                  }
                   break;
             }
 
@@ -382,38 +399,38 @@ namespace FSofTUtils.Geography.Garmin {
       public class Waypoint : Object {
 
          public int WaypointClass = -1;
-         public string CountryCode;
-         public byte[] Unknown22;
+         public string? CountryCode;
+         public byte[]? Unknown22;
          public double Lat;
          public double Lon;
          public double Ele = double.MinValue;
-         public string Description;
+         public string Description = string.Empty;
          public double Proximity = double.MinValue;
          public int DisplayMode = -1;
          public int ColorIdx = -1;
          public int IconIdx = -1;
-         public string City;
-         public string State;
-         public string Facility;
+         public string? City;
+         public string? State;
+         public string? Facility;
          public byte Unknown1a;
          public double Depth = double.MinValue;
-         public string Address;
+         public string? Address;
          public byte Unknown1b;
          public int Duration = -1;
-         public string Instruction;
-         public List<string> Url;
+         public string? Instruction;
+         public List<string>? Url;
          public int Category;
          public double Temperature = double.MinValue;
          public System.DateTime CreationTime;
-         public List<string> Tel;
-         public string Fax;
-         public string Country;
-         public string Zip;
+         public List<string>? Tel;
+         public string? Fax;
+         public string? Country;
+         public string? Zip;
 
-         public byte[] UnknownV2_2;
+         public byte[]? UnknownV2_2;
          public byte UnknownV2_1;
-         public byte[] UnknownV2_3;
-         public string UnknownV2;
+         public byte[]? UnknownV2_3;
+         public string? UnknownV2;
 
          /*
           20 Punkte für Route
@@ -436,7 +453,8 @@ namespace FSofTUtils.Geography.Garmin {
             Lon = reader.ReadInt32() * TrackPoint.INT2DEGREE;
             if (reader.ReadByte() == 1)
                Ele = reader.ReadDouble();
-            Description = read_CString(reader);
+            string? tmp = read_CString(reader);
+            Description = tmp != null ? tmp : string.Empty;
             if (reader.ReadByte() == 1)
                Proximity = reader.ReadDouble();
             DisplayMode = reader.ReadInt32();
@@ -457,7 +475,9 @@ namespace FSofTUtils.Geography.Garmin {
                                  reader.ReadBytes(3) :
                                  reader.ReadBytes(2);
                UnknownV2 = read_CString(reader);
-               Url = new List<string>() { read_CString(reader) };
+               string? str = read_CString(reader);
+               if (str != null)
+                  Url = new List<string>() { str };
 
             } else {
 
@@ -502,18 +522,18 @@ namespace FSofTUtils.Geography.Garmin {
 
          public List<RoutePoint> Points = new List<RoutePoint>();
 
-         public List<string> Url;
+         public List<string>? Url;
 
-         public string Description;
+         public string? Description;
          public int ColorIdx = -1;
          public byte Autoroute = 0;
-         public byte[] Unknown6;
+         public byte[]? Unknown6;
          public byte RouteStyle;
          public int CalcType;
          public byte VehicleType;
          public int RoadSelection;
          public double[] DrivingSpeed = new double[5];
-         public byte[] Unknown8;
+         public byte[]? Unknown8;
 
 
          public Route() :
@@ -536,7 +556,9 @@ namespace FSofTUtils.Geography.Garmin {
                Points.Add(new RoutePoint(reader, version));
 
             if (version.GDBVersion == Version.VersionKey.V2) {
-               Url = new List<string>() { read_CString(reader) };
+               string? str = read_CString(reader);
+               if (str != null)
+                  Url = new List<string>() { str };
             } else {
                Url = read_CStringArray(reader);
                ColorIdx = reader.ReadInt32();
@@ -595,19 +617,19 @@ namespace FSofTUtils.Geography.Garmin {
 
       public class RoutePoint {
 
-         public string Name;
+         public string? Name;
          public int WaypointClass;
-         public string CountryCode;
-         public byte[] Unknown22;
-         public byte[] Unknown8a;
-         public byte[] Unknown8b;
-         public byte[] Unknown2;
-         public byte[] Unknown18;
+         public string? CountryCode;
+         public byte[]? Unknown22;
+         public byte[]? Unknown8a;
+         public byte[]? Unknown8b;
+         public byte[]? Unknown2;
+         public byte[]? Unknown18;
 
          public List<double> Lat = new List<double>();
          public List<double> Lon = new List<double>();
          public List<double> Ele = new List<double>();
-         public Bounds Bounds;
+         public Bounds? Bounds;
 
 
          public RoutePoint() {
@@ -693,11 +715,12 @@ namespace FSofTUtils.Geography.Garmin {
 
       public static List<Object> ReadGDBObjectList(BinaryReader reader, Version version) {
          List<Object> lst = new List<Object>();
-         Object obj = null;
+         Object? obj = null;
          do {
             obj = readobject(reader, version);
-            lst.Add(obj);
-         } while (obj.ObjectHeader.ObjectType != ObjectHeader.GDBObjectType.LAST);
+            if (obj != null)
+               lst.Add(obj);
+         } while (obj != null && obj.ObjectHeader.ObjectType != ObjectHeader.GDBObjectType.LAST);
          return lst;
       }
 
@@ -709,7 +732,7 @@ namespace FSofTUtils.Geography.Garmin {
       class IconMapping {
          public int mpssymnum;
          public int pcxsymnum;
-         public string icon;
+         public string? icon;
       };
 
       /* MapSource 4.13 */
@@ -1028,7 +1051,7 @@ namespace FSofTUtils.Geography.Garmin {
       /// </summary>
       /// <param name="symnumber"></param>
       /// <returns></returns>
-      public static string GetIconName4Symbolnumber(int symnumber) {
+      public static string? GetIconName4Symbolnumber(int symnumber) {
          foreach (var item in garmin_icon_table) {
             if (item.mpssymnum == symnumber)
                return item.icon;

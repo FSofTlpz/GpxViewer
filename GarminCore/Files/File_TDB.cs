@@ -762,6 +762,9 @@ namespace GarminCore.Files {
          //       + x*Text
          //       + 2 x 0x00 ???
 
+         /// <summary>
+         /// Sollte immer 1 größer als <see cref="SubCount"/> sein  (?)
+         /// </summary>
          public UInt16 Unknown1;
          /// <summary>
          /// Anzahl der Subfiles (daraus ergibt sich die Arraygröße für die Dateigrößen)
@@ -859,7 +862,7 @@ namespace GarminCore.Files {
             base.Write(wrtmp);
 
             SubCount = (UInt16)DataSize.Count;
-            //Unknown1 = (UInt16)(SubCount + 1);
+            Unknown1 = (UInt16)(SubCount + 1);     // das macht MKGMAP (ohne Erklärung) so 
 
             wrtmp.Write(Unknown1);
             wrtmp.Write(SubCount);

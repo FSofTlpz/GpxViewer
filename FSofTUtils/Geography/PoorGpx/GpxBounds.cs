@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
-using System.Xml.XPath;
 
 namespace FSofTUtils.Geography.PoorGpx {
 
@@ -9,6 +9,19 @@ namespace FSofTUtils.Geography.PoorGpx {
    /// Bounds-Metadaten
    /// </summary>
    public class GpxBounds : BaseElement {
+
+      /*
+       https://www.topografix.com/GPX/1/1/#boundsType 
+       
+      <xsd:complexType name="boundsType">
+         <xsd:attribute name="minlat" type="latitudeType" use="required"/>
+         <xsd:attribute name="minlon" type="longitudeType" use="required"/>
+         <xsd:attribute name="maxlat" type="latitudeType" use="required"/>
+         <xsd:attribute name="maxlon" type="longitudeType" use="required"/>
+      </xsd:complexType>
+
+       */
+
 
       public const string NODENAME = "bounds";
 
@@ -22,7 +35,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       public double Height => MaxLat - MinLat;
 
 
-      public GpxBounds(string xmltext = null, bool removenamespace = false) :
+      public GpxBounds(string? xmltext = null, bool removenamespace = false) :
          base(xmltext, removenamespace) { }
 
       public GpxBounds(GpxBounds b) : base() {
@@ -37,6 +50,10 @@ namespace FSofTUtils.Geography.PoorGpx {
       }
 
       public GpxBounds(IList<GpxTrackPoint> pts) : base() {
+         Union(pts);
+      }
+
+      public GpxBounds(ListTS<GpxTrackPoint> pts) : base() {
          Union(pts);
       }
 
@@ -107,6 +124,13 @@ namespace FSofTUtils.Geography.PoorGpx {
          return true;
       }
 
+      public bool Union<T>(ListTS<T> pts) where T : GpxPointBase {
+         for (int i = 0; i < pts.Count; i++)
+            if (!Union(pts[i]))
+               return false;
+         return true;
+      }
+
       void unionLatLon(ref double min, ref double max, double min1, double max1, double period) {
          // falls eine Bereichsgrenze ungültig ist, wird zunächst ein "punktförmiger" Bereich angenommen
          if (min == NOTVALID_DOUBLE)
@@ -166,6 +190,8 @@ namespace FSofTUtils.Geography.PoorGpx {
          return false;
       }
 
+      #region liest das Objekt aus einem XML-Text ein
+
       /// <summary>
       /// setzt die Objektdaten aus dem XML-Text
       /// </summary>
@@ -173,34 +199,54 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="removenamespace"></param>
       public override void FromXml(string xmltxt, bool removenamespace = false) {
          Init();
-         XPathNavigator nav = GetNavigator4XmlText(removenamespace ? RemoveNamespace(xmltxt) : xmltxt);
 
-         MinLat = XReadDouble(nav, "/" + NODENAME + "/@minlat");
-         MaxLat = XReadDouble(nav, "/" + NODENAME + "/@maxlat");
-         MinLon = XReadDouble(nav, "/" + NODENAME + "/@minlon");
-         MaxLon = XReadDouble(nav, "/" + NODENAME + "/@maxlon");
+         List<(string, string)> gpxattributes = getAttributeCollection(xmltxt, removenamespace);
+         for (int i = 0; i < gpxattributes.Count; i++) {
+            if (gpxattributes[i].Item1 == "minlat")
+               MinLat = Convert.ToDouble(gpxattributes[i].Item2, CultureInfo.InvariantCulture);
+            else if (gpxattributes[i].Item1 == "maxlat")
+               MaxLat = Convert.ToDouble(gpxattributes[i].Item2, CultureInfo.InvariantCulture);
+            if (gpxattributes[i].Item1 == "minlon")
+               MinLon = Convert.ToDouble(gpxattributes[i].Item2, CultureInfo.InvariantCulture);
+            else if (gpxattributes[i].Item1 == "maxlon")
+               MaxLon = Convert.ToDouble(gpxattributes[i].Item2, CultureInfo.InvariantCulture);
+         }
       }
+
+      #endregion
+
+      #region liefert das Objekt als XML
 
       /// <summary>
       /// liefert den vollständigen XML-Text für das Objekt
       /// </summary>
       /// <param name="scale">Umfang der Ausgabe</param>
-      /// <returns></returns>
-      public override string AsXml(int scale) {
-         return (IsValid()) ?
-                     XWriteNode(NODENAME,
+      /// <returns>leere Zeichenkette wenn ungültig</returns>
+      public override string AsXml(int scale = int.MaxValue) {
+         return IsValid() ?
+                     xWriteNode(NODENAME,
                                 new string[] {
                                    "minlat",
                                    "minlon",
                                    "maxlat",
                                    "maxlon" },
                                 new string[] {
-                                   XWrite(MinLat),
-                                   XWrite(MinLon),
-                                   XWrite(MaxLat),
-                                   XWrite(MaxLon) }) :
-                     "";
+                                   xWriteText(MinLat),
+                                   xWriteText(MinLon),
+                                   xWriteText(MaxLat),
+                                   xWriteText(MaxLon) }) :
+                     string.Empty;
       }
+
+      /// <summary>
+      /// hängt den vollständigen XML-Text für das Objekt an den StringBuilder an
+      /// </summary>
+      /// <param name="sb"></param>
+      /// <param name="scale">Umfang der Ausgabe</param>
+      /// <returns></returns>
+      public void AsXml(StringBuilder sb, int scale = int.MaxValue) => sb.Append(AsXml(scale));
+
+      #endregion
 
       public override string ToString() {
          StringBuilder sb = new StringBuilder(NODENAME + ":");

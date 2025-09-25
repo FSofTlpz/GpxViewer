@@ -1,12 +1,12 @@
-﻿using FSofTUtils;
-using System;
-using System.Collections.Generic;
+﻿//#define LOCALDEBUG
+
+using FSofTUtils;
 using System.Diagnostics;
-using System.Drawing;
 using System.Text;
 using System.Xml.XPath;
+using MyDrawing = System.Drawing;
 
-#if Android
+#if ANDROID
 namespace TrackEddi.Common {
    public class Config : SimpleXmlDocument2 {
 #else
@@ -14,109 +14,281 @@ namespace GpxViewer.Common {
    class Config : SimpleXmlDocument2 {
 #endif
 
-      const string XML_ROOT = "*";
+      #region Xpaths
 
-      const string XML_MINIMALTRACKPOINTDISTANCE = "minimaltrackpointdistance";
-      const string XML_MINIMALTRACKPOINTDISTANCE_X = "@x";
-      const string XML_MINIMALTRACKPOINTDISTANCE_Y = "@y";
+      /// <summary>
+      /// liefert alle notwendigen XPaths
+      /// </summary>
+      class XPaths {
 
-      const string XML_SECTION_PROXY = "proxy";
-      const string XML_PROXYNAME = "proxyname";
-      const string XML_PROXYPORT = "proxyport";
-      const string XML_PROXYUSER = "proxyuser";
-      const string XML_PROXYPASSWORD = "proxypassword";
-
-      const string XML_MAP = "map";
-      const string XML_CACHELOCATION = "cachelocation";
-      const string XML_SERVERONLY = "serveronly";
-      const string XML_STARTPROVIDER = "startprovider";
-      const string XML_STARTLATITUDE = "startlatitude";
-      const string XML_STARTLONGITUDE = "startlongitude";
-      const string XML_STARTZOOM = "startzoom";
-      const string XML_SYMBOLZOOMFACTOR = "symbolzoomfactor";
-      const string XML_DELTAPERCENT4SEARCH = "deltapercent4search";
-      const string XML_CLICKTOLERANCE4TRACKS = "clicktolerance4tracks";
-
-      const string XML_DEMPATH = "dem";
-      const string XML_DEMCACHESIZE = "@cachesize";
-      const string XML_DEMCACHEPATH = "@cachepath";
-      const string XML_DEMMINZOOM = "@minzoom";
-      const string XML_DEMHILLSHADINGAZIMUT = "@hillshadingazimut";
-      const string XML_DEMHILLSHADINGALTITUDE = "@hillshadingaltitude";
-      const string XML_DEMHILLSHADINGSCALE = "@hillshadingscale";
-
-      const string XML_PROVIDERGROUP = "providergroup";
-      const string XML_PROVIDERGROUPNAME = "@name";
-      const string XML_PROVIDER = "provider";
-      const string XML_MAPNAME = "@mapname";
-      const string XML_MINZOOM = "@minzoom";
-      const string XML_MAXZOOM = "@maxzoom";
-      const string XML_ZOOM4DISPLAY = "@zoom4display";
-
-      const string XML_LASTMAPNAMES = "lastmapnames";
-
-      const string XML_HILLSHADING = "@hillshading";
-      const string XML_HILLSHADINGALPHA = "@hillshadingalpha";
-
-      const string XML_GARMIN_TDB = "@tdb";
-      const string XML_GARMIN_TYP = "@typ";
-      const string XML_GARMIN_TEXTFACTOR = "@textfactor";
-      const string XML_GARMIN_SYMBOLFACTOR = "@symbolfactor";
-      const string XML_GARMIN_LINEFACTOR = "@linefactor";
-
-      const string XML_GARMINKMZ_KMZFILE = "@kmzfile";
-
-      const string XML_WMS_URL = "@url";
-      const string XML_WMS_VERSION = "@version";
-      const string XML_WMS_SRS = "@srs";
-      const string XML_WMS_PICTFORMAT = "@format";
-      const string XML_WMS_LAYERS = "@layers";
-      const string XML_WMS_EXT = "@extended";
-
-      const string XML_SECTION_TRACKS = "tracks";
-      const string XML_STANDARDTRACK = "standard";
-      const string XML_STANDARDTRACK2 = "standard2";
-      const string XML_STANDARDTRACK3 = "standard3";
-      const string XML_STANDARDTRACK4 = "standard4";
-      const string XML_STANDARDTRACK5 = "standard5";
-      const string XML_LIVETRACK = "live";
-      const string XML_MARKEDTRACK = "marked";
-      const string XML_EDITABLETRACK = "editable";
-      const string XML_INEDITTRACK = "inedit";
-      const string XML_SELPARTTRACK = "selectedpart";
-      const string XML_HELPERLINE = "helperline";
-      const string XML_TRACKCOLORA = "@a";
-      const string XML_TRACKCOLORR = "@r";
-      const string XML_TRACKCOLORG = "@g";
-      const string XML_TRACKCOLORB = "@b";
-      const string XML_TRACKWIDTH = "@width";
-
-      const string XML_SECTION_SLOPE = "slope";
-      const string XML_SLOPE = "slope";
-      const string XML_SLOPECOLORA = "@a";
-      const string XML_SLOPECOLORR = "@r";
-      const string XML_SLOPECOLORG = "@g";
-      const string XML_SLOPECOLORB = "@b";
-      const string XML_SLOPEPERCENT = "@percent";
-
-      const string XML_SECTION_LIVELOCATION = "livelocation";
-      const string XML_LOCATIONSYMBOLSIZE = "locationsymbolsize";
-      const string XML_TRACKING = "tracking";
-      const string XML_MINIMALPOINTDISTANCE = "@minimalpointdistance";
-      const string XML_MINIMALHEIGHTDISTANCE = "@minimalheightdistance";
+         public const string Slash = "/";
+         const string BracketOn = "[";
+         const string BracketOff = "]";
 
 
-      const string XML_GARMINSYMBOLS = "garminsymbols";
-      const string XML_GARMINSYMBOLGROUP = "group";
-      const string XML_GARMINSYMBOLGROUPNAME = "@name";
-      const string XML_GARMINSYMBOL = "symbol";
-      const string XML_GARMINSYMBOLNAME = "@name";
-      const string XML_GARMINSYMBOLTEXT = "@text";
-      const string XML_GARMINSYMBOLOFFSET = "@offset";
+         public const string XML_ROOT = "*";
+
+         const string XML_MINIMALTRACKPOINTDISTANCE = "minimaltrackpointdistance";
+         const string XML_MINIMALTRACKPOINTDISTANCE_X = "@x";
+         const string XML_MINIMALTRACKPOINTDISTANCE_Y = "@y";
+
+         const string XML_SECTION_PROXY = "proxy";
+         const string XML_PROXYNAME = "proxyname";
+         const string XML_PROXYPORT = "proxyport";
+         const string XML_PROXYUSER = "proxyuser";
+         const string XML_PROXYPASSWORD = "proxypassword";
+
+         const string XML_MAP = "map";
+         const string XML_CACHELOCATION = "cachelocation";
+         const string XML_SERVERONLY = "serveronly";
+         const string XML_STARTPROVIDER = "startprovider";
+         const string XML_STARTLATITUDE = "startlatitude";
+         const string XML_STARTLONGITUDE = "startlongitude";
+         const string XML_STARTZOOM = "startzoom";
+         const string XML_ZOOM4DISPLAYFACTOR = "zoom4displayfactor";
+         const string XML_SYMBOLZOOMFACTOR = "symbolzoomfactor";
+         const string XML_DELTAPERCENT4SEARCH = "deltapercent4search";
+         const string XML_CLICKTOLERANCE4TRACKS = "clicktolerance4tracks";
+
+         const string XML_DEMPATH = "dem";
+         const string XML_DEMCACHESIZE = "@cachesize";
+         const string XML_DEMCACHEPATH = "@cachepath";
+         const string XML_DEMMINZOOM = "@minzoom";
+         const string XML_DEMHILLSHADINGAZIMUT = "@hillshadingazimut";
+         const string XML_DEMHILLSHADINGALTITUDE = "@hillshadingaltitude";
+         const string XML_DEMHILLSHADINGSCALE = "@hillshadingscale";
+
+         public const string XML_PROVIDERGROUP = "providergroup";
+         public const string XML_PROVIDERGROUPNAME = "@name";
+         public const string XML_PROVIDER = "provider";
+         public const string XML_MAPNAME = "@mapname";
+         public const string XML_MINZOOM = "@minzoom";
+         public const string XML_MAXZOOM = "@maxzoom";
+
+         const string XML_LASTMAPNAMES = "lastmapnames";
+
+         //const string XML_HILLSHADINGSRTM = "@srtm";
+         public const string XML_HILLSHADING = "@hillshading";
+         public const string XML_HILLSHADINGALPHA = "@hillshadingalpha";
+
+         public const string XML_GARMIN_TDB = "@tdb";
+         public const string XML_GARMIN_TYP = "@typ";
+         public const string XML_GARMIN_TEXTFACTOR = "@textfactor";
+         public const string XML_GARMIN_SYMBOLFACTOR = "@symbolfactor";
+         public const string XML_GARMIN_LINEFACTOR = "@linefactor";
+
+         public const string XML_GARMINKMZ_KMZFILE = "@kmzfile";
+
+         public const string XML_WMS_URL = "@url";
+         public const string XML_WMS_VERSION = "@version";
+         public const string XML_WMS_SRS = "@srs";
+         public const string XML_WMS_PICTFORMAT = "@format";
+         public const string XML_WMS_LAYERS = "@layers";
+         public const string XML_WMS_EXT = "@extended";
+
+         public const string XML_TYPEMULTIPROVIDER = "type";
+
+         const string XML_SECTION_TRACKS = "tracks";
+         public const string XML_STANDARDTRACK = "standard";
+         public const string XML_STANDARDTRACK2 = "standard2";
+         public const string XML_STANDARDTRACK3 = "standard3";
+         public const string XML_STANDARDTRACK4 = "standard4";
+         public const string XML_STANDARDTRACK5 = "standard5";
+         public const string XML_LIVETRACK = "live";
+         public const string XML_MARKEDTRACK = "marked";
+         public const string XML_EDITABLETRACK = "editable";
+         public const string XML_MARKED4EDITTRACK = "marked4edit";
+         public const string XML_INEDITTRACK = "inedit";
+         public const string XML_SELPARTTRACK = "selectedpart";
+         public const string XML_HELPERLINE = "helperline";
+         const string XML_TRACKCOLORA = "@a";
+         const string XML_TRACKCOLORR = "@r";
+         const string XML_TRACKCOLORG = "@g";
+         const string XML_TRACKCOLORB = "@b";
+         const string XML_TRACKWIDTH = "@width";
+
+         const string XML_SECTION_SLOPE = "slope";
+         const string XML_SLOPE = "slope";
+         const string XML_SLOPECOLORA = "@a";
+         const string XML_SLOPECOLORR = "@r";
+         const string XML_SLOPECOLORG = "@g";
+         const string XML_SLOPECOLORB = "@b";
+         const string XML_SLOPEPERCENT = "@percent";
+
+         const string XML_SECTION_LIVELOCATION = "livelocation";
+         const string XML_LOCATIONSYMBOLSIZE = "locationsymbolsize";
+         const string XML_LOCATIONUPDATE = "update";
+         const string XML_LOCATIONUPDATEINTERVALL = "@intervall";
+         const string XML_LOCATIONUPDATEDISTANCE = "@distance";
+         const string XML_TRACKING = "tracking";
+         const string XML_MINIMALPOINTDISTANCE = "@minimalpointdistance";
+         const string XML_MINIMALHEIGHTDISTANCE = "@minimalheightdistance";
+
+         const string XML_GARMINSYMBOLS = "garminsymbols";
+         const string XML_GARMINSYMBOLGROUP = "group";
+         const string XML_GARMINSYMBOLGROUPNAME = "@name";
+         const string XML_GARMINSYMBOL = "symbol";
+         const string XML_GARMINSYMBOLNAME = "@name";
+         const string XML_GARMINSYMBOLTEXT = "@text";
+         const string XML_GARMINSYMBOLOFFSET = "@offset";
 
 
-      public Config(string configfile, string xsdfile) :
-         base(configfile, XML_ROOT, xsdfile) {
+         static string idx(int i) => BracketOn + (i + 1).ToString() + BracketOff;
+
+         const string minimalTrackpointDistance = Slash + XML_ROOT + Slash + XML_MINIMALTRACKPOINTDISTANCE + Slash;
+         public const string MinimalTrackpointDistanceX = minimalTrackpointDistance + XML_MINIMALTRACKPOINTDISTANCE_X;
+         public const string MinimalTrackpointDistanceY = minimalTrackpointDistance + XML_MINIMALTRACKPOINTDISTANCE_Y;
+         const string map = Slash + XML_ROOT + Slash + XML_MAP + Slash;
+         public const string CacheLocation = map + XML_CACHELOCATION;
+         public const string ServerOnly = map + XML_SERVERONLY;
+         public const string StartProvider = map + XML_STARTPROVIDER;
+         public const string StartZoom = map + XML_STARTZOOM;
+         public const string DeltaPercent4Search = map + XML_DELTAPERCENT4SEARCH;
+         public const string StartLatitude = map + XML_STARTLATITUDE;
+         public const string StartLongitude = map + XML_STARTLONGITUDE;
+         public const string ScreenZoomfactor = map + XML_ZOOM4DISPLAYFACTOR;
+         public const string SymbolZoomfactor = map + XML_SYMBOLZOOMFACTOR;
+         public const string ClickTolerance4Tracks = map + XML_CLICKTOLERANCE4TRACKS;
+
+         public const string DemPath = Slash + XML_ROOT + Slash + XML_MAP + Slash + XML_DEMPATH;
+         public const string DemCachesize = DemPath + Slash + XML_DEMCACHESIZE;
+         public const string DemCachePath = DemPath + Slash + XML_DEMCACHEPATH;
+         public const string DemMinZoom = DemPath + Slash + XML_DEMMINZOOM;
+         public const string DemHillshadingAzimut = DemPath + Slash + XML_DEMHILLSHADINGAZIMUT;
+         public const string DemHillshadingAltitude = DemPath + Slash + XML_DEMHILLSHADINGALTITUDE;
+         public const string DemHillshadingScale = DemPath + Slash + XML_DEMHILLSHADINGSCALE;
+
+         public static string Path4ProviderGroup(IList<int> idxlst, int length) {
+            StringBuilder sb = new StringBuilder(Slash + XML_ROOT + Slash + XML_MAP);
+            if (length < 0)
+               length = idxlst.Count;
+            for (int i = 0; i < length; i++)
+               sb.Append(Slash + XML_PROVIDERGROUP + idx(idxlst[i]));
+            return sb.ToString();
+         }
+
+         /// <summary>
+         /// Pfad mit ev. mehreren Providergruppen und einem Provider (oder einem 2. Provider bei Multiprovider)
+         /// </summary>
+         /// <param name="idxlst"></param>
+         /// <param name="multiidx"></param>
+         /// <returns></returns>
+         static string getXPath4Provider(IList<int> idxlst, int multiidx) {
+            StringBuilder sb = new StringBuilder(Slash + XML_ROOT + Slash + XML_MAP);
+            for (int i = 0; i < idxlst.Count; i++)
+               sb.Append(Slash + (i < idxlst.Count - 1 ? XML_PROVIDERGROUP : XML_PROVIDER) + idx(idxlst[i]));
+            if (multiidx >= 0)
+               sb.Append(Slash + XML_PROVIDER + idx(multiidx));
+            return sb.ToString();
+         }
+
+         public static string ProviderGroupName(IList<int> providxlst, int length) => Path4ProviderGroup(providxlst, length) + Slash + XML_PROVIDERGROUPNAME;
+         public static string ProviderName(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx);
+         public static string ProviderNameExt(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_TYPEMULTIPROVIDER;
+         public static string MapName(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_MAPNAME;
+         public static string MinZoom(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_MINZOOM;
+         public static string MaxZoom(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_MAXZOOM;
+         //public static string Zoom4Display(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_ZOOM4DISPLAY;
+         public static string Hillshading(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_HILLSHADING;
+         public static string HillshadingAlpha(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_HILLSHADINGALPHA;
+
+         public static string GarminTdb(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_GARMIN_TDB;
+         public static string GarminTyp(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_GARMIN_TYP;
+         public static string GarminTextFactor(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_GARMIN_TEXTFACTOR;
+         public static string GarminSymbolFactor(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_GARMIN_SYMBOLFACTOR;
+         public static string GarminLineFactor(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_GARMIN_LINEFACTOR;
+
+         public static string GarminKmzFile(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_GARMINKMZ_KMZFILE;
+         public static string WmsUrl(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_WMS_URL;
+         public static string WmsVersion(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_WMS_VERSION;
+         public static string WmsSrs(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_WMS_SRS;
+         public static string WmsPictFormat(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_WMS_PICTFORMAT;
+         public static string WmsLayers(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_WMS_LAYERS;
+         public static string WmsExtend(IList<int> providxlst, int multiidx) => getXPath4Provider(providxlst, multiidx) + Slash + XML_WMS_EXT;
+
+         public const string LastUsedMapsCount = Slash + XML_ROOT + Slash + XML_MAP + Slash + XML_LASTMAPNAMES;
+
+         public const string WebProxyName = Slash + XML_ROOT + Slash + XML_SECTION_PROXY + Slash + XML_PROXYNAME;
+         public const string WebProxyPort = Slash + XML_ROOT + Slash + XML_SECTION_PROXY + Slash + XML_PROXYPORT;
+         public const string WebProxyUser = Slash + XML_ROOT + Slash + XML_SECTION_PROXY + Slash + XML_PROXYUSER;
+         public const string WebProxyPassword = Slash + XML_ROOT + Slash + XML_SECTION_PROXY + Slash + XML_PROXYPASSWORD;
+
+         const string tracks = Slash + XML_ROOT + Slash + XML_SECTION_TRACKS;
+         public static string TrackcolorA(string tracktype) => tracks + Slash + tracktype + Slash + XML_TRACKCOLORA;
+         public static string TrackcolorR(string tracktype) => tracks + Slash + tracktype + Slash + XML_TRACKCOLORR;
+         public static string TrackcolorG(string tracktype) => tracks + Slash + tracktype + Slash + XML_TRACKCOLORG;
+         public static string TrackcolorB(string tracktype) => tracks + Slash + tracktype + Slash + XML_TRACKCOLORB;
+         public static string PenWidth(string tracktype) => tracks + Slash + tracktype + Slash + XML_TRACKWIDTH;
+
+         const string tracksslope = Slash + XML_ROOT + Slash + XML_SECTION_TRACKS + Slash + XML_SECTION_SLOPE + Slash + XML_SLOPE;
+         public const string AllSlopecolorA = tracksslope + Slash + XML_SLOPECOLORA;
+         public const string AllSlopecolorR = tracksslope + Slash + XML_SLOPECOLORR;
+         public const string AllSlopecolorG = tracksslope + Slash + XML_SLOPECOLORG;
+         public const string AllSlopecolorB = tracksslope + Slash + XML_SLOPECOLORB;
+         public const string AllSlopePercent = tracksslope + Slash + XML_SLOPEPERCENT;
+         static string tracksslope4idx(int i) => tracksslope + idx(i) + "/";
+         public static string SlopecolorA(int i) => tracksslope4idx(i) + XML_SLOPECOLORA;
+         public static string SlopecolorR(int i) => tracksslope4idx(i) + XML_SLOPECOLORR;
+         public static string SlopecolorG(int i) => tracksslope4idx(i) + XML_SLOPECOLORG;
+         public static string SlopecolorB(int i) => tracksslope4idx(i) + XML_SLOPECOLORB;
+         public static string SlopePercent(int i) => tracksslope4idx(i) + XML_SLOPEPERCENT;
+
+         const string liveLocation = Slash + XML_ROOT + Slash + XML_SECTION_LIVELOCATION + Slash;
+         public const string LocationSymbolsize = liveLocation + XML_LOCATIONSYMBOLSIZE;
+         public const string LocationUpdateIntervall = liveLocation + XML_LOCATIONUPDATE + Slash + XML_LOCATIONUPDATEINTERVALL;
+         public const string LocationUpdateDistance = liveLocation + XML_LOCATIONUPDATE + Slash + XML_LOCATIONUPDATEDISTANCE;
+         public const string TrackingMinimalPointdistance = liveLocation + XML_TRACKING + Slash + XML_MINIMALPOINTDISTANCE;
+         public const string TrackingMinimalHeightdistance = liveLocation + XML_TRACKING + Slash + XML_MINIMALHEIGHTDISTANCE;
+
+         const string garmingroup = Slash + XML_ROOT + Slash + XML_GARMINSYMBOLS + Slash + XML_GARMINSYMBOLGROUP;
+         static string garmingroup4idx(int groupidx) => garmingroup + idx(groupidx) + "/";
+         static string garmingroupandsymbol4idx(int groupidx, int symbolidx) => garmingroup4idx(groupidx) + XML_GARMINSYMBOL + idx(symbolidx);
+         public const string GetGarminMarkerSymbolGroupnames = garmingroup + Slash + XML_GARMINSYMBOLGROUPNAME;
+         public static string GetGarminMarkerSymbolnames(int groupidx) => garmingroup4idx(groupidx) + XML_GARMINSYMBOL + Slash + XML_GARMINSYMBOLNAME;
+         public static string GetGarminMarkerSymboltext(int groupidx, int symbolidx) => garmingroupandsymbol4idx(groupidx, symbolidx) + Slash + XML_GARMINSYMBOLTEXT;
+         public static string GetGarminMarkerSymbolfile(int groupidx, int symbolidx) => garmingroupandsymbol4idx(groupidx, symbolidx);
+         public static string GetGarminMarkerSymboloffset(int groupidx, int symbolidx) => garmingroupandsymbol4idx(groupidx, symbolidx) + Slash + XML_GARMINSYMBOLOFFSET;
+
+         public const string MapsSectionContent = Slash + XML_ROOT + Slash + XML_MAP + Slash + XML_PROVIDERGROUP;
+
+         public static string MapName(int providx) => Slash + XML_ROOT + Slash + XML_MAP + Slash + XML_PROVIDER + idx(providx) + "/" + XML_MAPNAME;
+
+      }
+
+      #endregion
+
+      #region einige Standardwerte
+
+      const int STDDELTAPERCENT4SEARCH =
+#if Android
+                                          10;
+#else
+                                          1;
+#endif
+      const double STDZOOM4DISPLAYFACTOR = 1.0;
+      const double STDSYMBOLZOOMFACTOR = 1.0;
+      const double STDCLICKTOLERANCE4TRACKS = 1.0;
+
+      const int STDDEMMINZOOM = 11;
+      const double STDDEMHILLSHADINGAZIMUT = 315.0;
+      const double STDDEMHILLSHADINGALTITUDE = 45.0;
+      const double STDDEMHILLSHADINGSCALE = 1.0;
+
+      const int STDMINZOOM = 0;
+      const int STDMAXZOOM = 24;
+      const double STDZOOM4DISPLAY = 1.0;
+      const bool STDHILLSHADING = false;
+      const int STDHILLSHADINGALPHA = 80;
+
+      const double STDGARMINTEXTFACTOR = 1.0;
+      const double STDGARMINSYMBOLFACTOR = 1.0;
+      const double STDGARMINLINEFACTOR = 1.0;
+
+      #endregion
+
+
+      public Config(string? configfile, string? xsdfile) :
+         base(configfile, XPaths.XML_ROOT, xsdfile) {
          Validating = false;
          LoadData();
       }
@@ -126,14 +298,15 @@ namespace GpxViewer.Common {
       /// </summary>
       /// <param name="value"></param>
       /// <returns></returns>
-      string getInternationalString4Object(object value) {
+      static string getInternationalString4Object(object value) {
          if (value is float)
             return ((float)value).ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US"));
          else if (value is double)
             return ((double)value).ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US"));
          else if (value is decimal)
             return ((decimal)value).ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US"));
-         return value.ToString();
+         string? tmp = value.ToString();
+         return tmp != null ? tmp : string.Empty;
       }
 
       void setXPath(string xpath, object value) {
@@ -146,19 +319,19 @@ namespace GpxViewer.Common {
             // letzten ex. xpath suchen
             int lastvalididx = -1;
             for (lastvalididx = xpathparts.Length - 2; lastvalididx > 0; lastvalididx--) {
-               string tmpxpath = string.Join("/", xpathparts, 0, lastvalididx + 1);
+               string tmpxpath = string.Join(XPaths.Slash, xpathparts, 0, lastvalididx + 1);
                if (ExistXPath(tmpxpath))
                   break;
             }
 
             for (int i = lastvalididx + 1; i < xpathparts.Length; i++) {
-               string tmpxpath = string.Join("/", xpathparts, 0, i);
+               string tmpxpath = string.Join(XPaths.Slash, xpathparts, 0, i);
                string name = xpathparts[i];
                if (name[0] != '@') {   // Nodename (ACHTUNG: Test ist zu einfach, falls [ nur im String)
                   int apos = xpathparts[i].IndexOf('[');
                   if (apos >= 0) {   // Array (bisher zu klein)
                      string nodename = name.Substring(0, apos);
-                     while (!ExistXPath(tmpxpath + "/" + name)) {
+                     while (!ExistXPath(tmpxpath + XPaths.Slash + name)) {
                         Append(tmpxpath, nodename);
                      }
                      continue;
@@ -172,7 +345,7 @@ namespace GpxViewer.Common {
                   Append(tmpxpath,
                          null,
                          null,
-                         new System.Collections.Generic.Dictionary<string, string>() {
+                         new Dictionary<string, string>() {
                             { xpathparts[i].Substring(1), valuestring }
                          });
                }
@@ -182,112 +355,112 @@ namespace GpxViewer.Common {
       }
 
       public int MinimalTrackpointDistanceX {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MINIMALTRACKPOINTDISTANCE + "/" + XML_MINIMALTRACKPOINTDISTANCE_X, 14);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MINIMALTRACKPOINTDISTANCE + "/" + XML_MINIMALTRACKPOINTDISTANCE_X, value);
+         get => ReadValue(XPaths.MinimalTrackpointDistanceX, 14);
+         set => setXPath(XPaths.MinimalTrackpointDistanceX, value);
       }
 
       public int MinimalTrackpointDistanceY {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MINIMALTRACKPOINTDISTANCE + "/" + XML_MINIMALTRACKPOINTDISTANCE_Y, 14);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MINIMALTRACKPOINTDISTANCE + "/" + XML_MINIMALTRACKPOINTDISTANCE_Y, value);
+         get => ReadValue(XPaths.MinimalTrackpointDistanceY, 14);
+         set => setXPath(XPaths.MinimalTrackpointDistanceY, value);
       }
 
       public string CacheLocation {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_CACHELOCATION, null);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_CACHELOCATION, value);
+         get => ReadValue(XPaths.CacheLocation, string.Empty);
+         set => setXPath(XPaths.CacheLocation, value);
       }
 
       public bool ServerOnly {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_SERVERONLY, true);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_SERVERONLY, value);
+         get => ReadValue(XPaths.ServerOnly, true);
+         set => setXPath(XPaths.ServerOnly, value);
       }
 
       public int StartProvider {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTPROVIDER, 0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTPROVIDER, value);
+         get => ReadValue(XPaths.StartProvider, 0);
+         set => setXPath(XPaths.StartProvider, value);
       }
 
       public int StartZoom {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTZOOM, 16);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTZOOM, value);
+         get => ReadValue(XPaths.StartZoom, 16);
+         set => setXPath(XPaths.StartZoom, value);
       }
 
       //public double Zoom4Display {
-      //   get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_ZOOM4DISPLAY, 1.0);
-      //   set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_ZOOM4DISPLAY, value);
+      //   get => ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_ZOOM4DISPLAY, 1.0);
+      //   set => setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_ZOOM4DISPLAY, value);
       //}
 
       public int DeltaPercent4Search {
-#if Android
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DELTAPERCENT4SEARCH, 10);
-#else
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DELTAPERCENT4SEARCH, 1);
-#endif
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DELTAPERCENT4SEARCH, value);
+         get => ReadValue(XPaths.DeltaPercent4Search, STDDELTAPERCENT4SEARCH);
+         set => setXPath(XPaths.DeltaPercent4Search, value);
       }
 
       public double StartLatitude {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTLATITUDE, 51.30);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTLATITUDE, value);
+         get => ReadValue(XPaths.StartLatitude, 51.30);
+         set => setXPath(XPaths.StartLatitude, value);
       }
 
       public double StartLongitude {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTLONGITUDE, 12.40);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_STARTLONGITUDE, value);
+         get => ReadValue(XPaths.StartLongitude, 12.40);
+         set => setXPath(XPaths.StartLongitude, value);
       }
 
       public double SymbolZoomfactor {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_SYMBOLZOOMFACTOR, 1.0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_SYMBOLZOOMFACTOR, value);
+         get => ReadValue(XPaths.SymbolZoomfactor, STDSYMBOLZOOMFACTOR);
+         set => setXPath(XPaths.SymbolZoomfactor, value);
+      }
+
+      public double Zoom4Displayfactor {
+         get => ReadValue(XPaths.ScreenZoomfactor, STDZOOM4DISPLAYFACTOR);
+         set => setXPath(XPaths.ScreenZoomfactor, value);
       }
 
       public double ClickTolerance4Tracks {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_CLICKTOLERANCE4TRACKS, 10);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_CLICKTOLERANCE4TRACKS, value);
+         get => ReadValue(XPaths.ClickTolerance4Tracks, STDCLICKTOLERANCE4TRACKS);
+         set => setXPath(XPaths.ClickTolerance4Tracks, value);
       }
 
       #region XML_MAP / XML_DEMPATH
 
       public string DemPath {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH, "");
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH, value);
+         get => ReadValue(XPaths.DemPath, string.Empty);
+         set => setXPath(XPaths.DemPath, value);
       }
 
       public int DemCachesize {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMCACHESIZE, 16);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMCACHESIZE, value);
+         get => ReadValue(XPaths.DemCachesize, 16);
+         set => setXPath(XPaths.DemCachesize, value);
       }
 
       public string DemCachePath {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMCACHEPATH, "");
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMCACHEPATH, value);
+         get => ReadValue(XPaths.DemCachePath, string.Empty);
+         set => setXPath(XPaths.DemCachePath, value);
       }
 
       public int DemMinZoom {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMMINZOOM, 11);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMMINZOOM, value);
+         get => ReadValue(XPaths.DemMinZoom, STDDEMMINZOOM);
+         set => setXPath(XPaths.DemMinZoom, value);
       }
 
       public double DemHillshadingAzimut {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGAZIMUT, 315.0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGAZIMUT, value);
+         get => ReadValue(XPaths.DemHillshadingAzimut, STDDEMHILLSHADINGAZIMUT);
+         set => setXPath(XPaths.DemHillshadingAzimut, value);
       }
 
       public double DemHillshadingAltitude {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGALTITUDE, 45.0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGALTITUDE, value);
+         get => ReadValue(XPaths.DemHillshadingAltitude, STDDEMHILLSHADINGALTITUDE);
+         set => setXPath(XPaths.DemHillshadingAltitude, value);
       }
 
       public double DemHillshadingScale {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGSCALE, 1.0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_DEMPATH + "/" + XML_DEMHILLSHADINGSCALE, value);
+         get => ReadValue(XPaths.DemHillshadingScale, STDDEMHILLSHADINGSCALE);
+         set => setXPath(XPaths.DemHillshadingScale, value);
       }
 
       #endregion
 
-
       public class ArrayProperty {
 
-         static protected Config cfg;
+         static protected Config? cfg;
 
          public ArrayProperty(Config cfgowner) {
             cfg = cfgowner;
@@ -299,8 +472,10 @@ namespace GpxViewer.Common {
          public MapNameIdx(Config cfg) : base(cfg) { }
 
          public string this[int providx] {
-            get => cfg.ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_MAPNAME, "");
-            set => cfg.setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_MAPNAME, value);
+            get => cfg != null ?
+                     cfg.ReadValue(XPaths.MapName(providx), string.Empty) :
+                     string.Empty;
+            set => cfg?.setXPath(XPaths.MapName(providx), value);
          }
       }
 
@@ -315,8 +490,7 @@ namespace GpxViewer.Common {
             ProviderIdx = provideridx;
          }
 
-         public override string ToString() =>
-            "Group " + GroupIdx + ", Provider " + ProviderIdx;
+         public override string ToString() => "Group " + GroupIdx + ", Provider " + ProviderIdx;
 
       }
 
@@ -329,7 +503,7 @@ namespace GpxViewer.Common {
       /// <returns></returns>
       public List<int[]> ProviderIdxPaths() {
          List<int[]> idxlst = new List<int[]>();
-         XPathNodeIterator maingroupnodesit = NavigatorSelect("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDERGROUP);
+         XPathNodeIterator? maingroupnodesit = NavigatorSelect(XPaths.MapsSectionContent);
          if (maingroupnodesit != null) {
             if (maingroupnodesit.MoveNext()) {
                Stack<IdxPathHelper> stack = new Stack<IdxPathHelper>();
@@ -356,8 +530,10 @@ namespace GpxViewer.Common {
                 */
             }
          }
+#if LOCALDEBUG
          for (int i = 0; i < idxlst.Count; i++)
             Debug.WriteLine(string.Join<int>("-", idxlst[i]));
+#endif
          return idxlst;
       }
 
@@ -369,46 +545,48 @@ namespace GpxViewer.Common {
       /// <param name="idxpaths"></param>
       bool providerIdxPathsRecursiv(XPathNodeIterator it, Stack<IdxPathHelper> stack, List<int[]> idxpaths) {
          bool isprovider = false;
-         if (it.Current.LocalName == XML_PROVIDERGROUP) {
-            XPathNodeIterator it2 = it.Current.SelectChildren(XPathNodeType.Element);
-            int providx = 0;
-            int groupidx = 0;
-            while (it2.MoveNext()) {
-               stack.Push(new IdxPathHelper(groupidx, providx));
-               if (providerIdxPathsRecursiv(it2, stack, idxpaths))
-                  providx++;
-               else
-                  groupidx++;
+         if (it.Current != null) {
+            if (it.Current.LocalName == XPaths.XML_PROVIDERGROUP) {
+               XPathNodeIterator it2 = it.Current.SelectChildren(XPathNodeType.Element);
+               int providx = 0;
+               int groupidx = 0;
+               while (it2.MoveNext()) {
+                  stack.Push(new IdxPathHelper(groupidx, providx));
+                  if (providerIdxPathsRecursiv(it2, stack, idxpaths))
+                     providx++;
+                  else
+                     groupidx++;
+               }
+            } else if (it.Current.LocalName == XPaths.XML_PROVIDER) {
+               IdxPathHelper[] tmparray = stack.ToArray();
+               int[] idxpath = new int[tmparray.Length];
+               for (int i = 0; i < tmparray.Length; i++)
+                  idxpath[i] = i < tmparray.Length - 1 ?
+                                             tmparray[tmparray.Length - 1 - i].GroupIdx :
+                                             tmparray[tmparray.Length - 1 - i].ProviderIdx;
+               idxpaths.Add(idxpath);
+               isprovider = true;
             }
-         } else if (it.Current.LocalName == XML_PROVIDER) {
-            IdxPathHelper[] tmparray = stack.ToArray();
-            int[] idxpath = new int[tmparray.Length];
-            for (int i = 0; i < tmparray.Length; i++)
-               idxpath[i] = i < tmparray.Length - 1 ?
-                                          tmparray[tmparray.Length - 1 - i].GroupIdx :
-                                          tmparray[tmparray.Length - 1 - i].ProviderIdx;
-            idxpaths.Add(idxpath);
-            isprovider = true;
+            stack.Pop();
          }
-         stack.Pop();
          return isprovider;
       }
 
-      string getXPath4ProviderGroup(IList<int> idxlst, int length) {
-         StringBuilder sb = new StringBuilder("/" + XML_ROOT + "/" + XML_MAP);
-         if (length < 0)
-            length = idxlst.Count;
-         for (int i = 0; i < length; i++)
-            sb.Append("/" + XML_PROVIDERGROUP + "[" + (idxlst[i] + 1) + "]");
-         return sb.ToString();
-      }
+      //string getXPath4ProviderGroup(IList<int> idxlst, int length) {
+      //   StringBuilder sb = new StringBuilder(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP);
+      //   if (length < 0)
+      //      length = idxlst.Count;
+      //   for (int i = 0; i < length; i++)
+      //      sb.Append(XPaths.Slash + XML_PROVIDERGROUP + "[" + (idxlst[i] + 1) + "]");
+      //   return sb.ToString();
+      //}
 
-      string getXPath4Provider(IList<int> idxlst) {
-         StringBuilder sb = new StringBuilder("/" + XML_ROOT + "/" + XML_MAP);
-         for (int i = 0; i < idxlst.Count; i++)
-            sb.Append("/" + (i < idxlst.Count - 1 ? XML_PROVIDERGROUP : XML_PROVIDER) + "[" + (idxlst[i] + 1) + "]");
-         return sb.ToString();
-      }
+      //string getXPath4Provider(IList<int> idxlst) {
+      //   StringBuilder sb = new StringBuilder(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP);
+      //   for (int i = 0; i < idxlst.Count; i++)
+      //      sb.Append(XPaths.Slash + (i < idxlst.Count - 1 ? XML_PROVIDERGROUP : XML_PROVIDER) + "[" + (idxlst[i] + 1) + "]");
+      //   return sb.ToString();
+      //}
 
       /// <summary>
       /// ermittelt den Namen der Providergruppe
@@ -416,80 +594,57 @@ namespace GpxViewer.Common {
       /// <param name="providxlst"></param>
       /// <param name="length">wenn kleiner 0, wird die gesamte IDX-Liste verwendet, sonst nur ein Teil</param>
       /// <returns></returns>
-      public string ProviderGroupName(IList<int> providxlst, int length = -1) {
-         return ReadValue(getXPath4ProviderGroup(providxlst, length) + "/" + XML_PROVIDERGROUPNAME, "");
+      public string ProviderGroupName(IList<int> providxlst, int length = -1) => ReadValue(XPaths.ProviderGroupName(providxlst, length), string.Empty);
+
+      public string ProviderName(IList<int> providxlst, int multiidx) {
+         string name = ReadValue(XPaths.ProviderNameExt(providxlst, multiidx), string.Empty);     // falls dieser Knoten ex. (z.Z. nur bei MultiMap) 
+         if (name == string.Empty)
+            name = ReadValue(XPaths.ProviderName(providxlst, multiidx), string.Empty);
+         return name;
       }
 
-      public string ProviderName(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst), "");
-      }
+      public string MapName(IList<int> providxlst, int multiidx) => ReadValue(XPaths.MapName(providxlst, multiidx), string.Empty);
 
-      public string MapName(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_MAPNAME, "");
-      }
+      public int MinZoom(IList<int> providxlst, int multiidx) => Math.Max(0, ReadValue(XPaths.MinZoom(providxlst, multiidx), STDMINZOOM));
 
-      public int MinZoom(IList<int> providxlst) {
-         return Math.Max(0, ReadValue(getXPath4Provider(providxlst) + "/" + XML_MINZOOM, 0));
-      }
+      public int MaxZoom(IList<int> providxlst, int multiidx) => Math.Min(ReadValue(XPaths.MaxZoom(providxlst, multiidx), STDMAXZOOM), 24);
 
-      public int MaxZoom(IList<int> providxlst) {
-         return Math.Min(ReadValue(getXPath4Provider(providxlst) + "/" + XML_MAXZOOM, 24), 24);
-      }
+      public bool Hillshading(IList<int> providxlst, int multiidx) => ReadValue(XPaths.Hillshading(providxlst, multiidx), STDHILLSHADING);
 
-      public double GetZoom4Display(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_ZOOM4DISPLAY, 1.0);
-      }
-
-      public bool Hillshading(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_HILLSHADING, false);
-      }
-
-      public byte HillshadingAlpha(IList<int> providxlst) {
-         return (byte)(ReadValue(getXPath4Provider(providxlst) + "/" + XML_HILLSHADINGALPHA, 100) & 0xFF);
-      }
+      public byte HillshadingAlpha(IList<int> providxlst, int multiidx) => (byte)(ReadValue(XPaths.HillshadingAlpha(providxlst, multiidx), STDHILLSHADINGALPHA) & 0xFF);
 
       #endregion
 
       #region spez. Providereigenschaften für Garmin
 
-      public string GarminTdb(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_GARMIN_TDB, "");
-      }
+      public string GarminTdb(IList<int> providxlst, int multiidx) => ReadValue(XPaths.GarminTdb(providxlst, multiidx), string.Empty);
 
-      public string GarminTyp(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_GARMIN_TYP, "");
-      }
+      public string GarminTyp(IList<int> providxlst, int multiidx) => ReadValue(XPaths.GarminTyp(providxlst, multiidx), string.Empty);
 
-      public double GarminTextFactor(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_GARMIN_TEXTFACTOR, 1.0);
-      }
+      public double GarminTextFactor(IList<int> providxlst, int multiidx) => ReadValue(XPaths.GarminTextFactor(providxlst, multiidx), STDGARMINTEXTFACTOR);
 
-      public double GarminSymbolFactor(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_GARMIN_SYMBOLFACTOR, 1.0);
-      }
+      public double GarminSymbolFactor(IList<int> providxlst, int multiidx) => ReadValue(XPaths.GarminSymbolFactor(providxlst, multiidx), STDGARMINSYMBOLFACTOR);
 
-      public double GarminLineFactor(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_GARMIN_LINEFACTOR, 1.0);
-      }
+      public double GarminLineFactor(IList<int> providxlst, int multiidx) => ReadValue(XPaths.GarminLineFactor(providxlst, multiidx), STDGARMINLINEFACTOR);
 
       //public string GarminTdb(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TDB, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TDB, string.Empty);
       //}
 
       //public void SetGarminTdb(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TDB, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TDB, value);
       //}
 
       //public string GarminTyp(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TYP, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TYP, string.Empty);
       //}
 
       //public void SetGarminTyp(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TYP, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TYP, value);
       //}
 
       //public int[] GarminLocalCacheLevels(int providx) {
-      //   string text = ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LEVELS4CACHE, "");
+      //   string text = ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LEVELS4CACHE, string.Empty);
       //   string[] tmp = text.Split(new char[] { ' ', ',', ';' }, System.StringSplitOptions.RemoveEmptyEntries);
       //   int[] v = new int[tmp.Length];
       //   for (int i = 0; i < tmp.Length; i++)
@@ -502,131 +657,117 @@ namespace GpxViewer.Common {
       //}
 
       //public void SetGarminLocalCacheLevels(int providx, int[] value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LEVELS4CACHE, string.Join(",", value));
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LEVELS4CACHE, string.Join(",", value));
       //}
 
       //public int GarminMaxSubdiv(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_MAXSUBDIV, 1000000);
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_MAXSUBDIV, 1000000);
       //}
 
       //public void SetGarminMaxSubdiv(int providx, int value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_MAXSUBDIV, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_MAXSUBDIV, value);
       //}
 
       //public double GarminTextFactor(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TEXTFACTOR, 1.0);
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TEXTFACTOR, 1.0);
       //}
 
       //public void SetGarminTextFactor(int providx, double value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TEXTFACTOR, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_TEXTFACTOR, value);
       //}
 
       //public double GarminSymbolFactor(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_SYMBOLFACTOR, 1.0);
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_SYMBOLFACTOR, 1.0);
       //}
 
       //public void SetGarminSymbolFactor(int providx, double value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_SYMBOLFACTOR, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_SYMBOLFACTOR, value);
       //}
 
       //public double GarminLineFactor(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LINEFACTOR, 1.0);
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LINEFACTOR, 1.0);
       //}
 
       //public void SetGarminLineFactor(int providx, double value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LINEFACTOR, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMIN_LINEFACTOR, value);
       //}
 
       #endregion
 
       #region spez. Providereigenschaften für Garmin-KMZ
 
-      public string GarminKmzFile(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_GARMINKMZ_KMZFILE, "");
-      }
+      public string GarminKmzFile(IList<int> providxlst, int multiidx) => ReadValue(XPaths.GarminKmzFile(providxlst, multiidx), string.Empty);
 
       //public string GarminKmzFile(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMINKMZ_KMZFILE, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMINKMZ_KMZFILE, string.Empty);
       //}
 
       //public void SetGarminKmzFile(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMINKMZ_KMZFILE, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_GARMINKMZ_KMZFILE, value);
       //}
 
       #endregion
 
       #region spez. Providereigenschaften für WMS
 
-      public string WmsUrl(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_WMS_URL, "");
-      }
+      public string WmsUrl(IList<int> providxlst, int multiidx) => ReadValue(XPaths.WmsUrl(providxlst, multiidx), string.Empty);
 
-      public string WmsVersion(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_WMS_VERSION, "");
-      }
+      public string WmsVersion(IList<int> providxlst, int multiidx) => ReadValue(XPaths.WmsVersion(providxlst, multiidx), string.Empty);
 
-      public string WmsSrs(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_WMS_SRS, "");
-      }
+      public string WmsSrs(IList<int> providxlst, int multiidx) => ReadValue(XPaths.WmsSrs(providxlst, multiidx), string.Empty);
 
-      public string WmsPictFormat(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_WMS_PICTFORMAT, "");
-      }
+      public string WmsPictFormat(IList<int> providxlst, int multiidx) => ReadValue(XPaths.WmsPictFormat(providxlst, multiidx), string.Empty);
 
-      public string WmsLayers(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_WMS_LAYERS, "");
-      }
+      public string WmsLayers(IList<int> providxlst, int multiidx) => ReadValue(XPaths.WmsLayers(providxlst, multiidx), string.Empty);
 
-      public string WmsExtend(IList<int> providxlst) {
-         return ReadValue(getXPath4Provider(providxlst) + "/" + XML_WMS_EXT, "");
-      }
+      public string WmsExtend(IList<int> providxlst, int multiidx) => ReadValue(XPaths.WmsExtend(providxlst, multiidx), string.Empty);
 
       //public string WmsUrl(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_URL, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_URL, string.Empty);
       //}
 
       //public void SetWmsUrl(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_URL, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_URL, value);
       //}
 
       //public string WmsVersion(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_VERSION, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_VERSION, string.Empty);
       //}
 
       //public void SetWmsVersion(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_VERSION, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_VERSION, value);
       //}
 
       //public string WmsSrs(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_SRS, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_SRS, string.Empty);
       //}
 
       //public void SetWmsSrs(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_SRS, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_SRS, value);
       //}
 
       //public string WmsPictFormat(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_PICTFORMAT, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_PICTFORMAT, string.Empty);
       //}
 
       //public void SetWmsPictFormat(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_PICTFORMAT, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_PICTFORMAT, value);
       //}
 
       //public string WmsLayers(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_LAYERS, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_LAYERS, string.Empty);
       //}
 
       //public void SetWmsLayers(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_LAYERS, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_LAYERS, value);
       //}
 
       //public string WmsExtend(int providx) {
-      //   return ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_EXT, "");
+      //   return ReadValue(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_EXT, string.Empty);
       //}
 
       //public void SetWmsExtend(int providx, string value) {
-      //   setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_EXT, value);
+      //   setXPath(XPaths.Slash + XML_ROOT + XPaths.Slash + XML_MAP + XPaths.Slash + XML_PROVIDER + "[" + (providx + 1).ToString() + "]/" + XML_WMS_EXT, value);
       //}
 
       #endregion
@@ -634,8 +775,8 @@ namespace GpxViewer.Common {
       #region Map-Menü der zuletzt genutzten Karten
 
       public int LastUsedMapsCount {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_LASTMAPNAMES, 3);
-         set => setXPath("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_LASTMAPNAMES, value);
+         get => ReadValue(XPaths.LastUsedMapsCount, 3);
+         set => setXPath(XPaths.LastUsedMapsCount, value);
       }
 
       #endregion
@@ -646,206 +787,209 @@ namespace GpxViewer.Common {
       /// ev. für den Internetzugriff nötig: z.B.: "stadtproxy.stadt.leipzig.de"
       /// </summary>
       public string WebProxyName {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYNAME, null);
-         set => setXPath("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYNAME, value);
+         get => ReadValue(XPaths.WebProxyName, string.Empty);
+         set => setXPath(XPaths.WebProxyName, value);
       }
       /// <summary>
       /// ev. für den Internetzugriff nötig: z.B.: 80
       /// </summary>
       public int WebProxyPort {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYPORT, 0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYPORT, value);
+         get => ReadValue(XPaths.WebProxyPort, 0);
+         set => setXPath(XPaths.WebProxyPort, value);
       }
       /// <summary>
       /// ev. für den Internetzugriff nötig: z.B.: "stinnerfr@leipzig.de"
       /// </summary>
       public string WebProxyUser {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYUSER, null);
-         set => setXPath("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYUSER, value);
+         get => ReadValue(XPaths.WebProxyUser, string.Empty);
+         set => setXPath(XPaths.WebProxyUser, value);
       }
       /// <summary>
       /// ev. für den Internetzugriff nötig
       /// </summary>
       public string WebProxyPassword {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYPASSWORD, null);
-         set => setXPath("/" + XML_ROOT + "/" + XML_SECTION_PROXY + "/" + XML_PROXYPASSWORD, value);
+         get => ReadValue(XPaths.WebProxyPassword, string.Empty);
+         set => setXPath(XPaths.WebProxyPassword, value);
       }
 
       #endregion
 
       #region Trackfarben und -breiten
 
-      Color getPenColor(string tracktype) {
-         int a = ReadValue("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORA, 255);
-         int r = ReadValue("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORR, 0);
-         int g = ReadValue("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORG, 0);
-         int b = ReadValue("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORB, 0);
-         return Color.FromArgb(a, r, g, b);
+      MyDrawing.Color getPenColor(string tracktype) {
+         int a = ReadValue(XPaths.TrackcolorA(tracktype), 255);
+         int r = ReadValue(XPaths.TrackcolorR(tracktype), 0);
+         int g = ReadValue(XPaths.TrackcolorG(tracktype), 0);
+         int b = ReadValue(XPaths.TrackcolorB(tracktype), 0);
+         return MyDrawing.Color.FromArgb(a, r, g, b);
       }
 
-      void setPenColor(string tracktype, Color color) {
-         setXPath("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORA, color.A);
-         setXPath("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORR, color.R);
-         setXPath("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORG, color.G);
-         setXPath("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKCOLORB, color.B);
+      void setPenColor(string tracktype, MyDrawing.Color color) {
+         setXPath(XPaths.TrackcolorA(tracktype), color.A);
+         setXPath(XPaths.TrackcolorR(tracktype), color.R);
+         setXPath(XPaths.TrackcolorG(tracktype), color.G);
+         setXPath(XPaths.TrackcolorB(tracktype), color.B);
       }
 
-      float getPenWidth(string tracktype) {
-         return (float)ReadValue("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKWIDTH, 1.0);
+      float getPenWidth(string tracktype) => (float)ReadValue(XPaths.PenWidth(tracktype), 1.0);
+
+      void setPenWidth(string tracktype, float width) => setXPath(XPaths.PenWidth(tracktype), width);
+
+      public MyDrawing.Color StandardTrackColor {
+         get => getPenColor(XPaths.XML_STANDARDTRACK);
+         set => setPenColor(XPaths.XML_STANDARDTRACK, value);
       }
 
-      void setPenWidth(string tracktype, float width) {
-         setXPath("/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + tracktype + "/" + XML_TRACKWIDTH, width);
+      public MyDrawing.Color StandardTrackColor2 {
+         get => getPenColor(XPaths.XML_STANDARDTRACK2);
+         set => setPenColor(XPaths.XML_STANDARDTRACK2, value);
       }
 
-      public Color StandardTrackColor {
-         get => getPenColor(XML_STANDARDTRACK);
-         set => setPenColor(XML_STANDARDTRACK, value);
+      public MyDrawing.Color StandardTrackColor3 {
+         get => getPenColor(XPaths.XML_STANDARDTRACK3);
+         set => setPenColor(XPaths.XML_STANDARDTRACK3, value);
       }
 
-      public Color StandardTrackColor2 {
-         get => getPenColor(XML_STANDARDTRACK2);
-         set => setPenColor(XML_STANDARDTRACK2, value);
+      public MyDrawing.Color StandardTrackColor4 {
+         get => getPenColor(XPaths.XML_STANDARDTRACK4);
+         set => setPenColor(XPaths.XML_STANDARDTRACK4, value);
       }
 
-      public Color StandardTrackColor3 {
-         get => getPenColor(XML_STANDARDTRACK3);
-         set => setPenColor(XML_STANDARDTRACK3, value);
-      }
-
-      public Color StandardTrackColor4 {
-         get => getPenColor(XML_STANDARDTRACK4);
-         set => setPenColor(XML_STANDARDTRACK4, value);
-      }
-
-      public Color StandardTrackColor5 {
-         get => getPenColor(XML_STANDARDTRACK5);
-         set => setPenColor(XML_STANDARDTRACK5, value);
+      public MyDrawing.Color StandardTrackColor5 {
+         get => getPenColor(XPaths.XML_STANDARDTRACK5);
+         set => setPenColor(XPaths.XML_STANDARDTRACK5, value);
       }
 
       public float StandardTrackWidth {
-         get => getPenWidth(XML_STANDARDTRACK);
-         set => setPenWidth(XML_STANDARDTRACK, value);
+         get => getPenWidth(XPaths.XML_STANDARDTRACK);
+         set => setPenWidth(XPaths.XML_STANDARDTRACK, value);
       }
 
       public float StandardTrackWidth2 {
-         get => getPenWidth(XML_STANDARDTRACK2);
-         set => setPenWidth(XML_STANDARDTRACK2, value);
+         get => getPenWidth(XPaths.XML_STANDARDTRACK2);
+         set => setPenWidth(XPaths.XML_STANDARDTRACK2, value);
       }
 
       public float StandardTrackWidth3 {
-         get => getPenWidth(XML_STANDARDTRACK3);
-         set => setPenWidth(XML_STANDARDTRACK3, value);
+         get => getPenWidth(XPaths.XML_STANDARDTRACK3);
+         set => setPenWidth(XPaths.XML_STANDARDTRACK3, value);
       }
 
       public float StandardTrackWidth4 {
-         get => getPenWidth(XML_STANDARDTRACK4);
-         set => setPenWidth(XML_STANDARDTRACK4, value);
+         get => getPenWidth(XPaths.XML_STANDARDTRACK4);
+         set => setPenWidth(XPaths.XML_STANDARDTRACK4, value);
       }
 
       public float StandardTrackWidth5 {
-         get => getPenWidth(XML_STANDARDTRACK5);
-         set => setPenWidth(XML_STANDARDTRACK5, value);
+         get => getPenWidth(XPaths.XML_STANDARDTRACK5);
+         set => setPenWidth(XPaths.XML_STANDARDTRACK5, value);
       }
 
-      public Color MarkedTrackColor {
-         get => getPenColor(XML_MARKEDTRACK);
-         set => setPenColor(XML_MARKEDTRACK, value);
+      public MyDrawing.Color MarkedTrackColor {
+         get => getPenColor(XPaths.XML_MARKEDTRACK);
+         set => setPenColor(XPaths.XML_MARKEDTRACK, value);
       }
 
       public float MarkedTrackWidth {
-         get => getPenWidth(XML_MARKEDTRACK);
-         set => setPenWidth(XML_MARKEDTRACK, value);
+         get => getPenWidth(XPaths.XML_MARKEDTRACK);
+         set => setPenWidth(XPaths.XML_MARKEDTRACK, value);
       }
 
-      public Color LiveTrackColor {
-         get => getPenColor(XML_LIVETRACK);
-         set => setPenColor(XML_LIVETRACK, value);
+      public MyDrawing.Color LiveTrackColor {
+         get => getPenColor(XPaths.XML_LIVETRACK);
+         set => setPenColor(XPaths.XML_LIVETRACK, value);
       }
 
       public float LiveTrackWidth {
-         get => getPenWidth(XML_LIVETRACK);
-         set => setPenWidth(XML_LIVETRACK, value);
+         get => getPenWidth(XPaths.XML_LIVETRACK);
+         set => setPenWidth(XPaths.XML_LIVETRACK, value);
       }
 
-      public Color EditableTrackColor {
-         get => getPenColor(XML_EDITABLETRACK);
-         set => setPenColor(XML_EDITABLETRACK, value);
+      public MyDrawing.Color EditableTrackColor {
+         get => getPenColor(XPaths.XML_EDITABLETRACK);
+         set => setPenColor(XPaths.XML_EDITABLETRACK, value);
       }
 
       public float EditableTrackWidth {
-         get => getPenWidth(XML_EDITABLETRACK);
-         set => setPenWidth(XML_EDITABLETRACK, value);
+         get => getPenWidth(XPaths.XML_EDITABLETRACK);
+         set => setPenWidth(XPaths.XML_EDITABLETRACK, value);
       }
 
-      public Color InEditTrackColor {
-         get => getPenColor(XML_INEDITTRACK);
-         set => setPenColor(XML_INEDITTRACK, value);
+      public MyDrawing.Color Marked4EditColor {
+         get => getPenColor(XPaths.XML_MARKED4EDITTRACK);
+         set => setPenColor(XPaths.XML_MARKED4EDITTRACK, value);
+      }
+
+      public float Marked4EditWidth {
+         get => getPenWidth(XPaths.XML_MARKED4EDITTRACK);
+         set => setPenWidth(XPaths.XML_MARKED4EDITTRACK, value);
+      }
+
+      public MyDrawing.Color InEditTrackColor {
+         get => getPenColor(XPaths.XML_INEDITTRACK);
+         set => setPenColor(XPaths.XML_INEDITTRACK, value);
       }
 
       public float InEditTrackWidth {
-         get => getPenWidth(XML_INEDITTRACK);
-         set => setPenWidth(XML_INEDITTRACK, value);
+         get => getPenWidth(XPaths.XML_INEDITTRACK);
+         set => setPenWidth(XPaths.XML_INEDITTRACK, value);
       }
 
-      public Color HelperLineColor {
-         get => getPenColor(XML_HELPERLINE);
-         set => setPenColor(XML_HELPERLINE, value);
+      public MyDrawing.Color HelperLineColor {
+         get => getPenColor(XPaths.XML_HELPERLINE);
+         set => setPenColor(XPaths.XML_HELPERLINE, value);
       }
 
       public float HelperLineWidth {
-         get => getPenWidth(XML_HELPERLINE);
-         set => setPenWidth(XML_HELPERLINE, value);
+         get => getPenWidth(XPaths.XML_HELPERLINE);
+         set => setPenWidth(XPaths.XML_HELPERLINE, value);
       }
 
-      public Color SelectedPartTrackColor {
-         get => getPenColor(XML_SELPARTTRACK);
-         set => setPenColor(XML_SELPARTTRACK, value);
+      public MyDrawing.Color SelectedPartTrackColor {
+         get => getPenColor(XPaths.XML_SELPARTTRACK);
+         set => setPenColor(XPaths.XML_SELPARTTRACK, value);
       }
 
       public float SelectedPartTrackWidth {
-         get => getPenWidth(XML_SELPARTTRACK);
-         set => setPenWidth(XML_SELPARTTRACK, value);
+         get => getPenWidth(XPaths.XML_SELPARTTRACK);
+         set => setPenWidth(XPaths.XML_SELPARTTRACK, value);
       }
 
       #endregion
 
       #region Slope
 
-      public Color[] SlopeColors(out int[] percent) {
-         string basepath = "/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + XML_SECTION_SLOPE + "/" + XML_SLOPE + "/";
-         int[] a = ReadInt(basepath + XML_SLOPECOLORA, 255);
-         int[] r = ReadInt(basepath + XML_SLOPECOLORR, 0);
-         int[] g = ReadInt(basepath + XML_SLOPECOLORG, 0);
-         int[] b = ReadInt(basepath + XML_SLOPECOLORB, 0);
-         int[] p = ReadInt(basepath + XML_SLOPEPERCENT, 0);
+      public MyDrawing.Color[] SlopeColors(out int[] percent) {
+         int[]? a = ReadInt(XPaths.AllSlopecolorA, 255);
+         int[]? r = ReadInt(XPaths.AllSlopecolorR, 0);
+         int[]? g = ReadInt(XPaths.AllSlopecolorG, 0);
+         int[]? b = ReadInt(XPaths.AllSlopecolorB, 0);
+         int[]? p = ReadInt(XPaths.AllSlopePercent, 0);
 
-         SortedDictionary<int, Color> tmp = new SortedDictionary<int, Color>();
+         SortedDictionary<int, MyDrawing.Color> tmp = new SortedDictionary<int, MyDrawing.Color>();
 
          if (a != null && r != null && g != null && b != null && p != null)
             for (int i = 0; i < p.Length; i++)
                if (!tmp.ContainsKey(p[i]))
-                  tmp.Add(p[i], Color.FromArgb(a != null && i < a.Length ? a[i] : 255,
+                  tmp.Add(p[i], MyDrawing.Color.FromArgb(a != null && i < a.Length ? a[i] : 255,
                                                r != null && i < r.Length ? r[i] : 0,
                                                g != null && i < g.Length ? g[i] : 0,
                                                b != null && i < b.Length ? b[i] : 0));
          percent = new int[tmp.Count];
          tmp.Keys.CopyTo(percent, 0);
-         Color[] cols = new Color[tmp.Count];
+         MyDrawing.Color[] cols = new MyDrawing.Color[tmp.Count];
          tmp.Values.CopyTo(cols, 0);
 
          return cols;
       }
 
-      public void SetSlopeColors(int[] percent, Color[] color) {
-         string basepath = "/" + XML_ROOT + "/" + XML_SECTION_TRACKS + "/" + XML_SECTION_SLOPE + "/" + XML_SLOPE;
+      public void SetSlopeColors(int[] percent, MyDrawing.Color[] color) {
          for (int i = 0; i < percent.Length && i < color.Length; i++) {
-            string basepathi = basepath + "[" + (i + 1).ToString() + "]/";
-            setXPath(basepathi + XML_SLOPECOLORA, color[i].A);
-            setXPath(basepathi + XML_SLOPECOLORR, color[i].R);
-            setXPath(basepathi + XML_SLOPECOLORG, color[i].G);
-            setXPath(basepathi + XML_SLOPECOLORB, color[i].B);
-            setXPath(basepathi + XML_SLOPEPERCENT, percent[i]);
+            setXPath(XPaths.SlopecolorA(i), color[i].A);
+            setXPath(XPaths.SlopecolorA(i), color[i].R);
+            setXPath(XPaths.SlopecolorA(i), color[i].G);
+            setXPath(XPaths.SlopecolorA(i), color[i].B);
+            setXPath(XPaths.SlopePercent(i), percent[i]);
          }
       }
 
@@ -854,18 +998,34 @@ namespace GpxViewer.Common {
       #region Geo-Location
 
       public int LocationSymbolsize {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_SECTION_LIVELOCATION + "/" + XML_LOCATIONSYMBOLSIZE, 50);
-         set => setXPath("/" + XML_ROOT + "/" + XML_SECTION_LIVELOCATION + "/" + XML_LOCATIONSYMBOLSIZE, value);
+         get => ReadValue(XPaths.LocationSymbolsize, 50);
+         set => setXPath(XPaths.LocationSymbolsize, value);
+      }
+
+      /// <summary>
+      /// in ms
+      /// </summary>
+      public int LocationUpdateIntervall {
+         get => ReadValue(XPaths.LocationUpdateIntervall, 1000);
+         set => setXPath(XPaths.LocationUpdateIntervall, value);
+      }
+
+      /// <summary>
+      /// in m
+      /// </summary>
+      public int LocationUpdateDistance {
+         get => ReadValue(XPaths.LocationUpdateDistance, 5);
+         set => setXPath(XPaths.LocationUpdateDistance, value);
       }
 
       public double TrackingMinimalPointdistance {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_TRACKING + "/" + XML_MINIMALPOINTDISTANCE, 2.0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_TRACKING + "/" + XML_MINIMALPOINTDISTANCE, value);
+         get => ReadValue(XPaths.TrackingMinimalPointdistance, 2.0);
+         set => setXPath(XPaths.TrackingMinimalPointdistance, value);
       }
 
       public double TrackingMinimalHeightdistance {
-         get => ReadValue("/" + XML_ROOT + "/" + XML_TRACKING + "/" + XML_MINIMALHEIGHTDISTANCE, 5.0);
-         set => setXPath("/" + XML_ROOT + "/" + XML_TRACKING + "/" + XML_MINIMALHEIGHTDISTANCE, value);
+         get => ReadValue(XPaths.TrackingMinimalHeightdistance, 5.0);
+         set => setXPath(XPaths.TrackingMinimalHeightdistance, value);
       }
 
       #endregion
@@ -876,40 +1036,34 @@ namespace GpxViewer.Common {
       /// liefert alle Gruppennamen der Garminsymbole
       /// </summary>
       /// <returns></returns>
-      public string[] GetGarminMarkerSymbolGroupnames() {
-         return ReadString("/" + XML_ROOT + "/" + XML_GARMINSYMBOLS + "/" + XML_GARMINSYMBOLGROUP + "/" + XML_GARMINSYMBOLGROUPNAME);
-      }
+      public string[]? GetGarminMarkerSymbolGroupnames() => ReadString(XPaths.GetGarminMarkerSymbolGroupnames);
 
       /// <summary>
       /// liefert alle Symbolnamen einer Gruppe von Garminsymbolen
       /// </summary>
       /// <param name="groupidx">Gruppenindex</param>
       /// <returns></returns>
-      public string[] GetGarminMarkerSymbolnames(int groupidx) {
-         return ReadString("/" + XML_ROOT + "/" + XML_GARMINSYMBOLS + "/" + XML_GARMINSYMBOLGROUP + "[" + (groupidx + 1).ToString() + "]/" + XML_GARMINSYMBOL + "/" + XML_GARMINSYMBOLNAME);
-      }
+      public string[]? GetGarminMarkerSymbolnames(int groupidx) => ReadString(XPaths.GetGarminMarkerSymbolnames(groupidx));
 
       /// <summary>
       /// liefert den anzuzeigenden Text zu einem Symbol einer Gruppe von Garminsymbolen
       /// </summary>
       /// <param name="groupidx">Gruppenindex</param>
-      /// <param name="idx">Symbolindex innerhalb der Gruppe</param>
+      /// <param name="symidx">Symbolindex innerhalb der Gruppe</param>
       /// <returns></returns>
-      public string GetGarminMarkerSymboltext(int groupidx, int idx) {
-         return ReadValue("/" + XML_ROOT + "/" + XML_GARMINSYMBOLS + "/" + XML_GARMINSYMBOLGROUP + "[" + (groupidx + 1).ToString() + "]/" + XML_GARMINSYMBOL + "[" + (idx + 1).ToString() + "]/" + XML_GARMINSYMBOLTEXT, "");
-      }
+      public string GetGarminMarkerSymboltext(int groupidx, int symidx) => ReadValue(XPaths.GetGarminMarkerSymboltext(groupidx, symidx), string.Empty);
 
       /// <summary>
       /// liefert den Offset zum Bezugspunkt in Pixeln (der sonst in der Mitte des Bildes liegt)
       /// </summary>
       /// <param name="groupidx"></param>
-      /// <param name="idx"></param>
+      /// <param name="symbolidx"></param>
       /// <param name="offsetx"></param>
       /// <param name="offsety"></param>
       /// <returns></returns>
-      public bool GetGarminMarkerSymboloffset(int groupidx, int idx, out int offsetx, out int offsety) {
+      public bool GetGarminMarkerSymboloffset(int groupidx, int symbolidx, out int offsetx, out int offsety) {
          offsetx = offsety = 0;
-         string offsettext = ReadValue("/" + XML_ROOT + "/" + XML_GARMINSYMBOLS + "/" + XML_GARMINSYMBOLGROUP + "[" + (groupidx + 1).ToString() + "]/" + XML_GARMINSYMBOL + "[" + (idx + 1).ToString() + "]/" + XML_GARMINSYMBOLOFFSET, "");
+         string offsettext = ReadValue(XPaths.GetGarminMarkerSymboloffset(groupidx, symbolidx), string.Empty);
          if (!string.IsNullOrEmpty(offsettext)) {
             offsettext = offsettext.Trim();
             string[] offsets = offsettext.Split(',');
@@ -928,11 +1082,9 @@ namespace GpxViewer.Common {
       /// liefert die Grafikdatei zu einem Symbol einer Gruppe von Garminsymbolen
       /// </summary>
       /// <param name="groupidx"></param>
-      /// <param name="idx"></param>
+      /// <param name="symidx"></param>
       /// <returns></returns>
-      public string GetGarminMarkerSymbolfile(int groupidx, int idx) {
-         return ReadValue("/" + XML_ROOT + "/" + XML_GARMINSYMBOLS + "/" + XML_GARMINSYMBOLGROUP + "[" + (groupidx + 1).ToString() + "]/" + XML_GARMINSYMBOL + "[" + (idx + 1).ToString() + "]", "");
-      }
+      public string GetGarminMarkerSymbolfile(int groupidx, int symidx) => ReadValue(XPaths.GetGarminMarkerSymbolfile(groupidx, symidx), string.Empty);
 
       #endregion
 
@@ -942,8 +1094,24 @@ namespace GpxViewer.Common {
       /// Inhalt der "Hauptkartengruppe" löschen
       /// </summary>
       /// <returns></returns>
-      public bool RemoveMapsSectionContent() =>
-         Remove("/" + XML_ROOT + "/" + XML_MAP + "/" + XML_PROVIDERGROUP + "/*");
+      public bool RemoveMapsSectionContent() => Remove(XPaths.MapsSectionContent + "/*");
+
+      Dictionary<string, string> getMapAttributeDict(string name,
+                                                     int minzoom,
+                                                     int maxzoom,
+                                                     Dictionary<string, string>? extdict = null) {
+         Dictionary<string, string> dict = new Dictionary<string, string>() {
+                  { XPaths.XML_MAPNAME.Substring(1), name},
+         };
+         if (minzoom != STDMINZOOM)
+            dict.Add(XPaths.XML_MINZOOM.Substring(1), getInternationalString4Object(minzoom));
+         if (maxzoom != STDMAXZOOM)
+            dict.Add(XPaths.XML_MAXZOOM.Substring(1), getInternationalString4Object(maxzoom));
+         if (extdict != null)
+            foreach (var item in extdict)
+               dict.Add(item.Key, item.Value);
+         return dict;
+      }
 
       /// <summary>
       /// Standardkarte anhängen
@@ -952,24 +1120,17 @@ namespace GpxViewer.Common {
       /// <param name="providername"></param>
       /// <param name="minzoom"></param>
       /// <param name="maxzoom"></param>
-      /// <param name="zoom4display"></param>
-      /// <param name="idxpathprovidergroup"></param>
+      /// <param name="parentxpath"></param>
       /// <returns></returns>
       public bool AppendMap(string name,
                             string providername,
                             int minzoom,
                             int maxzoom,
-                            double zoom4display,
-                            IList<int> idxpathprovidergroup) =>
-         Append(getXPath4ProviderGroup(idxpathprovidergroup, idxpathprovidergroup.Count),
-                XML_PROVIDER,
+                            string parentxpath) =>
+         Append(parentxpath,
+                XPaths.XML_PROVIDER,
                 providername,
-                new Dictionary<string, string> {
-                  { XML_MAPNAME.Substring(1), name},
-                  { XML_MINZOOM.Substring(1), getInternationalString4Object(minzoom) },
-                  { XML_MAXZOOM.Substring(1), getInternationalString4Object(maxzoom) },
-                  { XML_ZOOM4DISPLAY.Substring(1), getInternationalString4Object(zoom4display) },
-                });
+                getMapAttributeDict(name, minzoom, maxzoom));
 
       /// <summary>
       /// Garmin-KMZ-Karte anhängen
@@ -978,31 +1139,32 @@ namespace GpxViewer.Common {
       /// <param name="providername"></param>
       /// <param name="minzoom"></param>
       /// <param name="maxzoom"></param>
-      /// <param name="zoom4display"></param>
       /// <param name="kmzfile"></param>
-      /// <param name="idxpathprovidergroup"></param>
+      /// <param name="parentxpath"></param>
       /// <returns></returns>
       public bool AppendMap(string name,
                             string providername,
                             int minzoom,
                             int maxzoom,
-                            double zoom4display,
                             string kmzfile,
                             bool hillshading,
                             int hillshadingalpha,
-                            IList<int> idxpathprovidergroup) =>
-         Append(getXPath4ProviderGroup(idxpathprovidergroup, idxpathprovidergroup.Count),
-                XML_PROVIDER,
-                providername,
-                new Dictionary<string, string> {
-                  { XML_MAPNAME.Substring(1), name},
-                  { XML_MINZOOM.Substring(1), getInternationalString4Object(minzoom) },
-                  { XML_MAXZOOM.Substring(1), getInternationalString4Object(maxzoom) },
-                  { XML_ZOOM4DISPLAY.Substring(1), getInternationalString4Object(zoom4display) },
-                  { XML_GARMINKMZ_KMZFILE.Substring(1), kmzfile },
-                  { XML_HILLSHADING.Substring(1), getInternationalString4Object(hillshading) },
-                  { XML_HILLSHADINGALPHA.Substring(1), getInternationalString4Object(hillshadingalpha) },
-                });
+                            string parentxpath) {
+         Dictionary<string, string> dict = new Dictionary<string, string>() {
+            { XPaths.XML_GARMINKMZ_KMZFILE.Substring(1), kmzfile },
+         };
+         if (hillshading != STDHILLSHADING)
+            dict.Add(XPaths.XML_HILLSHADING.Substring(1), getInternationalString4Object(hillshading));
+         if (hillshadingalpha != STDHILLSHADINGALPHA)
+            dict.Add(XPaths.XML_HILLSHADINGALPHA.Substring(1), getInternationalString4Object(hillshadingalpha));
+         return Append(parentxpath,
+                       XPaths.XML_PROVIDER,
+                       providername,
+                       getMapAttributeDict(name,
+                                           minzoom,
+                                           maxzoom,
+                                           dict));
+      }
 
       /// <summary>
       /// Garminkarte anhängen
@@ -1011,23 +1173,19 @@ namespace GpxViewer.Common {
       /// <param name="providername"></param>
       /// <param name="minzoom"></param>
       /// <param name="maxzoom"></param>
-      /// <param name="zoom4display"></param>
       /// <param name="tdbfile"></param>
       /// <param name="typfile"></param>
-      /// <param name="levels4cache"></param>
-      /// <param name="maxsubdiv"></param>
       /// <param name="textfactor"></param>
       /// <param name="symbolfactor"></param>
       /// <param name="linefactor"></param>
       /// <param name="hillshading"></param>
       /// <param name="hillshadingalpha"></param>
-      /// <param name="idxpathprovidergroup"></param>
+      /// <param name="parentxpath"></param>
       /// <returns></returns>
       public bool AppendMap(string name,
                             string providername,
                             int minzoom,
                             int maxzoom,
-                            double zoom4display,
                             string tdbfile,
                             string typfile,
                             double textfactor,
@@ -1035,23 +1193,29 @@ namespace GpxViewer.Common {
                             double linefactor,
                             bool hillshading,
                             int hillshadingalpha,
-                            IList<int> idxpathprovidergroup) =>
-         Append(getXPath4ProviderGroup(idxpathprovidergroup, idxpathprovidergroup.Count),
-                XML_PROVIDER,
-                providername,
-                new Dictionary<string, string> {
-                  { XML_MAPNAME.Substring(1), name},
-                  { XML_MINZOOM.Substring(1), getInternationalString4Object(minzoom) },
-                  { XML_MAXZOOM.Substring(1), getInternationalString4Object(maxzoom) },
-                  { XML_ZOOM4DISPLAY.Substring(1), getInternationalString4Object(zoom4display) },
-                  { XML_GARMIN_TDB.Substring(1), tdbfile },
-                  { XML_GARMIN_TYP.Substring(1), typfile },
-                  { XML_GARMIN_TEXTFACTOR.Substring(1), getInternationalString4Object(textfactor) },
-                  { XML_GARMIN_SYMBOLFACTOR.Substring(1), getInternationalString4Object(symbolfactor) },
-                  { XML_GARMIN_LINEFACTOR.Substring(1), getInternationalString4Object(linefactor) },
-                  { XML_HILLSHADING.Substring(1), getInternationalString4Object(hillshading) },
-                  { XML_HILLSHADINGALPHA.Substring(1), getInternationalString4Object(hillshadingalpha) },
-                });
+                            string parentxpath) {
+         Dictionary<string, string> dict = new Dictionary<string, string>() {
+            { XPaths.XML_GARMIN_TDB.Substring(1), tdbfile },
+            { XPaths.XML_GARMIN_TYP.Substring(1), typfile },
+         };
+         if (textfactor != STDGARMINTEXTFACTOR)
+            dict.Add(XPaths.XML_GARMIN_TEXTFACTOR.Substring(1), getInternationalString4Object(textfactor));
+         if (symbolfactor != STDGARMINSYMBOLFACTOR)
+            dict.Add(XPaths.XML_GARMIN_SYMBOLFACTOR.Substring(1), getInternationalString4Object(symbolfactor));
+         if (linefactor != STDGARMINLINEFACTOR)
+            dict.Add(XPaths.XML_GARMIN_LINEFACTOR.Substring(1), getInternationalString4Object(linefactor));
+         if (hillshading != STDHILLSHADING)
+            dict.Add(XPaths.XML_HILLSHADING.Substring(1), getInternationalString4Object(hillshading));
+         if (hillshadingalpha != STDHILLSHADINGALPHA)
+            dict.Add(XPaths.XML_HILLSHADINGALPHA.Substring(1), getInternationalString4Object(hillshadingalpha));
+         return Append(parentxpath,
+                       XPaths.XML_PROVIDER,
+                       providername,
+                       getMapAttributeDict(name,
+                                           minzoom,
+                                           maxzoom,
+                                           dict));
+      }
 
       /// <summary>
       /// WMS-Karte anhängen
@@ -1060,53 +1224,145 @@ namespace GpxViewer.Common {
       /// <param name="providername"></param>
       /// <param name="minzoom"></param>
       /// <param name="maxzoom"></param>
-      /// <param name="zoom4display"></param>
       /// <param name="url"></param>
       /// <param name="version"></param>
       /// <param name="srs"></param>
       /// <param name="format"></param>
       /// <param name="layers"></param>
       /// <param name="extended"></param>
-      /// <param name="idxpathprovidergroup"></param>
+      /// <param name="parentxpath"></param>
       /// <returns></returns>
       public bool AppendMap(string name,
                             string providername,
                             int minzoom,
                             int maxzoom,
-                            double zoom4display,
                             string url,
                             string version,
                             string srs,
                             string format,
                             string layers,
                             string extended,
-                            IList<int> idxpathprovidergroup) =>
-         Append(getXPath4ProviderGroup(idxpathprovidergroup, idxpathprovidergroup.Count),
-                XML_PROVIDER,
-                providername,
-                new Dictionary<string, string> {
-                  { XML_MAPNAME.Substring(1), name},
-                  { XML_MINZOOM.Substring(1), getInternationalString4Object(minzoom) },
-                  { XML_MAXZOOM.Substring(1), getInternationalString4Object(maxzoom) },
-                  { XML_ZOOM4DISPLAY.Substring(1), getInternationalString4Object(zoom4display) },
-                  { XML_WMS_URL.Substring(1), url },
-                  { XML_WMS_VERSION.Substring(1), version },
-                  { XML_WMS_SRS.Substring(1), srs },
-                  { XML_WMS_PICTFORMAT.Substring(1), format },
-                  { XML_WMS_LAYERS.Substring(1), layers },
-                  { XML_WMS_EXT.Substring(1), extended },
-                });
-
-      public bool AppendMapGroup(string goupname, IList<int> idxpathprovidergroup) {
-         return Append(getXPath4ProviderGroup(idxpathprovidergroup, idxpathprovidergroup.Count),
-                       XML_PROVIDERGROUP,
-                       null,
-                       new Dictionary<string, string> {
-                         { XML_PROVIDERGROUPNAME.Substring(1), goupname},
-                       });
+                            bool hillshading,
+                            int hillshadingalpha,
+                            string parentxpath) {
+         Dictionary<string, string> dict = new Dictionary<string, string>() {
+            { XPaths.XML_WMS_URL.Substring(1), url },
+            { XPaths.XML_WMS_VERSION.Substring(1), version },
+            { XPaths.XML_WMS_SRS.Substring(1), srs },
+            { XPaths.XML_WMS_PICTFORMAT.Substring(1), format },
+            { XPaths.XML_WMS_LAYERS.Substring(1), layers },
+            { XPaths.XML_WMS_EXT.Substring(1), extended },
+         };
+         if (hillshading != STDHILLSHADING)
+            dict.Add(XPaths.XML_HILLSHADING.Substring(1), getInternationalString4Object(hillshading));
+         if (hillshadingalpha != STDHILLSHADINGALPHA)
+            dict.Add(XPaths.XML_HILLSHADINGALPHA.Substring(1), getInternationalString4Object(hillshadingalpha));
+         return Append(parentxpath,
+                  XPaths.XML_PROVIDER,
+                  providername,
+                  getMapAttributeDict(name, minzoom, maxzoom, dict));
       }
 
+      /// <summary>
+      /// Multi-Karte anhängen
+      /// </summary>
+      /// <param name="name"></param>
+      /// <param name="providername"></param>
+      /// <param name="minzoom"></param>
+      /// <param name="maxzoom"></param>
+      /// <param name="mapidx"></param>
+      /// <param name="parentxpath"></param>
+      /// <returns></returns>
+      public string AppendMap(string name,
+                            string providername,
+                            int minzoom,
+                            int maxzoom,
+                            bool hillshading,
+                            int hillshadingalpha,
+                            int mapidx,
+                            string parentxpath) {
+         Dictionary<string, string> dict = new Dictionary<string, string>();
+         if (hillshading != STDHILLSHADING)
+            dict.Add(XPaths.XML_HILLSHADING.Substring(1), getInternationalString4Object(hillshading));
+         if (hillshadingalpha != STDHILLSHADINGALPHA)
+            dict.Add(XPaths.XML_HILLSHADINGALPHA.Substring(1), getInternationalString4Object(hillshadingalpha));
+         Append(parentxpath,
+                XPaths.XML_PROVIDER,
+                null,
+                getMapAttributeDict(name, minzoom, maxzoom, dict));
+         // jetzt die untergeordneten Elemente
+         parentxpath += "/" + XPaths.XML_PROVIDER + "[" + (mapidx + 1) + "]";
+         Append(parentxpath,
+                XPaths.XML_TYPEMULTIPROVIDER,
+                providername);
+         return parentxpath;
+      }
+
+      public static string XPath4ProviderGroup(IList<int> idxpathprovidergroup) => XPaths.Path4ProviderGroup(idxpathprovidergroup, idxpathprovidergroup.Count);
+
+      public bool AppendMapGroup(string goupname, IList<int> idxpathprovidergroup) =>
+         Append(XPaths.Path4ProviderGroup(idxpathprovidergroup, idxpathprovidergroup.Count),
+                XPaths.XML_PROVIDERGROUP,
+                null,
+                new Dictionary<string, string> {
+                  { XPaths.XML_PROVIDERGROUPNAME.Substring(1), goupname},
+                });
+
       #endregion
+
+      /// <summary>
+      /// Bei einem (abs.) Pfad wird versucht, den Pfadanfang durch eine Environment-Variable zu ersetzen.
+      /// </summary>
+      /// <param name="path"></param>
+      /// <returns></returns>
+      public static string GetPathWithEnvironment(string path) => Path.IsPathRooted(path) ? FSofTUtils.PathHelper.UseEnvironmentVars4Path(path) : path;
+
+      /// <summary>
+      /// Bei einem (abs.) Pfad wird versucht, Environment-Variablen zu ersetzen.
+      /// </summary>
+      /// <param name="path"></param>
+      /// <returns></returns>
+      public static string GetPathWithoutEnvironment(string path) => PathHelper.ReplaceEnvironmentVars(path);
+
+      /// <summary>
+      /// alle abs. Pfadangaben werden, wenn möglich, z.T. durch Environment-Vars ersetzt
+      /// </summary>
+      public void UseEnvironementVarsInPaths() {
+         CacheLocation = GetPathWithEnvironment(CacheLocation);
+         DemCachePath = GetPathWithEnvironment(DemCachePath);
+         DemPath = GetPathWithEnvironment(DemPath);
+
+         List<int[]> providxpaths = ProviderIdxPaths();
+         for (int providx = 0; providx < providxpaths.Count; providx++) {
+            string xpathmm = XPaths.ProviderNameExt(providxpaths[providx], -1);
+            if (ExistXPath(xpathmm)) {      // Multimap
+               for (int providx2 = 0; ; providx2++) {
+                  if (!ExistXPath(XPaths.ProviderName(providxpaths[providx], providx2)))  // ex. der Provider noch?
+                     break;
+
+                  if (changePath2Environment(XPaths.GarminKmzFile(providxpaths[providx], providx2)))
+                     continue;   // kann kein anderer Pfad mehr kommen
+                  changePath2Environment(XPaths.GarminTyp(providxpaths[providx], providx2));
+                  changePath2Environment(XPaths.GarminTdb(providxpaths[providx], providx2));
+               }
+            } else {                         // normale Map
+               if (changePath2Environment(XPaths.GarminKmzFile(providxpaths[providx], -1)))
+                  continue;   // kann kein anderer Pfad mehr kommen
+               changePath2Environment(XPaths.GarminTyp(providxpaths[providx], -1));
+               changePath2Environment(XPaths.GarminTdb(providxpaths[providx], -1));
+            }
+         }
+      }
+
+      bool changePath2Environment(string xpath) {
+         string orgvalue = ReadValue(xpath, string.Empty);
+         if (orgvalue != string.Empty) {
+            string newvalue = GetPathWithEnvironment(orgvalue);
+            if (newvalue != orgvalue)
+               return Change(xpath, newvalue);
+         }
+         return false;
+      }
 
    }
 }

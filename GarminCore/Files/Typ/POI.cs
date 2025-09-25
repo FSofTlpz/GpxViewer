@@ -245,9 +245,9 @@ namespace GarminCore.Files.Typ {
 
       public void Write(BinaryReaderWriter bw, int iCodepage) {
          bw.Write(Options);
-         XBitmapDay.WriteAsPoi(bw);
+         XBitmapDay?.WriteAsPoi(bw);
          if (WithNightXpm)
-            XBitmapNight.WriteAsPoi(bw);
+            XBitmapNight?.WriteAsPoi(bw);
          if (WithString)
             Text.Write(bw, iCodepage);
          if (WithExtendedOptions) {
@@ -277,7 +277,7 @@ namespace GarminCore.Files.Typ {
       /// </summary>
       /// <param name="b4Day">für Tag oder Nacht</param>
       /// <returns></returns>
-      public Bitmap AsBitmap(bool b4Day) {
+      public Bitmap? AsBitmap(bool b4Day) {
          if (b4Day && XBitmapDay != null) {
             PixMap tmp = new PixMap(XBitmapDay);
             if (tmp.Colors > 0)
@@ -292,7 +292,8 @@ namespace GarminCore.Files.Typ {
          }
          return null;
       }
-      public override Bitmap AsBitmap(bool b4Day, bool bExt) {
+
+      public override Bitmap? AsBitmap(bool b4Day, bool bExt) {
          return AsBitmap(b4Day);
       }
 
@@ -302,7 +303,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="bmday"></param>
       /// <param name="bmnight"></param>
       /// <param name="bOnlyGarminColors">Die jeweils nächstgelegene Garminfarbe verwenden?</param>
-      public void SetBitmaps(Bitmap bmday, Bitmap bmnight, bool bOnlyGarminColors) {
+      public void SetBitmaps(Bitmap? bmday, Bitmap? bmnight, bool bOnlyGarminColors) {
          if (bmday == null)
             throw new Exception("Wenigstens das Tag-Bitmap muß gesetzt werden.");
          if (bmnight != null)
@@ -331,8 +332,8 @@ namespace GarminCore.Files.Typ {
             XBitmapNight = null;
             WithNightXpm = false;
          }
-         Width = XBitmapDay.Width;
-         Height = XBitmapDay.Height;
+         Width = XBitmapDay != null ? XBitmapDay.Width : 0;
+         Height = XBitmapDay != null ? XBitmapDay.Height : 0;
       }
 
       /// <summary>
@@ -340,10 +341,10 @@ namespace GarminCore.Files.Typ {
       /// </summary>
       /// <param name="bm"></param>
       /// <returns></returns>
-      protected BitmapColorMode GetMinBitmapColorMode(Bitmap bm) {
-         bool bWithTransp, bWithAlpha;
-         Color[] coltab;
-         return PixMap.AnalyseBitmap(bm, true, out coltab, out bWithTransp, out bWithAlpha);
+      protected BitmapColorMode GetMinBitmapColorMode(Bitmap? bm) {
+         return bm != null ?
+                     PixMap.AnalyseBitmap(bm, true, out Color[]? coltab, out bool bWithTransp, out bool bWithAlpha) :
+                     BitmapColorMode.unknown;
       }
       /// <summary>
       /// liefert den min. möglichen Mode für 2 vorgegebene Modes
@@ -351,22 +352,23 @@ namespace GarminCore.Files.Typ {
       /// <param name="cm1"></param>
       /// <param name="cm2"></param>
       /// <returns></returns>
-      protected BitmapColorMode GetMinBitmapColorMode(BitmapColorMode cm1, BitmapColorMode cm2) {
-         switch (cm2) {
-            case BitmapColorMode.POI_SIMPLE:
-               return cm1;
-            case BitmapColorMode.POI_TR:
-               switch (cm1) {
-                  case BitmapColorMode.POI_SIMPLE:
-                     return cm2;
-                  case BitmapColorMode.POI_TR:
-                  case BitmapColorMode.POI_ALPHA:
-                     return cm1;
-               }
-               break;
-            default:
-               return BitmapColorMode.POI_ALPHA;
-         }
+      protected BitmapColorMode GetMinBitmapColorMode(BitmapColorMode cm1, BitmapColorMode? cm2) {
+         if (cm2 != null)
+            switch (cm2) {
+               case BitmapColorMode.POI_SIMPLE:
+                  return cm1;
+               case BitmapColorMode.POI_TR:
+                  switch (cm1) {
+                     case BitmapColorMode.POI_SIMPLE:
+                        return (BitmapColorMode)cm2;
+                     case BitmapColorMode.POI_TR:
+                     case BitmapColorMode.POI_ALPHA:
+                        return cm1;
+                  }
+                  break;
+               default:
+                  return BitmapColorMode.POI_ALPHA;
+            }
          return BitmapColorMode.POI_ALPHA;
       }
 

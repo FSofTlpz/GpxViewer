@@ -23,40 +23,41 @@
       /// the contents of this method with the code editor.
       /// </summary>
       private void InitializeComponent() {
-         this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
-         this.SuspendLayout();
+         checkedListBox1 = new CheckedListBox();
+         SuspendLayout();
          // 
          // checkedListBox1
          // 
-         this.checkedListBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-         this.checkedListBox1.FormattingEnabled = true;
-         this.checkedListBox1.Location = new System.Drawing.Point(0, 0);
-         this.checkedListBox1.Name = "checkedListBox1";
-         this.checkedListBox1.Size = new System.Drawing.Size(230, 156);
-         this.checkedListBox1.TabIndex = 0;
-         this.checkedListBox1.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.checkedListBox1_ItemCheck);
+         checkedListBox1.Dock = DockStyle.Fill;
+         checkedListBox1.FormattingEnabled = true;
+         checkedListBox1.Location = new Point(0, 0);
+         checkedListBox1.Margin = new Padding(4, 3, 4, 3);
+         checkedListBox1.Name = "checkedListBox1";
+         checkedListBox1.Size = new Size(268, 161);
+         checkedListBox1.TabIndex = 0;
+         checkedListBox1.ItemCheck += checkedListBox1_ItemCheck;
          // 
          // FormPictureMarkers
          // 
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(230, 156);
-         this.Controls.Add(this.checkedListBox1);
-         this.KeyPreview = true;
-         this.MaximizeBox = false;
-         this.MinimizeBox = false;
-         this.Name = "FormPictureMarkers";
-         this.ShowIcon = false;
-         this.ShowInTaskbar = false;
-         this.Text = "Bilder";
-         this.Load += new System.EventHandler(this.FormPictureMarkers_Load);
-         this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormPictureMarkers_KeyDown);
-         this.ResumeLayout(false);
-
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         ClientSize = new Size(268, 161);
+         Controls.Add(checkedListBox1);
+         KeyPreview = true;
+         Margin = new Padding(4, 3, 4, 3);
+         MaximizeBox = false;
+         MinimizeBox = false;
+         Name = "FormPictureMarkers";
+         ShowIcon = false;
+         ShowInTaskbar = false;
+         Text = "Bilder";
+         Load += FormPictureMarkers_Load;
+         KeyDown += FormPictureMarkers_KeyDown;
+         ResumeLayout(false);
       }
 
-        #endregion
+      #endregion
 
-        private System.Windows.Forms.CheckedListBox checkedListBox1;
+      private System.Windows.Forms.CheckedListBox checkedListBox1;
     }
 }

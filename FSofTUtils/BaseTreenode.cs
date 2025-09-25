@@ -10,7 +10,7 @@ namespace FSofTUtils {
       /// <summary>
       /// übergeordneter <see cref="BaseTreenode"/>
       /// </summary>
-      public BaseTreenode Parent {
+      public BaseTreenode? Parent {
          get;
          protected set;
       }
@@ -29,13 +29,13 @@ namespace FSofTUtils {
          }
       }
 
-      public BaseTreenode FirstChildnode {
+      public BaseTreenode? FirstChildnode {
          get {
             return Childs > 0 ? ChildNodes[0] : null;
          }
       }
 
-      public BaseTreenode LastChildnode {
+      public BaseTreenode? LastChildnode {
          get {
             return Childs > 0 ? ChildNodes[Childs - 1] : null;
          }
@@ -99,36 +99,40 @@ namespace FSofTUtils {
       /// <param name="func"></param>
       /// <param name="walkOrder"></param>
       /// <returns>bei Abbruch true</returns>
-      public static bool Walk(BaseTreenode tn, Func<BaseTreenode, bool> func, WalkOrder walkOrder = WalkOrder.PreOrder) {
-         switch (walkOrder) {
-            case WalkOrder.PreOrder:
-               if (func(tn))
-                  return true;
-               foreach (var item in tn.ChildNodes)
-                  if (Walk(item, func, walkOrder))
+      public static bool Walk(BaseTreenode? tn,
+                              Func<BaseTreenode, bool> func,
+                              WalkOrder walkOrder = WalkOrder.PreOrder) {
+         if (tn != null) {
+            switch (walkOrder) {
+               case WalkOrder.PreOrder:
+                  if (func(tn))
                      return true;
-               break;
+                  foreach (var item in tn.ChildNodes)
+                     if (Walk(item, func, walkOrder))
+                        return true;
+                  break;
 
-            case WalkOrder.PostOrder:
-               foreach (var item in tn.ChildNodes)
-                  if (Walk(item, func, walkOrder))
+               case WalkOrder.PostOrder:
+                  foreach (var item in tn.ChildNodes)
+                     if (Walk(item, func, walkOrder))
+                        return true;
+                  if (func(tn))
                      return true;
-               if (func(tn))
-                  return true;
-               break;
+                  break;
 
-            case WalkOrder.InOrder:
-               if (tn.Childs > 2)
-                  throw new Exception("Operation is only for binary trees!");
-               if (tn.Childs > 0)
-                  if (Walk(tn.FirstChildnode, func, walkOrder))
+               case WalkOrder.InOrder:
+                  if (tn.Childs > 2)
+                     throw new Exception("Operation is only for binary trees!");
+                  if (tn.Childs > 0)
+                     if (Walk(tn.FirstChildnode, func, walkOrder))
+                        return true;
+                  if (func(tn))
                      return true;
-               if (func(tn))
-                  return true;
-               if (tn.Childs == 2)
-                  if (Walk(tn.LastChildnode, func, walkOrder))
-                     return true;
-               break;
+                  if (tn.Childs == 2)
+                     if (Walk(tn.LastChildnode, func, walkOrder))
+                        return true;
+                  break;
+            }
          }
          return false;
       }
@@ -141,29 +145,34 @@ namespace FSofTUtils {
       /// <param name="data"></param>
       /// <param name="action"></param>
       /// <param name="walkOrder"></param>
-      public static void Walk<T>(BaseTreenode tn, T data, Action<BaseTreenode, T> action, WalkOrder walkOrder = WalkOrder.PreOrder) {
-         switch (walkOrder) {
-            case WalkOrder.PreOrder:
-               action(tn, data);
-               foreach (var item in tn.ChildNodes)
-                  Walk(item, data, action, walkOrder);
-               break;
+      public static void Walk<T>(BaseTreenode? tn,
+                                 T data,
+                                 Action<BaseTreenode, T> action,
+                                 WalkOrder walkOrder = WalkOrder.PreOrder) {
+         if (tn != null) {
+            switch (walkOrder) {
+               case WalkOrder.PreOrder:
+                  action(tn, data);
+                  foreach (var item in tn.ChildNodes)
+                     Walk(item, data, action, walkOrder);
+                  break;
 
-            case WalkOrder.PostOrder:
-               foreach (var item in tn.ChildNodes)
-                  Walk(item, data, action, walkOrder);
-               action(tn, data);
-               break;
+               case WalkOrder.PostOrder:
+                  foreach (var item in tn.ChildNodes)
+                     Walk(item, data, action, walkOrder);
+                  action(tn, data);
+                  break;
 
-            case WalkOrder.InOrder:
-               if (tn.Childs > 2)
-                  throw new Exception("Operation is only for binary trees!");
-               if (tn.Childs > 0)
-                  Walk(tn.FirstChildnode, data, action, walkOrder);
-               action(tn, data);
-               if (tn.Childs == 2)
-                  Walk(tn.LastChildnode, data, action, walkOrder);
-               break;
+               case WalkOrder.InOrder:
+                  if (tn.Childs > 2)
+                     throw new Exception("Operation is only for binary trees!");
+                  if (tn.Childs > 0)
+                     Walk(tn.FirstChildnode, data, action, walkOrder);
+                  action(tn, data);
+                  if (tn.Childs == 2)
+                     Walk(tn.LastChildnode, data, action, walkOrder);
+                  break;
+            }
          }
       }
 
@@ -176,36 +185,40 @@ namespace FSofTUtils {
       /// <param name="func"></param>
       /// <param name="walkOrder"></param>
       /// <returns>bei Abbruch true</returns>
-      public static bool Walk<T>(BaseTreenode tn, T data, Func<BaseTreenode, T, bool> func, WalkOrder walkOrder = WalkOrder.PreOrder) {
-         switch (walkOrder) {
-            case WalkOrder.PreOrder:
-               if (func(tn, data))
-                  return true;
-               foreach (var item in tn.ChildNodes)
-                  if (Walk(item, data, func, walkOrder))
+      public static bool Walk<T>(BaseTreenode? tn, 
+                                 T data, Func<BaseTreenode, T, bool> func, 
+                                 WalkOrder walkOrder = WalkOrder.PreOrder) {
+         if (tn != null) {
+            switch (walkOrder) {
+               case WalkOrder.PreOrder:
+                  if (func(tn, data))
                      return true;
-               break;
+                  foreach (var item in tn.ChildNodes)
+                     if (Walk(item, data, func, walkOrder))
+                        return true;
+                  break;
 
-            case WalkOrder.PostOrder:
-               foreach (var item in tn.ChildNodes)
-                  if (Walk(item, data, func, walkOrder))
+               case WalkOrder.PostOrder:
+                  foreach (var item in tn.ChildNodes)
+                     if (Walk(item, data, func, walkOrder))
+                        return true;
+                  if (func(tn, data))
                      return true;
-               if (func(tn, data))
-                  return true;
-               break;
+                  break;
 
-            case WalkOrder.InOrder:
-               if (tn.Childs > 2)
-                  throw new Exception("Operation is only for binary trees!");
-               if (tn.Childs > 0)
-                  if (Walk(tn.FirstChildnode, data, func, walkOrder))
+               case WalkOrder.InOrder:
+                  if (tn.Childs > 2)
+                     throw new Exception("Operation is only for binary trees!");
+                  if (tn.Childs > 0)
+                     if (Walk(tn.FirstChildnode, data, func, walkOrder))
+                        return true;
+                  if (func(tn, data))
                      return true;
-               if (func(tn, data))
-                  return true;
-               if (tn.Childs == 2)
-                  if (Walk(tn.LastChildnode, data, func, walkOrder))
-                     return true;
-               break;
+                  if (tn.Childs == 2)
+                     if (Walk(tn.LastChildnode, data, func, walkOrder))
+                        return true;
+                  break;
+            }
          }
          return false;
       }

@@ -30,10 +30,6 @@ diesem Programm erhalten haben. Falls nicht, siehe
 <http://www.gnu.org/licenses/>. 
 */
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 
 namespace GarminCore.Files {
 
@@ -78,7 +74,7 @@ namespace GarminCore.Files {
       /// <summary>
       /// Typ-Zeichenkette z.B. "GARMIN RGN" (0x02)
       /// </summary>
-      protected string GarminTyp { get; private set; }
+      protected string GarminTyp { get; private set; } = "";
       /// <summary>
       /// immer 0x01 ? (0x0C)
       /// </summary>
@@ -161,7 +157,7 @@ namespace GarminCore.Files {
       /// Erzeugt ein Dateiobjekt
       /// </summary>
       /// <param name="typ">Dateityp ("LBL" oder ähnlich); wenn null wird intern nur "xxx" gesetzt</param>
-      public StdFile(string typ = null) {
+      public StdFile(string? typ = null) {
          Headerlength = 0;
          Type = typ != null && typ.Length == 3 ? typ : "xxx";
          Unknown_0x0C = 0x01;
@@ -179,7 +175,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <param name="br"></param>
       /// <param name="expectedtyp">Extension des erwarteten Typs z.B. 'LBL', sonst null</param>
-      protected void ReadCommonHeader(BinaryReaderWriter br, string expectedtyp = null) {
+      protected void ReadCommonHeader(BinaryReaderWriter br, string? expectedtyp = null) {
          br.Seek(HeaderOffset);
 
          Headerlength = br.Read2AsUShort();
@@ -213,7 +209,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <param name="wr"></param>
       /// <param name="typ">nur angeben wenn der akt. <see cref="GarminTyp"/> überschrieben werden soll</param>
-      protected void WriteCommonHeader(BinaryReaderWriter wr, string typ = null) {
+      protected void WriteCommonHeader(BinaryReaderWriter wr, string? typ = null) {
          wr.Seek(HeaderOffset);
 
          wr.Write(Headerlength);

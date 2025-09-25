@@ -1,15 +1,11 @@
 ﻿using FSofTUtils.Geography.Garmin;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 
 namespace GpxViewer {
    public partial class FormChooseMarkerTyp : Form {
 
-      public string GarminSymbolName;
+      public string? GarminSymbolName;
 
-      public List<GarminSymbol> GarminMarkerSymbols;
+      public List<GarminSymbol>? GarminMarkerSymbols;
 
 
       public FormChooseMarkerTyp() {
@@ -22,7 +18,7 @@ namespace GpxViewer {
       }
 
       private void listView1_DoubleClick(object sender, EventArgs e) {
-         button_OK_Click(null, null);
+         button_OK_Click(null, EventArgs.Empty);
       }
 
 
@@ -48,7 +44,7 @@ namespace GpxViewer {
          listView1.View = View.Tile;
       }
 
-      private void button_OK_Click(object sender, EventArgs e) {
+      private void button_OK_Click(object? sender, EventArgs e) {
          ListView.SelectedIndexCollection coll = listView1.SelectedIndices;
          if (coll != null && coll.Count > 0) {
             GarminSymbolName = coll != null && coll.Count > 0 ?
@@ -96,12 +92,12 @@ namespace GpxViewer {
             listView1.Items.Add(new ListViewItem(GarminMarkerSymbols[i].Name, i) {
                Group = listView1.Groups[Groups[GarminMarkerSymbols[i].Group]],
             });
-            if (!string.IsNullOrEmpty(GarminSymbolName) && 
-                GarminMarkerSymbols[i].Name == GarminSymbolName) 
+            if (!string.IsNullOrEmpty(GarminSymbolName) &&
+                GarminMarkerSymbols[i].Name == GarminSymbolName)
                selectedidx = i;
          }
 
-         if (selectedidx < 0 && GarminMarkerSymbols.Count > 0) 
+         if (selectedidx < 0 && GarminMarkerSymbols.Count > 0)
             selectedidx = 0;
 
          if (selectedidx >= 0) {

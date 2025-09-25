@@ -15,7 +15,7 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Datenbereich für die Texte / Labels (0x15)
       /// </summary>
-      DataBlock TextBlock;
+      DataBlock? TextBlock;
       /// <summary>
       /// 2er Potenz für den internen Offset-Multiplikator (0x1D) 
       /// </summary>
@@ -27,27 +27,27 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Datenbereich für die Ländertabelle (0x1F)
       /// </summary>
-      DataBlockWithRecordsize CountryBlock;
+      DataBlockWithRecordsize? CountryBlock;
       byte[] Unknown_0x29 = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die Regionentabelle (0x2D)
       /// </summary>
-      DataBlockWithRecordsize RegionBlock;
+      DataBlockWithRecordsize? RegionBlock;
       byte[] Unknown_0x37 = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die Städtetabelle (0x3B)
       /// </summary>
-      DataBlockWithRecordsize CityBlock;
+      DataBlockWithRecordsize? CityBlock;
       byte[] Unknown_0x45 = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für POI ... ? (0x49)
       /// </summary>
-      DataBlockWithRecordsize POIIndexBlock;
+      DataBlockWithRecordsize? POIIndexBlock;
       byte[] Unknown_0x53 = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für POI-Eigenschaftstabelle (0x57)
       /// </summary>
-      public DataBlock POIPropertiesBlock { get; private set; }
+      public DataBlock? POIPropertiesBlock { get; private set; }
       /// <summary>
       /// 2er Potenz für den internen Offset-Multiplikator (0x5F) 
       /// </summary>
@@ -60,27 +60,27 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Datenbereich für POI ... ? (0x64)
       /// </summary>
-      DataBlockWithRecordsize POITypeIndexBlock;
+      DataBlockWithRecordsize? POITypeIndexBlock;
       byte[] Unknown_0x6E = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die Postleitzahltabelle (0x72)
       /// </summary>
-      DataBlockWithRecordsize ZipBlock;
+      DataBlockWithRecordsize? ZipBlock;
       byte[] Unknown_0x7C = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die Highwaytabelle (für Routing?) (0x80)
       /// </summary>
-      DataBlockWithRecordsize HighwayWithExitBlock;
+      DataBlockWithRecordsize? HighwayWithExitBlock;
       byte[] Unknown_0x8A = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die Ein- und Ausfahrtentabelle (für Routing?) (0x8E)
       /// </summary>
-      DataBlockWithRecordsize ExitBlock;
+      DataBlockWithRecordsize? ExitBlock;
       byte[] Unknown_0x98 = { 0, 0, 0, 0 };
       /// <summary>
       /// Datenbereich für die zusätzliche Highwaytabelle (für Routing?) (0x9C)
       /// </summary>
-      DataBlockWithRecordsize HighwayExitBlock;
+      DataBlockWithRecordsize? HighwayExitBlock;
       byte[] Unknown_0xA6 = { 0, 0, 0, 0 };
 
       // --------- Headerlänge > 170 Byte
@@ -207,13 +207,13 @@ namespace GarminCore.OptimizedReader {
             this.Unknown1 = Unknown1;
          }
 
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
             TextOffset = reader.Read3AsUInt();
             FirstExitOffset = reader.Read2AsUShort();
             Unknown1 = reader.ReadByte();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          public override string ToString() {
             return string.Format("TextOffset {0}, FirstExitOffset {1}, Unknown1 {2}", TextOffset, FirstExitOffset, Unknown1);
@@ -273,23 +273,25 @@ namespace GarminCore.OptimizedReader {
             ExitList = new List<ExitPoint>();
          }
 
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
             Unknown1 = reader.ReadByte();
             RegionIndex = reader.Read2AsUShort();
             ExitList = new List<ExitPoint>();
-            int len = (int)extdata;
-            len -= 3;
-            while (len >= 3) {
-               ExitPoint ep = new ExitPoint {
-                  PointIndexInRGN = reader.ReadByte(),
-                  SubdivisionNumberInRGN = reader.Read2AsUShort()
-               };
-               ExitList.Add(ep);
+            if (extdata != null) {
+               int len = (int)extdata;
                len -= 3;
+               while (len >= 3) {
+                  ExitPoint ep = new ExitPoint {
+                     PointIndexInRGN = reader.ReadByte(),
+                     SubdivisionNumberInRGN = reader.Read2AsUShort()
+                  };
+                  ExitList.Add(ep);
+                  len -= 3;
+               }
             }
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          public override string ToString() {
             return string.Format("RegionIndex {0}, Exits {1}", RegionIndex, ExitList.Count);
@@ -326,12 +328,12 @@ namespace GarminCore.OptimizedReader {
             this.StartIdx = StartIdx;
          }
 
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
             PointType = reader.ReadByte();
             StartIdx = reader.Read3AsUInt();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          public override string ToString() {
             return string.Format("POIType 0x{0:x}, Count {1}", PointType, StartIdx);
@@ -372,13 +374,13 @@ namespace GarminCore.OptimizedReader {
             this.SubType = SubType;
          }
 
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
             PointIndexInRGN = reader.ReadByte();
             SubdivisionNumberInRGN = reader.Read2AsUShort();
             SubType = reader.ReadByte();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          public override string ToString() {
             return string.Format("POIIndex {0}, SubdivisionNumber {1}, SubType 0x{2:x}", PointIndexInRGN, SubdivisionNumberInRGN, SubType);
@@ -406,12 +408,12 @@ namespace GarminCore.OptimizedReader {
          UInt32 _data;
          SpecPropFlags _SpecPropFlags;
          public POIFlags _internalPropMask { get; private set; }
-         public byte[] _streetnumber_encoded { get; private set; }
+         public byte[]? _streetnumber_encoded { get; private set; }
          UInt32 _streetnumberoffset;
          UInt32 _streetoffset;
          UInt16 _cityindex;
          UInt16 _zipindex;
-         public byte[] _phonenumber_encoded { get; private set; }
+         public byte[]? _phonenumber_encoded { get; private set; }
          UInt32 _phonenumberoffset;
          UInt32 _ExitOffset;
          UInt16 _ExitHighwayIndex;
@@ -443,7 +445,7 @@ namespace GarminCore.OptimizedReader {
          /// <summary>
          /// eine intern codierte Hausnummer wird gesetzt oder geliefert (<see cref="StreetNumberOffset"/> ist dann ungültig)
          /// </summary>
-         public string StreetNumber {
+         public string? StreetNumber {
             get {
                if (StreetNumberIsCoded) {
                   return DecodeString11(_streetnumber_encoded);
@@ -511,7 +513,7 @@ namespace GarminCore.OptimizedReader {
          /// <summary>
          /// eine intern codierte Telefonnummer wird gesetz oder geliefert (<see cref="PhoneNumberOffset"/> ist dann ungültig)
          /// </summary>
-         public string PhoneNumber {
+         public string? PhoneNumber {
             get {
                if (PhoneNumberIsCoded)
                   return DecodeString11(_phonenumber_encoded);
@@ -687,7 +689,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="lbl"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns>null, wenn der Offset ungültig ist</returns>
-         public string GetText(StdFile_LBL lbl, bool withctrl) => lbl.GetText(TextOffset, withctrl);
+         public string? GetText(StdFile_LBL lbl, bool withctrl) => lbl.GetText(TextOffset, withctrl);
 
 
          public PointDataRecord() {
@@ -701,7 +703,9 @@ namespace GarminCore.OptimizedReader {
          /// </summary>
          /// <param name="reader"></param>
          /// <param name="extdata">Bit 0..7 globale POIFlags, Bit 8..15 SpecPropFlags</param>
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
+            if (extdata == null)
+               return;
             UInt16 dat = (UInt16)extdata;
             POIFlags POIGlobalFlags = (POIFlags)(0xFF & dat);
             _SpecPropFlags = (SpecPropFlags)(0xFF & (dat >> 8));
@@ -794,7 +798,7 @@ namespace GarminCore.OptimizedReader {
 
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          #region Encodierung/Codierung für Haus- und Telefonnummern
 
@@ -812,7 +816,7 @@ namespace GarminCore.OptimizedReader {
          /// </summary>
          /// <param name="array"></param>
          /// <returns></returns>
-         string DecodeString11(IList<byte> array) {
+         string DecodeString11(IList<byte>? array) {
             if (array == null || array.Count == 0)
                return "";
             StringBuilder sb = new StringBuilder();
@@ -833,7 +837,7 @@ namespace GarminCore.OptimizedReader {
          /// </summary>
          /// <param name="str"></param>
          /// <returns>If the string is not all numeric (or A) then null is returned.</returns>
-         byte[] EncodeString11(String str) {
+         byte[]? EncodeString11(String str) {
             // remove surrounding whitespace to increase chance for simple encoding
             String number = str.Trim();
 
@@ -953,12 +957,12 @@ namespace GarminCore.OptimizedReader {
             Facilities = 0;
          }
 
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
             _data = reader.Read4UInt();
             Facilities = reader.ReadByte();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          public override string ToString() {
             return string.Format("Offset {0}, LastFacilitie {1}, Type 0x{2:x}, Direction 0x{3:x}",
@@ -992,11 +996,11 @@ namespace GarminCore.OptimizedReader {
             TextOffsetInLBL = offset;
          }
 
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
             TextOffsetInLBL = reader.Read3AsUInt();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          /// <summary>
          /// liefert den Text für die PLZ oder null
@@ -1004,7 +1008,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="lbl"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetText(StdFile_LBL lbl, bool withctrl) {
+         public string? GetText(StdFile_LBL lbl, bool withctrl) {
             return lbl.GetText(TextOffsetInLBL, withctrl);
          }
 
@@ -1068,12 +1072,12 @@ namespace GarminCore.OptimizedReader {
             _Info = 0;
          }
 
-         public override void Read(BinaryReaderWriter reader, object extdata) {
+         public override void Read(BinaryReaderWriter reader, object? extdata) {
             _Data = reader.Read3AsUInt();
             _Info = reader.Read2AsUShort();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          /// <summary>
          /// liefert den Text für die Stadt
@@ -1082,10 +1086,10 @@ namespace GarminCore.OptimizedReader {
          /// <param name="rgn">nur nötig, wenn <see cref="IsPointInRGN"/> gesetzt ist</param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetCityText(StdFile_LBL lbl, StdFile_RGN rgn, bool withctrl) {
+         public string? GetCityText(StdFile_LBL lbl, StdFile_RGN rgn, bool withctrl) {
             if (IsPointInRGN) {
                if (rgn != null) {
-                  StdFile_RGN.RawPointData pd = rgn.GetPoint1(SubdivisionNumberInRGN + 1, PointIndexInRGN);       // 'SubdivisionNumberInRGN + 1' ?????
+                  StdFile_RGN.RawPointData? pd = rgn.GetPoint1(SubdivisionNumberInRGN + 1, PointIndexInRGN);       // 'SubdivisionNumberInRGN + 1' ?????
                   if (!(pd is null))      // wegen Überladung '!=' diese ungewöhnliche Bedingung
                      return pd.GetText(lbl, withctrl);
                } else
@@ -1101,7 +1105,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="lbl"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetRegionText(StdFile_LBL lbl, bool withctrl) {
+         public string? GetRegionText(StdFile_LBL lbl, bool withctrl) {
             return !IsCountry ?
                         lbl.GetRegionText_FromRegionAndCountryList(RegionOrCountryIndex - 1, withctrl) :
                         null;
@@ -1113,7 +1117,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="lbl"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetCountryText(StdFile_LBL lbl, bool withctrl) {
+         public string? GetCountryText(StdFile_LBL lbl, bool withctrl) {
             if (!IsCountry) // dann Umweg über Region
                return lbl.GetCountryText_FromRegionAndCountryList(RegionOrCountryIndex - 1, withctrl);
             else
@@ -1156,12 +1160,12 @@ namespace GarminCore.OptimizedReader {
             TextOffset = offset;
          }
 
-         public override void Read(BinaryReaderWriter fp, object extdata) {
+         public override void Read(BinaryReaderWriter fp, object? extdata) {
             CountryIndex = fp.Read2AsUShort();
             TextOffset = fp.Read3AsUInt();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          /// <summary>
          /// liefert den Text der Region oder null (Offset 0 liefert i.A. null)
@@ -1169,7 +1173,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="lbl"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetRegionText(StdFile_LBL lbl, bool withctrl) {
+         public string? GetRegionText(StdFile_LBL lbl, bool withctrl) {
             if (TextOffset > 0)
                return lbl.GetText(TextOffset, withctrl);
             return null;
@@ -1181,7 +1185,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="lbl"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetCountryText(StdFile_LBL lbl, bool withctrl) {
+         public string? GetCountryText(StdFile_LBL lbl, bool withctrl) {
             return lbl.GetCountryText_FromCountryList(CountryIndex - 1, withctrl); // 1.basierter Index !
          }
 
@@ -1213,11 +1217,11 @@ namespace GarminCore.OptimizedReader {
             TextOffsetInLBL = offset;
          }
 
-         public override void Read(BinaryReaderWriter fp, object extdata) {
+         public override void Read(BinaryReaderWriter fp, object? extdata) {
             TextOffsetInLBL = fp.Read3AsUInt();
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          /// <summary>
          /// liefert den Text des Landes oder null (Offset 0 liefert i.A. null)
@@ -1225,7 +1229,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="lbl"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetText(StdFile_LBL lbl, bool withctrl) {
+         public string? GetText(StdFile_LBL lbl, bool withctrl) {
             if (TextOffsetInLBL > 0)
                return lbl.GetText(TextOffsetInLBL, withctrl);
             return null;
@@ -1291,14 +1295,14 @@ namespace GarminCore.OptimizedReader {
          /// </summary>
          /// <param name="offset"></param>
          /// <returns></returns>
-         public abstract string Text(int offset);
+         public abstract string? Text(int offset);
 
          /// <summary>
          /// liefert den als Bytefolge encodierten Text
          /// </summary>
          /// <param name="offset"></param>
          /// <returns></returns>
-         public abstract byte[] EncodedText(int offset);
+         public abstract byte[]? EncodedText(int offset);
 
          /// <summary>
          /// liefert den Offset zum Text oder -1
@@ -1338,14 +1342,14 @@ namespace GarminCore.OptimizedReader {
 
          class Data : IComparable<Data> {
             public int Offset;
-            public string Text;
+            public string? Text;
 
-            public Data(int offset, string text) {
+            public Data(int offset, string? text) {
                Offset = offset;
                Text = text;
             }
 
-            public int CompareTo(Data other) {
+            public int CompareTo(Data? other) {
                if (other == null)
                   return 1;
                return Offset.CompareTo(other.Offset);
@@ -1364,7 +1368,7 @@ namespace GarminCore.OptimizedReader {
          /// <summary>
          /// endgültiges sortiertes Datenarray nach dem "Einfrieren"
          /// </summary>
-         Data[] frozendata;
+         Data[]? frozendata;
 
 
          /// <summary>
@@ -1408,8 +1412,9 @@ namespace GarminCore.OptimizedReader {
          public override int[] Offsets() {
             freezeCheck();
             int[] ret = new int[Count];
-            for (int i = 0; i < Count; i++)
-               ret[i] = frozendata[i].Offset;
+            if (frozendata != null)
+               for (int i = 0; i < Count; i++)
+                  ret[i] = frozendata[i].Offset;
             return ret;
          }
 
@@ -1418,10 +1423,12 @@ namespace GarminCore.OptimizedReader {
          /// </summary>
          /// <param name="offset"></param>
          /// <returns></returns>
-         public override string Text(int offset) {
+         public override string? Text(int offset) {
             freezeCheck();
-            int idx = Array.BinarySearch(frozendata, new Data(offset * OffsetMultiplier, null));
-            return idx >= 0 ?
+            int idx = frozendata != null ?
+                           Array.BinarySearch(frozendata, new Data(offset * OffsetMultiplier, null)) :
+                           -1;
+            return idx >= 0 && frozendata != null ?
                      frozendata[idx].Text :
                      null;
          }
@@ -1431,9 +1438,9 @@ namespace GarminCore.OptimizedReader {
          /// </summary>
          /// <param name="offset"></param>
          /// <returns></returns>
-         public override byte[] EncodedText(int offset) {
+         public override byte[]? EncodedText(int offset) {
             freezeCheck();
-            string text = Text(offset);
+            string? text = Text(offset);
             return text != null ?
                      Codec.Encode(text) :
                      null;
@@ -1447,10 +1454,10 @@ namespace GarminCore.OptimizedReader {
          /// <returns></returns>
          public override int Offset(string text) {
             freezeCheck();
-            foreach (var item in frozendata) {
-               if (item.Text == text)
-                  return item.Offset;
-            }
+            if (frozendata != null)
+               foreach (var item in frozendata)
+                  if (item.Text == text)
+                     return item.Offset;
             return -1;
          }
 
@@ -1598,10 +1605,10 @@ namespace GarminCore.OptimizedReader {
       /// liefert den PostHeader-Datenbereich
       /// </summary>
       /// <returns></returns>
-      public DataBlock PostHeaderDataBlock { get; private set; }
+      public DataBlock? PostHeaderDataBlock { get; private set; }
 
 
-      BinaryReaderWriter livereader;
+      BinaryReaderWriter? livereader;
 
 
 
@@ -1735,7 +1742,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="offset"></param>
       /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
       /// <returns>null, wenn der Offset ungültig ist</returns>
-      public string GetText_FromPointList(uint offset, bool withctrl) {
+      public string? GetText_FromPointList(uint offset, bool withctrl) {
          if (PointPropertiesListOffsets.TryGetValue(offset, out int idx))
             return GetText_FromPointList((uint)idx, withctrl);
          return null;
@@ -1747,7 +1754,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
       /// <returns>null, wenn der Index ungültig ist</returns>
-      public string GetText_FromPointList(int idx, bool withctrl) {
+      public string? GetText_FromPointList(int idx, bool withctrl) {
          if (idx < PointPropertiesList.Count)
             return PointPropertiesList[idx].GetText(this, withctrl);
          return null;
@@ -1760,7 +1767,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
       /// <returns>null, wenn der Index ungültig ist</returns>
-      public string GetText_FromZipList(int idx, bool withctrl) {
+      public string? GetText_FromZipList(int idx, bool withctrl) {
          if (idx < ZipDataList.Count)
             return ZipDataList[idx].GetText(this, withctrl);
          return null;
@@ -1773,7 +1780,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl"></param>
       /// <returns></returns>
-      public string GetCityText_FromCityAndRegionOrCountryDataList(StdFile_RGN rgn, int idx, bool withctrl) {
+      public string? GetCityText_FromCityAndRegionOrCountryDataList(StdFile_RGN rgn, int idx, bool withctrl) {
          if (idx < CityAndRegionOrCountryDataList.Count)
             return CityAndRegionOrCountryDataList[idx].GetCityText(this, rgn, withctrl);
          return null;
@@ -1786,7 +1793,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
       /// <returns></returns>
-      string GetRegionText_FromRegionAndCountryList(int idx, bool withctrl) {
+      string? GetRegionText_FromRegionAndCountryList(int idx, bool withctrl) {
          if (idx < RegionAndCountryDataList.Count)
             return RegionAndCountryDataList[idx].GetRegionText(this, withctrl);
          return null;
@@ -1798,7 +1805,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
       /// <returns></returns>
-      string GetRegionText_FromCityAndRegionOrCountryDataList(int idx, bool withctrl) {
+      string? GetRegionText_FromCityAndRegionOrCountryDataList(int idx, bool withctrl) {
          if (idx < CityAndRegionOrCountryDataList.Count)
             return CityAndRegionOrCountryDataList[idx].GetRegionText(this, withctrl);
          return null;
@@ -1811,7 +1818,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
       /// <returns></returns>
-      string GetCountryText_FromCountryList(int idx, bool withctrl) {
+      string? GetCountryText_FromCountryList(int idx, bool withctrl) {
          if (idx < CountryDataList.Count) // Index 1-basiert!
             return CountryDataList[idx].GetText(this, withctrl);
          return null;
@@ -1823,7 +1830,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
       /// <returns></returns>
-      string GetCountryText_FromRegionAndCountryList(int idx, bool withctrl) {
+      string? GetCountryText_FromRegionAndCountryList(int idx, bool withctrl) {
          if (idx < RegionAndCountryDataList.Count)
             return RegionAndCountryDataList[idx].GetCountryText(this, withctrl);
          return null;
@@ -1835,7 +1842,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="idx"></param>
       /// <param name="withctrl"></param>
       /// <returns></returns>
-      string GetCountryText_FromCityAndRegionOrCountryDataList(int idx, bool withctrl) {
+      string? GetCountryText_FromCityAndRegionOrCountryDataList(int idx, bool withctrl) {
          if (idx < CityAndRegionOrCountryDataList.Count)
             return CityAndRegionOrCountryDataList[idx].GetCountryText(this, withctrl);
          return null;
@@ -2096,13 +2103,16 @@ namespace GarminCore.OptimizedReader {
       /// <param name="adr"></param>
       /// <returns></returns>
       string decode_Text(int adr) {
-         livereader.Seek(adr);
-         byte[] buff = livereader.ReadBytes(256);
-         return codec.Decode(buff, 0);
+         if (livereader != null) {
+            livereader.Seek(adr);
+            byte[] buff = livereader.ReadBytes(256);
+            return codec.Decode(buff, 0);
+         }
+         return string.Empty;
       }
 
-      public string GetText(uint offset, bool withctrl) {
-         string txt = decode_Text((int)(dataoffsetMultiplier * offset + TextBlock.Offset));
+      public string? GetText(uint offset, bool withctrl) {
+         string txt = decode_Text((int)(dataoffsetMultiplier * offset + (TextBlock != null ? TextBlock.Offset : 0)));
          if (withctrl)
             return txt;
          else {
@@ -2146,7 +2156,7 @@ namespace GarminCore.OptimizedReader {
                if (r != 0)
                   start += TextList.OffsetMultiplier - r;
             }
-            (TextList as TextBagRO).Freeze();
+            ((TextBagRO)TextList).Freeze();
          }
       }
 
@@ -2155,7 +2165,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       /// <param name="reader"></param>
       /// <param name="block"></param>
-      void Decode_CountryBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_CountryBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2168,7 +2178,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       /// <param name="reader"></param>
       /// <param name="block"></param>
-      void Decode_RegionBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_RegionBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2181,7 +2191,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       /// <param name="reader"></param>
       /// <param name="block"></param>
-      void Decode_CityBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_CityBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2189,7 +2199,7 @@ namespace GarminCore.OptimizedReader {
          }
       }
 
-      void Decode_POIIndexBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_POIIndexBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2197,7 +2207,7 @@ namespace GarminCore.OptimizedReader {
          }
       }
 
-      void Decode_POIPropertiesBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_POIPropertiesBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2211,7 +2221,7 @@ namespace GarminCore.OptimizedReader {
          }
       }
 
-      void Decode_POITypeIndexBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_POITypeIndexBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2224,7 +2234,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       /// <param name="reader"></param>
       /// <param name="block"></param>
-      void Decode_ZipBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_ZipBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2232,7 +2242,7 @@ namespace GarminCore.OptimizedReader {
          }
       }
 
-      void Decode_HighwayWithExitBlock(BinaryReaderWriter reader, DataBlockWithRecordsize block) {
+      void Decode_HighwayWithExitBlock(BinaryReaderWriter reader, DataBlockWithRecordsize? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2240,7 +2250,7 @@ namespace GarminCore.OptimizedReader {
          }
       }
 
-      void Decode_ExitBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_ExitBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2253,7 +2263,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       /// <param name="reader"></param>
       /// <param name="block"></param>
-      void Decode_HighwayExitBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_HighwayExitBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {
@@ -2269,7 +2279,7 @@ namespace GarminCore.OptimizedReader {
          }
       }
 
-      void Decode_SortDescriptorDefBlock(BinaryReaderWriter reader, DataBlock block) {
+      void Decode_SortDescriptorDefBlock(BinaryReaderWriter reader, DataBlock? block) {
          if (reader != null &&
              block != null &&
              block.Length > 0) {

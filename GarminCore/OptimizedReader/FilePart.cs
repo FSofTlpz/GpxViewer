@@ -12,7 +12,7 @@ namespace GarminCore.Fastreader {
       /// <summary>
       /// eingelesener Datenbereich
       /// </summary>
-      byte[] data;
+      byte[] data = Array.Empty<byte>();
 
       /// <summary>
       /// Offset des Dateibereiches zum Dateibeginn
@@ -68,9 +68,7 @@ namespace GarminCore.Fastreader {
       /// <summary>
       /// Länge des Teils
       /// </summary>
-      public int PartLength {
-         get => data.Length;
-      }
+      public int PartLength => data.Length;
 
 
       /// <summary>
@@ -104,7 +102,9 @@ namespace GarminCore.Fastreader {
       void read(FileStream fs, int offset, int length) {
          Offset = offset;
          data = new byte[length];
-         fs.Read(data, offset, length);
+         int len = fs.Read(data, offset, length);
+         if (len != length)
+            throw new Exception(nameof(BinaryReaderWriter) + "." + nameof(read) + "(): Nicht genug Daten gelesen.");
          Length = (int)fs.Length;
       }
 
@@ -288,7 +288,7 @@ namespace GarminCore.Fastreader {
       /// </summary>
       /// <param name="encoding"></param>
       /// <returns></returns>
-      public char ReadChar(Encoding encoding = null) {
+      public char ReadChar(Encoding? encoding = null) {
          if (ReadChar(encoding ?? StandardEncoding, ref m_1char_buffer))
             return m_1char_buffer[0];
          throw new EndOfStreamException();
@@ -300,7 +300,7 @@ namespace GarminCore.Fastreader {
       /// <param name="count"></param>
       /// <param name="encoding"></param>
       /// <returns></returns>
-      public char[] ReadChars(int count = 0, Encoding encoding = null) {
+      public char[] ReadChars(int count = 0, Encoding? encoding = null) {
          if (count > 0) {
             char[] full = new char[count];
             int chars = ReadCharBytes(encoding ?? StandardEncoding, full, count);
@@ -382,7 +382,7 @@ namespace GarminCore.Fastreader {
       /// <param name="maxlen"></param>
       /// <param name="encoder"></param>
       /// <returns></returns>
-      public string ReadString(int maxlen = 0, Encoding encoder = null) {
+      public string ReadString(int maxlen = 0, Encoding? encoder = null) {
          List<byte> dat = new List<byte>();
          byte b;
          int len = maxlen > 0 ? maxlen : int.MaxValue;
@@ -455,8 +455,8 @@ namespace GarminCore.Fastreader {
       /// <param name="offsets">Liste für die Speicherung der Offsets und des Datensatzindex bzgl. des Blocks</param>
       /// <returns></returns>
       public List<T> ReadArray<T>(DataBlock bl,
-                                  IList<object> extdata = null,
-                                  SortedList<uint, int> offsets = null) where T : DataStruct, new() {
+                                  IList<object>? extdata = null,
+                                  SortedList<uint, int>? offsets = null) where T : DataStruct, new() {
          List<T> lst = new List<T>();
          if (bl.Length > 0) {
             uint start = bl.Offset;
@@ -466,7 +466,7 @@ namespace GarminCore.Fastreader {
                offsets.Clear();
             int ds_data = 0;
             int ds_offs = 0;
-            object constdata = extdata != null && extdata.Count > 0 ?
+            object? constdata = extdata != null && extdata.Count > 0 ?
                                                       extdata[0] :
                                                       null;
             while (Position < end) {
@@ -474,9 +474,11 @@ namespace GarminCore.Fastreader {
                   offsets.Add((uint)Position - start, ds_offs++); // Offsets speichern
 
                T t = new T();
-               t.Read(this, extdata != null && ds_data < extdata.Count ? extdata[ds_data++] : constdata);
-
-               lst.Add(t);
+               object? dat = extdata != null && ds_data < extdata.Count ? extdata[ds_data++] : constdata;
+               if (dat != null) {
+                  t.Read(this, dat);
+                  lst.Add(t);
+               }
             }
 
             if (extdata != null && ds_data++ < extdata.Count) // ev. noch mit Dummy-Objekten entsprechend der Größe der Datenliste auffüllen

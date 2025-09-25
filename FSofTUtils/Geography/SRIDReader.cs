@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Resources;
 
 namespace FSofTUtils.Geography {
@@ -14,7 +15,7 @@ namespace FSofTUtils.Geography {
          /// <summary>
          /// Well-known Text
          /// </summary>
-         public string Wkt;
+         public string? Wkt;
       }
 
       static ProjNet.CoordinateSystems.CoordinateSystemFactory csfactory = new ProjNet.CoordinateSystems.CoordinateSystemFactory();
@@ -26,13 +27,13 @@ namespace FSofTUtils.Geography {
       /// Enumerates all SRID's in the SRID.csv file.
       /// </summary>
       /// <returns>Enumerator</returns>
-      static IEnumerable<WktString> ReadSridsFromFile(string filename = null) {
+      static IEnumerable<WktString> ReadSridsFromFile(string? filename = null) {
          if (string.IsNullOrWhiteSpace(filename))
             filename = Filename;
 
          using (var sr = File.OpenText(filename)) {
             while (!sr.EndOfStream) {
-               WktString wkt = GetDataFromText(sr.ReadLine());
+               WktString? wkt = GetDataFromText(sr.ReadLine());
                if (wkt == null)
                   continue;
                yield return wkt;
@@ -49,14 +50,14 @@ namespace FSofTUtils.Geography {
       static IEnumerable<WktString> ReadSridsFromText(string txt) {
          string[] lines = txt.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
          foreach (var line in lines) {
-            WktString wkt = GetDataFromText(line);
+            WktString? wkt = GetDataFromText(line);
             if (wkt == null)
                continue;
             yield return wkt;
          }
       }
 
-      static WktString GetDataFromText(string txt) {
+      static WktString? GetDataFromText(string? txt) {
          if (string.IsNullOrEmpty(txt))
             return null;
 
@@ -78,7 +79,7 @@ namespace FSofTUtils.Geography {
       /// </summary>
       /// <param name="id">EPSG ID</param>
       /// <returns>Coordinate system, or null if SRID was not found.</returns>
-      public static GeoAPI.CoordinateSystems.ICoordinateSystem GetCSbyID(int id) {
+      public static GeoAPI.CoordinateSystems.ICoordinateSystem? GetCSbyID(int id) {
          foreach (var wkt in ReadSridsFromFile(null))
             if (wkt.WktId == id)
                return csfactory.CreateFromWkt(wkt.Wkt);
@@ -92,20 +93,41 @@ namespace FSofTUtils.Geography {
       /// <param name="rescontainer">Typobjekt der Ressource, z.B. typeof(MyAssembly.Properties.Resources)</param>
       /// <param name="sridresname">Name der Ressource</param>
       /// <returns>Coordinate system, or null if SRID was not found.</returns>
-      public static GeoAPI.CoordinateSystems.ICoordinateSystem GetCSbyIDFromResource(int id, Type rescontainer, string sridresname = "SRID") {
+      public static GeoAPI.CoordinateSystems.ICoordinateSystem? GetCSbyIDFromResource(int id, Type rescontainer, string sridresname = "SRID") {
          //string txt = GMapTest.Properties.Resources.SRID;
          //string txt = GMapTest.Properties.Resources.ResourceManager.GetString("SRID");
          //ResourceManager ResManager = new ResourceManager("GMapTest.Properties.Resources", assembly);
          //ResourceManager ResManager = new ResourceManager(rescontainer);
 
-         string txt = new ResourceManager(rescontainer).GetString("SRID");
+         string? txt = new ResourceManager(rescontainer).GetString("SRID");
 
-         foreach (var wkt in ReadSridsFromText(txt))
-            if (wkt.WktId == id)
-               return csfactory.CreateFromWkt(wkt.Wkt);
+         if (txt != null)
+            foreach (var wkt in ReadSridsFromText(txt))
+               if (wkt.WktId == id)
+                  return csfactory.CreateFromWkt(wkt.Wkt);
          return null;
       }
 
+      public static GeoAPI.CoordinateSystems.ICoordinateSystem? GetCSbyIDFromInternalFile(int id) {
+         string? assemblyname = typeof(SRIDReader).AssemblyQualifiedName;
+         if (assemblyname != null) {
+            string typename = assemblyname.Split(',')[0].Trim(); // FSofTUtils.Geography.SRIDReader
+            int p = typename.LastIndexOf('.');
+            if (p > 0) {
+               using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(typename.Substring(0, p) + ".SRID.csv")) {
+                  if (stream != null) {
+                     using (TextReader reader = new StreamReader(stream)) {
+                        string txt = reader.ReadToEnd();
+                        foreach (var wkt in ReadSridsFromText(txt))
+                           if (wkt.WktId == id)
+                              return csfactory.CreateFromWkt(wkt.Wkt);
+                     }
+                  }
+               }
+            }
+         }
+         return null;
+      }
 
    }
 }

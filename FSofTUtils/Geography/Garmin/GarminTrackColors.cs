@@ -56,12 +56,12 @@ namespace FSofTUtils.Geography.Garmin {
 
       static GarminTrackColors() {
          Color mycol = Color.Yellow;
-         FSofTUtils.ColorHelper.RgbToHls(mycol.R, mycol.G, mycol.B, out double h, out double l, out double s);
-         mycol = FSofTUtils.ColorHelper.HlsToRgb(h, l / 2, s);
+         ColorHelper.RgbToHls(mycol.R, mycol.G, mycol.B, out double h, out double l, out double s);
+         mycol = ColorHelper.HlsToRgb(h, l / 2, s);
 
          Colors = new Dictionary<Colorname, Color>() {
-            { Colorname.Unknown, Color.Empty },
-            { Colorname.Black, Color.Black },
+            { Colorname.Unknown, Color.Empty },                // #00000000   schwarz, voll transparent
+            { Colorname.Black, Color.Black },                  // #FF000000
             { Colorname.DarkRed, Color.DarkRed },
             { Colorname.DarkGreen, Color.DarkGreen },
             { Colorname.DarkYellow, mycol },
@@ -70,20 +70,18 @@ namespace FSofTUtils.Geography.Garmin {
             { Colorname.DarkCyan, Color.DarkCyan },
             { Colorname.LightGray, Color.LightGray },
             { Colorname.DarkGray, Color.DarkGray },
-            { Colorname.Red, Color.Red },
+            { Colorname.Red, Color.Red },                      // #FFFF0000
             { Colorname.Green, Color.Green },
             { Colorname.Yellow, Color.Yellow },
             { Colorname.Blue, Color.Blue },
             { Colorname.Magenta, Color.Magenta },
             { Colorname.Cyan, Color.Cyan },
             { Colorname.White, Color.White },
-            { Colorname.Transparent, Color.Transparent },
+            { Colorname.Transparent, Color.Transparent },      // #00FFFFFF   weiss, voll transparent
          };
       }
 
-      public static string GetColorname(Colorname colname) {
-         return colname.ToString();
-      }
+      public static string GetColorname(Colorname colname) => colname.ToString();
 
       public static Colorname GetColorname(string colname) {
          foreach (Colorname colorname in Enum.GetValues(typeof(Colorname))) {
@@ -94,14 +92,14 @@ namespace FSofTUtils.Geography.Garmin {
       }
 
       /// <summary>
-      /// liefert den <see cref="Colorname"/> zur Farbe, ev. auch den nächstliegenden
+      /// liefert den <see cref="Colorname"/> zur Farbe (ev. auch den nächstliegenden), sonst <see cref="Colorname.Unknown"/>
       /// </summary>
       /// <param name="col"></param>
       /// <param name="nearby"></param>
       /// <returns></returns>
       public static Colorname GetColorname(Color col, bool nearby) {
          foreach (Colorname colorname in Enum.GetValues(typeof(Colorname))) {
-            if (Colors[colorname] == col)
+            if (Colors[colorname].ToArgb() == col.ToArgb())
                return colorname;
          }
          // nicht gefunden

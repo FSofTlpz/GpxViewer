@@ -17,13 +17,13 @@ namespace GarminImageCreator {
       public int TypeNo { get; protected set; }
       public string TypeName { get; protected set; }
       public string Name { get; protected set; }
-      public Bitmap Bitmap { get; protected set; }
+      public Bitmap? Bitmap { get; protected set; }
 
       public SearchObject(ObjectType objecttype,
                           int typeno,
                           string typename,
                           string name,
-                          Bitmap bitmap) {
+                          Bitmap? bitmap) {
          Objecttype = objecttype;
          TypeNo = typeno;
          TypeName = typename;
@@ -31,11 +31,10 @@ namespace GarminImageCreator {
          Bitmap = bitmap;
       }
 
-      public int CompareTo(object obj) {
+      public int CompareTo(object? obj) {
          if (obj == null)
             return 1;
-         SearchObject so = obj as SearchObject;
-
+         SearchObject so = (SearchObject)obj;
          if ((int)Objecttype > (int)so.Objecttype)
             return 1;
          else if ((int)Objecttype < (int)so.Objecttype)

@@ -29,7 +29,6 @@ Sie sollten ein Exemplar der GNU General Public License zusammen mit
 diesem Programm erhalten haben. Falls nicht, siehe 
 <http://www.gnu.org/licenses/>. 
 */
-using GarminCore.OptimizedReader;
 using System;
 
 namespace GarminCore {
@@ -55,7 +54,7 @@ namespace GarminCore {
          Read(br);
       }
 
-      public DataBlock(DataBlock bl)
+      public DataBlock(DataBlock? bl)
          : this() {
          if (bl != null) {
             Offset = bl.Offset;
@@ -63,7 +62,7 @@ namespace GarminCore {
          }
       }
 
-      public DataBlock(ShortDataBlock bl)
+      public DataBlock(ShortDataBlock? bl)
          : this() {
          if (bl != null) {
             Offset = bl.Offset;
@@ -71,7 +70,7 @@ namespace GarminCore {
          }
       }
 
-      public DataBlock(DataBlockWithRecordsize bl)
+      public DataBlock(DataBlockWithRecordsize? bl)
          : this() {
          if (bl != null) {
             Offset = bl.Offset;

@@ -9,13 +9,13 @@ namespace GarminCore {
       public PointF Point { get; protected set; }
 
 
-      public GeoPoint(int type, string txt, float lon, float lat) : base(type, txt) {
+      public GeoPoint(int type, string? txt, float lon, float lat) : base(type, txt) {
          Point = new PointF(lon, lat);
       }
 
-      public GeoPoint(int type, string txt, double lon, double lat) : this(type, txt, (float)lon, (float)lat) { }
+      public GeoPoint(int type, string? txt, double lon, double lat) : this(type, txt, (float)lon, (float)lat) { }
 
-      public GeoPoint(int type, string txt, PointF pt, bool ptcopy = false) : base(type, txt) {
+      public GeoPoint(int type, string? txt, PointF pt, bool ptcopy = false) : base(type, txt) {
          if (ptcopy)
             Point = pt;
          else

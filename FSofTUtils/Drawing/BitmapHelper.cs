@@ -149,7 +149,7 @@ typedef struct {                                             typedef struct {
          SKColor[] p = new SKColor[pixel.Length];
          for (int i = 0; i < pixel.Length; i++)
             p[i] = pixel[i];
-         bm.SKBitmap.Pixels = p;
+         bm.Pixels = p;
 #else
          MemoryStream ms = new MemoryStream();
          using (BinaryWriter bw = new BinaryWriter(ms)) {

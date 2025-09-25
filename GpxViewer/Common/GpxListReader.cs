@@ -1,6 +1,6 @@
 ﻿using FSofTUtils;
 
-#if Android
+#if ANDROID
 namespace TrackEddi.Common {
 #else
 namespace GpxViewer.Common {
@@ -30,14 +30,18 @@ namespace GpxViewer.Common {
       /// <summary>
       /// Anzahl der Listengruppen
       /// </summary>
-      public int Groups =>
-         list.ReadValues("/" + XML_ROOT + "/" + XML_GROUP).Length;
+      public int Groups {
+         get {
+            SimpleXmlDocument2.XPathResult[]? xPathResults = list.ReadValues("/" + XML_ROOT + "/" + XML_GROUP);
+            return xPathResults != null ? xPathResults.Length : 0;
+         }
+      }
 
       /// <summary>
       /// Name der Listendatei
       /// </summary>
       public string Name =>
-            list.ReadValue("/" + XML_ROOT + "/" + XML_NAME, "");
+               list.ReadValue("/" + XML_ROOT + "/" + XML_NAME, "");
 
       public GpxListReader(string filename) {
          list = new SimpleXmlDocument2(filename, XML_ROOT);
@@ -60,7 +64,8 @@ namespace GpxViewer.Common {
       /// <param name="group"></param>
       /// <returns></returns>
       public int GpxFiles(int group) {
-         return list.ReadValues("/" + XML_ROOT + "/" + XML_GROUP + "[" + (group + 1).ToString() + "]/" + XML_GPX).Length;
+         SimpleXmlDocument2.XPathResult[]? xPathResults = list.ReadValues("/" + XML_ROOT + "/" + XML_GROUP + "[" + (group + 1).ToString() + "]/" + XML_GPX);
+         return xPathResults != null ? xPathResults.Length : 0;
       }
 
       /// <summary>

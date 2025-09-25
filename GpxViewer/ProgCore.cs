@@ -109,7 +109,7 @@ namespace GpxViewer {
       /// <returns>Zoom</returns>
       public static double GetMapLocationAndZoom(out double lon, out double lat, MapCtrl mapCtrl) {
          lon = mapCtrl.M_CenterLon;
-         lat = mapCtrl.M_CenterLon;
+         lat = mapCtrl.M_CenterLat;
          return GetMapZoomTS(mapCtrl);
       }
 

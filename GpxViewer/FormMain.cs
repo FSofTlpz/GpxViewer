@@ -1815,7 +1815,7 @@ namespace GpxViewer {
                   } else if (mi == ToolStripMenuItem_WaypointEdit ||
                              mi == toolStripMenuItem_ShowMarkerProperties) {
 
-                     infoAndEditMarkerProps(marker, marker.IsEditable && programState == ProgState.Edit_SetNewMarker);
+                     infoAndEditMarkerProps(marker, marker.IsEditable && programState == ProgState.Viewer);
 
                   } else if (mi == ToolStripMenuItem_WaypointSet) {
 
@@ -3087,7 +3087,7 @@ Sonst werden die Änderungen ev. nicht wirksam.",
             //saveFileDialogGpx.FileName = string.IsNullOrEmpty(lastSaveFilename) ?
             //                                          "neu.gpx" :
             //                                          lastSaveFilename;
-            saveFileDialogGpx.FileName = "TrackEddi-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".gpx";
+            saveFileDialogGpx.FileName = "GpxViewer-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".gpx";
             saveFileDialogGpx.DefaultExt = "gpx";
             saveFileDialogGpx.Title = !multifiles ?
                                           "speichern als Datei ..." :

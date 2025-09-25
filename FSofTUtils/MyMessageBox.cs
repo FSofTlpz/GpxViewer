@@ -16,12 +16,12 @@ namespace FSofTUtils {
       /// <summary>
       /// anzuzeigende Info
       /// </summary>
-      string Message = null;
+      string? Message = null;
 
       /// <summary>
       /// Titelzeile der <see cref="MyMessageBox"/>
       /// </summary>
-      string Title = null;
+      string? Title = null;
 
       /// <summary>
       /// Info-Text zentriert?
@@ -270,99 +270,102 @@ namespace FSofTUtils {
          textBoxInfo_SizeChanged(textBoxInfo, new EventArgs());
       }
 
-      private void Button_Click(object sender, EventArgs e) {
-         int buttonno = (int)((sender as Button).Tag);
+      private void Button_Click(object? sender, EventArgs e) {
+         Button? btn = (Button?)sender;
+         if (btn != null && btn.Tag != null) {
+            int buttonno = (int)(btn.Tag);
+            switch (BoxButtons) {
+               case MessageBoxButtons.OK:
+                  dialogResult = DialogResult.OK;
+                  break;
 
-         switch (BoxButtons) {
-            case MessageBoxButtons.OK:
-               dialogResult = DialogResult.OK;
-               break;
+               case MessageBoxButtons.OKCancel:
+                  switch (buttonno) {
+                     case 0:
+                        dialogResult = DialogResult.OK;
+                        break;
 
-            case MessageBoxButtons.OKCancel:
-               switch (buttonno) {
-                  case 0:
-                     dialogResult = DialogResult.OK;
-                     break;
+                     case 1:
+                        dialogResult = DialogResult.Cancel;
+                        break;
+                  }
+                  break;
 
-                  case 1:
-                     dialogResult = DialogResult.Cancel;
-                     break;
-               }
-               break;
+               case MessageBoxButtons.AbortRetryIgnore:
+                  switch (buttonno) {
+                     case 0:
+                        dialogResult = DialogResult.Abort;
+                        break;
 
-            case MessageBoxButtons.AbortRetryIgnore:
-               switch (buttonno) {
-                  case 0:
-                     dialogResult = DialogResult.Abort;
-                     break;
+                     case 1:
+                        dialogResult = DialogResult.Retry;
+                        break;
 
-                  case 1:
-                     dialogResult = DialogResult.Retry;
-                     break;
+                     case 2:
+                        dialogResult = DialogResult.Ignore;
+                        break;
+                  }
+                  break;
 
-                  case 2:
-                     dialogResult = DialogResult.Ignore;
-                     break;
-               }
-               break;
+               case MessageBoxButtons.YesNoCancel:
+                  switch (buttonno) {
+                     case 0:
+                        dialogResult = DialogResult.Yes;
+                        break;
 
-            case MessageBoxButtons.YesNoCancel:
-               switch (buttonno) {
-                  case 0:
-                     dialogResult = DialogResult.Yes;
-                     break;
+                     case 1:
+                        dialogResult = DialogResult.No;
+                        break;
 
-                  case 1:
-                     dialogResult = DialogResult.No;
-                     break;
+                     case 2:
+                        dialogResult = DialogResult.Cancel;
+                        break;
+                  }
+                  break;
 
-                  case 2:
-                     dialogResult = DialogResult.Cancel;
-                     break;
-               }
-               break;
+               case MessageBoxButtons.YesNo:
+                  switch (buttonno) {
+                     case 0:
+                        dialogResult = DialogResult.Yes;
+                        break;
 
-            case MessageBoxButtons.YesNo:
-               switch (buttonno) {
-                  case 0:
-                     dialogResult = DialogResult.Yes;
-                     break;
+                     case 1:
+                        dialogResult = DialogResult.No;
+                        break;
+                  }
+                  break;
 
-                  case 1:
-                     dialogResult = DialogResult.No;
-                     break;
-               }
-               break;
+               case MessageBoxButtons.RetryCancel:
+                  switch (buttonno) {
+                     case 0:
+                        dialogResult = DialogResult.Retry;
+                        break;
 
-            case MessageBoxButtons.RetryCancel:
-               switch (buttonno) {
-                  case 0:
-                     dialogResult = DialogResult.Retry;
-                     break;
-
-                  case 1:
-                     dialogResult = DialogResult.Cancel;
-                     break;
-               }
-               break;
+                     case 1:
+                        dialogResult = DialogResult.Cancel;
+                        break;
+                  }
+                  break;
+            }
+            Close();
          }
-         Close();
       }
 
-      private void textBoxInfo_SizeChanged(object sender, EventArgs e) {
+      private void textBoxInfo_SizeChanged(object? sender, EventArgs e) {
          if (!string.IsNullOrEmpty(Message)) {
-            TextBox tb = sender as TextBox;
+            TextBox? tb = (TextBox?)sender;
+            if (tb != null) {
+               Graphics g = CreateGraphics();
+               SizeF txtSize = g.MeasureString(Message, tb.Font);
+               int txtwidth = (int)Math.Ceiling(txtSize.Width);
+               int txtheight = (int)Math.Ceiling(txtSize.Height);
 
-            Graphics g = CreateGraphics();
-            SizeF txtSize = g.MeasureString(Message, tb.Font);
-            int txtwidth = (int)Math.Ceiling(txtSize.Width);
-            int txtheight = (int)Math.Ceiling(txtSize.Height);
-
-            if (txtwidth <= tb.ClientSize.Width &&
-                txtheight <= tb.ClientSize.Height)
-               tb.ScrollBars = ScrollBars.None;
-            else     // notfalls einschalten
-               tb.ScrollBars = ScrollBars.Both;
+               if (txtwidth <= tb.ClientSize.Width &&
+                   txtheight <= tb.ClientSize.Height)
+                  tb.ScrollBars = ScrollBars.None;
+               else     // notfalls einschalten
+                  tb.ScrollBars = ScrollBars.Both;
+            }
          }
       }
 

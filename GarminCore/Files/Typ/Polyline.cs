@@ -66,7 +66,7 @@ namespace GarminCore.Files.Typ {
          get { return (uint)(Options >> 3); }
          set { Options = (byte)((value << 3) | ((uint)Options & 0x7)); }
       }
-      
+
       /// <summary>
       /// Linientyp (Bit 0,1,2)
       /// </summary>
@@ -152,7 +152,7 @@ namespace GarminCore.Files.Typ {
             }
          }
       }
-      
+
       /// <summary>
       /// mit Text (Bit 0)
       /// </summary>
@@ -164,7 +164,7 @@ namespace GarminCore.Files.Typ {
             Options2 = SetBit(Options2, 0, value);
          }
       }
-      
+
       /// <summary>
       /// mit Textrotation (Bit 1)
       /// </summary>
@@ -179,7 +179,7 @@ namespace GarminCore.Files.Typ {
                WithExtendedOptions = true;
          }
       }
- 
+
       /// <summary>
       /// mit zusätzlichen Farben oder Fonteigenschaft (Bit 2)
       /// </summary>
@@ -196,7 +196,7 @@ namespace GarminCore.Files.Typ {
       /// Linienbreite (ohne Berücksichtigung Rand; vermutlich einschließlich 2*Randbreite max. 255)
       /// </summary>
       public uint InnerWidth { get; private set; }
- 
+
       /// <summary>
       /// Randbreite (für 1 Rand; vermutlich Linienbreite + 2*Randbreite max. 255)
       /// </summary>
@@ -206,7 +206,7 @@ namespace GarminCore.Files.Typ {
       /// Breite der Linie (konstant)
       /// </summary>
       public override uint Width { get { return 32; } protected set { } }
- 
+
       /// <summary>
       /// Höhe (Dicke) der Linie
       /// </summary>
@@ -331,23 +331,23 @@ namespace GarminCore.Files.Typ {
       /// <param name="b4Day">für Tag oder Nacht</param>
       /// <param name="bExt">auch "bitmaplose" Linie als Bitmap 32 x n</param>
       /// <returns></returns>
-      public override Bitmap AsBitmap(bool b4Day, bool bExt) {
-         Bitmap bm = null;
+      public override Bitmap? AsBitmap(bool b4Day, bool bExt) {
+         Bitmap? bm = null;
          if (WithDayBitmap) {
-            PixMap tmp = new PixMap(XBitmapDay);
+            PixMap? tmp = XBitmapDay != null ? new PixMap(XBitmapDay) : null;
             // Das Bitmap hat bisher nur eine Dummyfarbe. Jetzt müßen noch die richtigen Farben gesetzt werden.
             if (b4Day) {
                switch (Polylinetype) {
                   case PolylineType.Day2:
                   case PolylineType.Day2_Night2:
                   case PolylineType.NoBorder_Day2_Night1:
-                     tmp.SetNewColors(colDayColor);
+                     tmp?.SetNewColors(colDayColor);
                      break;
 
                   case PolylineType.Day1_Night2:
                   case PolylineType.NoBorder_Day1:
                   case PolylineType.NoBorder_Day1_Night1:
-                     tmp.SetNewColor(0, colDayColor[0]);
+                     tmp?.SetNewColor(0, colDayColor[0]);
                      break;
                }
             } else {
@@ -359,12 +359,12 @@ namespace GarminCore.Files.Typ {
 
                   case PolylineType.Day1_Night2:
                   case PolylineType.Day2_Night2:
-                     tmp.SetNewColors(colNightColor);
+                     tmp?.SetNewColors(colNightColor);
                      break;
 
                   case PolylineType.NoBorder_Day2_Night1:
                   case PolylineType.NoBorder_Day1_Night1:
-                     tmp.SetNewColor(0, colNightColor[0]);
+                     tmp?.SetNewColor(0, colNightColor[0]);
                      break;
                }
             }
@@ -407,7 +407,7 @@ namespace GarminCore.Files.Typ {
                   case PolylineType.Day1_Night2:
                   case PolylineType.NoBorder_Day1:
                   case PolylineType.NoBorder_Day1_Night1:
-                     XBitmapDay.InvertBits();               // wegen Transparenz
+                     XBitmapDay?.InvertBits();               // wegen Transparenz
                      break;
                }
             } else
@@ -420,7 +420,7 @@ namespace GarminCore.Files.Typ {
                      break;
                   case PolylineType.NoBorder_Day1_Night1:
                   case PolylineType.NoBorder_Day2_Night1:
-                     XBitmapDay.InvertBits();
+                     XBitmapDay?.InvertBits();
                      break;
                }
          } else {                // kein Bitmap
@@ -469,27 +469,29 @@ namespace GarminCore.Files.Typ {
                break;
          }
          BitmapHeight = (uint)bmday.Height;
-         DayColor1 = XBitmapDay.GetColor(0);
-         switch (typ) {
-            case PolylineType.Day2:
-            case PolylineType.Day2_Night2:
-            case PolylineType.NoBorder_Day2_Night1:
-               DayColor2 = XBitmapDay.Colors > 1 ? XBitmapDay.GetColor(1) : Color.CornflowerBlue;
-               break;
-         }
-         switch (typ) {
-            case PolylineType.NoBorder_Day1_Night1:
-            case PolylineType.NoBorder_Day2_Night1:
-               NightColor1 = DayColor1;
-               break;
-            case PolylineType.Day1_Night2:
-            case PolylineType.Day2_Night2:
-               base.NightColor1 = DayColor1;
-               base.NightColor2 = DayColor2;
-               break;
+         if (XBitmapDay != null) {
+            DayColor1 = XBitmapDay.GetColor(0);
+            switch (typ) {
+               case PolylineType.Day2:
+               case PolylineType.Day2_Night2:
+               case PolylineType.NoBorder_Day2_Night1:
+                  DayColor2 = XBitmapDay.Colors > 1 ? XBitmapDay.GetColor(1) : Color.CornflowerBlue;
+                  break;
+            }
+            switch (typ) {
+               case PolylineType.NoBorder_Day1_Night1:
+               case PolylineType.NoBorder_Day2_Night1:
+                  NightColor1 = DayColor1;
+                  break;
+               case PolylineType.Day1_Night2:
+               case PolylineType.Day2_Night2:
+                  base.NightColor1 = DayColor1;
+                  base.NightColor2 = DayColor2;
+                  break;
+            }
          }
       }
- 
+
       /// <summary>
       /// setzt die Werte für eine Darstellung ohne Bitmap
       /// </summary>
@@ -588,7 +590,7 @@ namespace GarminCore.Files.Typ {
                   break;
             }
          } else
-            XBitmapDay.WriteRawdata(bw);
+            XBitmapDay?.WriteRawdata(bw);
 
          if (WithString)
             Text.Write(bw, iCodepage);
@@ -661,7 +663,7 @@ namespace GarminCore.Files.Typ {
                break;
          }
          if (BitmapHeight > 0)
-            sb.Append(" " + XBitmapDay.ToString());
+            sb.Append(" " + XBitmapDay?.ToString());
          if (InnerWidth > 0) {
             sb.Append(" Width=" + InnerWidth.ToString());
             if (BorderWidth > 0)

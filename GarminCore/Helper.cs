@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -187,7 +186,7 @@ namespace GarminCore {
             bw.Write(v);
          }
 
-         public void Patch(int addr, string v, Encoding encoder = null, bool bEnding0 = true) {
+         public void Patch(int addr, string v, Encoding? encoder = null, bool bEnding0 = true) {
             bw.Seek(addr, SeekOrigin.Begin);
             bw.Write(encoder == null ? stringenc.GetBytes(v) : encoder.GetBytes(v));
             if (bEnding0)
@@ -232,7 +231,7 @@ namespace GarminCore {
             p.Dispose();
          }
 
-         static public void Patch(string filename, int addr, string v, Encoding encoder = null, bool bEnding0 = true) {
+         static public void Patch(string filename, int addr, string v, Encoding? encoder = null, bool bEnding0 = true) {
             Patcher p = new Patcher(filename);
             p.Patch(addr, v, encoder, bEnding0);
             p.Dispose();

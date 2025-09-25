@@ -1,10 +1,5 @@
-using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
-using System.Windows.Forms;
-using Unclassified.Drawing;
 
 namespace Unclassified.UI {
    public partial class SpecColorSelector : UserControl {
@@ -21,7 +16,7 @@ namespace Unclassified.UI {
          LineAlignment = StringAlignment.Center,
       };
 
-      Font font;
+      Font? font;
 
 
       #endregion Private fields
@@ -31,17 +26,17 @@ namespace Unclassified.UI {
       /// <summary>
       /// die Farbauswahl wurde verändert
       /// </summary>
-      public event EventHandler SelectedColorChanged;
+      public event EventHandler? SelectedColorChanged;
 
       /// <summary>
       /// Doppelklick auf das Farbarray
       /// </summary>
-      public event EventHandler CloseWithOKRequested;
+      public event EventHandler? CloseWithOKRequested;
 
       /// <summary>
       /// <see cref="FullView"/> wurde geändert
       /// </summary>
-      public event EventHandler FullViewChanged;
+      public event EventHandler? FullViewChanged;
 
       #endregion Events
 
@@ -201,7 +196,7 @@ namespace Unclassified.UI {
 
          AutoLocalise();
 
-         RGBfader_RatioChanged(null, null);
+         RGBfader_RatioChanged(null, EventArgs.Empty);
       }
 
       #endregion Constructors
@@ -210,7 +205,7 @@ namespace Unclassified.UI {
       protected override void OnLoad(EventArgs e) {
          isonload = true;
          base.OnLoad(e);
-         extendedViewCheck_CheckedChanged(null, null);
+         extendedViewCheck_CheckedChanged(null, EventArgs.Empty);
          font = new Font(Font.FontFamily, 2 * Font.Size);
          pictureBox_Demo.Image = new Bitmap(pictureBox_Demo.ClientSize.Width, pictureBox_Demo.ClientSize.Height);
          BuildDemoBitmap(pictureBox_Demo);
@@ -220,7 +215,7 @@ namespace Unclassified.UI {
       #endregion Control event handlers
 
       #region Sub-control event handlers
-      private void RGBfader_RatioChanged(object sender, EventArgs e) {
+      private void RGBfader_RatioChanged(object? sender, EventArgs e) {
          if (!updatingFaders) {
             updatingFaders = true;
 
@@ -299,17 +294,19 @@ namespace Unclassified.UI {
       }
 
       private void picturePalette_Click(object sender, EventArgs e) {
-         Control c = sender as Control;
-         Color color = c.BackColor;
-         faderRed.Ratio = color.R;
-         faderGreen.Ratio = color.G;
-         faderBlue.Ratio = color.B;
+         Control? c = sender as Control;
+         if (c != null) {
+            Color color = c.BackColor;
+            faderRed.Ratio = color.R;
+            faderGreen.Ratio = color.G;
+            faderBlue.Ratio = color.B;
 
-         if (!ExtendedViewCheck.Checked)
-            CloseWithOKRequested?.Invoke(this, EventArgs.Empty);
+            if (!ExtendedViewCheck.Checked)
+               CloseWithOKRequested?.Invoke(this, EventArgs.Empty);
+         }
       }
 
-      private void extendedViewCheck_CheckedChanged(object sender, EventArgs e) {
+      private void extendedViewCheck_CheckedChanged(object? sender, EventArgs e) {
          tableLayoutPanel_Faders.SuspendLayout();
          tableLayoutPanel_Faders.Visible = colorWheel1.Visible = FullView = ExtendedViewCheck.Checked;
          tableLayoutPanel_Faders.ResumeLayout();
@@ -317,9 +314,7 @@ namespace Unclassified.UI {
             FullViewChanged?.Invoke(this, new EventArgs());
       }
 
-      private void colorfield_Click(object sender, EventArgs e) {
-         SelectedColor = (sender as ColorField).Color;
-      }
+      private void colorfield_Click(object sender, EventArgs e) => SelectedColor = (sender as ColorField).Color;
 
       private void colorfield_DoubleClick(object sender, EventArgs e) {
          SelectedColor = (sender as ColorField).Color;
@@ -356,8 +351,8 @@ namespace Unclassified.UI {
       }
 
       void BuildDemoBitmap(PictureBox pb) {
-         Bitmap bm = pb.Image as Bitmap;
-         if (bm != null) {
+         Bitmap? bm = pb.Image as Bitmap;
+         if (bm != null && font != null) {
             Graphics canvas = Graphics.FromImage(bm);
             canvas.Clear(Color.White);
             canvas.DrawString("Demo", font, new SolidBrush(Color.Black), bm.Width / 2, bm.Height / 2, sfText);
@@ -372,45 +367,42 @@ namespace Unclassified.UI {
       #region public functions
 
       public Color GetArrayColor(int idx) {
-         ColorField cf = getColorField(idx);
+         ColorField? cf = getColorField(idx);
          return cf != null ?
                         cf.Color :
                         Color.Empty;
       }
 
       public void SetArrayColor(int idx, Color col) {
-         ColorField cf = getColorField(idx);
+         ColorField? cf = getColorField(idx);
          if (cf != null)
             cf.Color = col;
       }
 
       public bool IsArrayColorEnabled(int idx) {
-         ColorField cf = getColorField(idx);
+         ColorField? cf = getColorField(idx);
          return cf != null ?
                      cf.Enabled :
                      false;
       }
 
       public void EnableArrayColor(int idx, bool enable) {
-         ColorField cf = getColorField(idx);
+         ColorField? cf = getColorField(idx);
          if (cf != null)
             cf.Enabled = enable;
       }
 
 
-      public int ArrayColorsCount {
-         get => flowLayoutPanel_ColorArray.Controls.Count;
-      }
+      public int ArrayColorsCount => flowLayoutPanel_ColorArray.Controls.Count;
 
-      ColorField getColorField(int idx) {
-         return 0 <= idx && idx < ArrayColorsCount ?
-                        flowLayoutPanel_ColorArray.Controls[idx] as ColorField :
-                        null;
-      }
-
-
+      ColorField? getColorField(int idx) => 0 <= idx && idx < ArrayColorsCount ?
+                                                   flowLayoutPanel_ColorArray.Controls[idx] as ColorField :
+                                                   null;
 
       #endregion
+
+      public Control? GetArrayControl(int idx) => getColorField(idx);
+
 
    }
 }

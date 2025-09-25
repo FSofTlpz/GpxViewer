@@ -291,7 +291,7 @@ namespace GarminCore {
 
       public Bound(IList<MapUnitPoint> pt) :
          this() {
-         if (pt != null && pt.Count > 0) {
+         if (pt.Count > 0) {
             int l = pt[0].Longitude;
             int r = l;
             int b = pt[0].Latitude;
@@ -649,8 +649,8 @@ namespace GarminCore {
       /// </summary>
       /// <param name="bound"></param>
       /// <returns></returns>
-      public Bound Intersection(Bound bound) {
-         intersection(bound, true, out Bound result);
+      public Bound? Intersection(Bound bound) {
+         intersection(bound, true, out Bound? result);
          return result;
       }
 
@@ -674,7 +674,7 @@ namespace GarminCore {
       /// <param name="getresult">wenn true wird, falls möglich, eine Schnittmenge gebildet</param>
       /// <param name="result">Schnittmenge oder</param>
       /// <returns></returns>
-      bool intersection1(Bound bound, bool getresult, out Bound result) {
+      bool intersection1(Bound bound, bool getresult, out Bound? result) {
          int l1 = Left;
          int r1 = Right;
          if (r1 < l1)
@@ -719,7 +719,7 @@ namespace GarminCore {
       /// <param name="getresult">wenn true wird, falls möglich, eine Schnittmenge gebildet</param>
       /// <param name="result">Schnittmenge oder</param>
       /// <returns></returns>
-      bool intersection(Bound bound, bool getresult, out Bound result) {
+      bool intersection(Bound bound, bool getresult, out Bound? result) {
          int l1 = Left;
          int r1 = Right;
          if (r1 < l1)

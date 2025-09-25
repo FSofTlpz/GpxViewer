@@ -101,13 +101,13 @@ namespace GarminCore.OptimizedReader {
             FirstSubdivInfoNumber = ml.FirstSubdivInfoNumber;
          }
 
-         public override void Read(BinaryReaderWriter br, object extdata = null) {
+         public override void Read(BinaryReaderWriter br, object? extdata = null) {
             _SymbolicScaleDenominator = br.ReadByte();
             CoordBits = br.ReadByte();
             SubdivInfos = br.Read2AsUShort();
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata = null) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata = null) { }
 
          public override string ToString() {
             return string.Format("SymbolicScale {0}, Inherited {1}, CoordBits {2}, FirstSubdivInfoNumber {3}, Subdivs {4}",
@@ -573,7 +573,7 @@ namespace GarminCore.OptimizedReader {
             LastSubdiv = false;
          }
 
-         public SubdivInfoBasic(SubdivInfoBasic sdi = null) : this() {
+         public SubdivInfoBasic(SubdivInfoBasic? sdi = null) : this() {
             if (sdi != null) {
                Data.Offset = sdi.Data.Offset;
                Data.Length = sdi.Data.Length;
@@ -649,7 +649,7 @@ namespace GarminCore.OptimizedReader {
             }
          }
 
-         public override void Read(BinaryReaderWriter br, object extdata = null) {
+         public override void Read(BinaryReaderWriter br, object? extdata = null) {
             Data.Offset = br.Read3AsUInt();
             Content = (SubdivContent)br.ReadByte();
             Center.Longitude = br.Read3Int();
@@ -658,7 +658,7 @@ namespace GarminCore.OptimizedReader {
             HalfHeight = br.Read2AsUShort();
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata = null) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata = null) { }
 
          public Bound GetBound(int coordbits) {
             int w2 = Coord.RawUnits2MapUnits(HalfWidth, coordbits);
@@ -687,7 +687,7 @@ namespace GarminCore.OptimizedReader {
             ChildSubdivInfos = 0;
          }
 
-         public SubdivInfo(SubdivInfo sdi = null) : base(sdi) {
+         public SubdivInfo(SubdivInfo? sdi = null) : base(sdi) {
             FirstChildSubdivIdx1 = sdi == null ? (ushort)0 : sdi.FirstChildSubdivIdx1;
             ChildSubdivInfos = sdi == null ? (ushort)0 : sdi.ChildSubdivInfos;
          }
@@ -709,12 +709,12 @@ namespace GarminCore.OptimizedReader {
          /// </summary>
          public UInt16 ChildSubdivInfos;
 
-         public override void Read(BinaryReaderWriter br, object extdata) {
+         public override void Read(BinaryReaderWriter br, object? extdata) {
             base.Read(br, extdata);
             FirstChildSubdivIdx1 = br.Read2AsUShort();
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata) { }
 
          public override string ToString() {
             return string.Format("Offset {0}, Content {1}, FirstChildSubdiv {2}, SubdivInfos {3}, LastSubdiv {4}, Center {5}° {6}°",
@@ -756,12 +756,12 @@ namespace GarminCore.OptimizedReader {
             MaxLevel = maxlevel;
          }
 
-         public override void Read(BinaryReaderWriter br, object extdata = null) {
+         public override void Read(BinaryReaderWriter br, object? extdata = null) {
             Type = br.ReadByte();
             MaxLevel = br.ReadByte();
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata = null) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata = null) { }
 
          public override string ToString() {
             return string.Format("MaxLevel {0}, Type = 0x{1:x2}", MaxLevel, Type);
@@ -791,12 +791,12 @@ namespace GarminCore.OptimizedReader {
             SubType = subtype;
          }
 
-         public override void Read(BinaryReaderWriter br, object extdata = null) {
+         public override void Read(BinaryReaderWriter br, object? extdata = null) {
             base.Read(br, extdata);
             SubType = br.ReadByte();
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata = null) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata = null) { }
 
          public override string ToString() {
             return base.ToString() + ", SubType 0x" + SubType.ToString("x2");
@@ -826,12 +826,12 @@ namespace GarminCore.OptimizedReader {
             Unknown = unknown;
          }
 
-         public override void Read(BinaryReaderWriter br, object extdata = null) {
+         public override void Read(BinaryReaderWriter br, object? extdata = null) {
             base.Read(br, extdata);
             Unknown = br.ReadByte();
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata = null) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata = null) { }
 
          public override string ToString() {
             return base.ToString() + ", Unknown " + Unknown.ToString("x2");
@@ -863,7 +863,7 @@ namespace GarminCore.OptimizedReader {
             Kinds = 0;
          }
 
-         public override void Read(BinaryReaderWriter br, object extdata = null) {
+         public override void Read(BinaryReaderWriter br, object? extdata = null) {
             AreasOffset = br.Read4UInt();
             LinesOffset = br.Read4UInt();
             PointsOffset = br.Read4UInt();
@@ -873,7 +873,7 @@ namespace GarminCore.OptimizedReader {
                Kinds = br.ReadByte();
          }
 
-         public override void Write(BinaryReaderWriter bw, object extdata = null) { }
+         public override void Write(BinaryReaderWriter bw, object? extdata = null) { }
 
          public override string ToString() {
             return string.Format("AreasOffset 0x{0:x}, LinesOffset = 0x{1:x}, PointsOffset 0x{2:x}, Kinds {3}",
@@ -1042,19 +1042,19 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       UInt32 MaplevelScrambleKey;
 
-      DataBlock UnknownBlock_xAE;
+      DataBlock? UnknownBlock_xAE;
 
       byte[] Unknown_xB6 = new byte[0x6];
 
       // --------- Headerlänge > 188 Byte
 
-      DataBlock UnknownBlock_xBC;
+      DataBlock? UnknownBlock_xBC;
 
       byte[] Unknown_xC4 = new byte[0x1F];
 
-      DataBlock UnknownBlock_xE3;
+      DataBlock? UnknownBlock_xE3;
 
-      byte[] Unknown_xEB = null;
+      byte[]? Unknown_xEB = null;
 
       #endregion
 
@@ -1062,13 +1062,13 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// zur Verwaltung der MapLevel
       /// </summary>
-      public SymbolicScaleDenominatorAndBits SymbolicScaleDenominatorAndBitsLevel { get; protected set; }
+      public SymbolicScaleDenominatorAndBits? SymbolicScaleDenominatorAndBitsLevel { get; protected set; }
 
       /// <summary>
       /// liefert den Datenbereich für die Kartenbeschreibung
       /// </summary>
       /// <returns></returns>
-      DataBlock MapDescriptionBlock;
+      DataBlock? MapDescriptionBlock;
 
       /// <summary>
       /// Liste der Texte für die Kartenbeschreibung
@@ -1389,7 +1389,7 @@ namespace GarminCore.OptimizedReader {
 
             for (int i = 0; i < SubdivInfoList.Count; i++)        // "Verkettung" setzen, d.h. die Anzahl der untergeordneten SubdivInfos
                if (SubdivInfoList[i] is SubdivInfo) {
-                  SubdivInfo sdi = SubdivInfoList[i] as SubdivInfo;
+                  SubdivInfo sdi = (SubdivInfo)SubdivInfoList[i];
                   for (int j = sdi.FirstChildSubdivIdx1; j > 0; j++)
                      if (SubdivInfoList[j - 1].LastSubdiv) {      // 1-basierter Index
                         sdi.ChildSubdivInfos = (UInt16)(j - sdi.FirstChildSubdivIdx1 + 1);
@@ -1579,7 +1579,7 @@ namespace GarminCore.OptimizedReader {
       /// <param name="br"></param>
       /// <param name="block"></param>
       /// <returns></returns>
-      List<ExtendedTypeOffsets> Decode_ExtTypeOffsetsBlock(BinaryReaderWriter br, DataBlockWithRecordsize block) {
+      List<ExtendedTypeOffsets>? Decode_ExtTypeOffsetsBlock(BinaryReaderWriter br, DataBlockWithRecordsize block) {
          if (br != null &&
              block != null &&
              block.Length > 0)
@@ -1649,8 +1649,9 @@ namespace GarminCore.OptimizedReader {
             int lastidx = ml[m].FirstSubdivInfoNumber - 1 + ml[m].SubdivInfos - 1;
             if (lastidx >= sdi.Count)
                return false;
-            if ((sdi[lastidx] is SubdivInfo) &&
-                !(sdi[lastidx] as SubdivInfo).LastSubdiv)
+            SubdivInfo? sdi2 = sdi[lastidx] as SubdivInfo;
+            if (sdi2 != null &&
+                !sdi2.LastSubdiv)
                return false;
          }
          for (int i = 0; i < sdi.Count - 1; i++) {
@@ -1669,7 +1670,7 @@ namespace GarminCore.OptimizedReader {
       /// teilt die gespeicherte Liste in 3 Offset-Listen auf und löscht den Originalinhalt
       /// </summary>
       /// <param name="ExtTypeOffsetList"></param>
-      void SplitExtTypeOffsetList(List<ExtendedTypeOffsets> ExtTypeOffsetList) {
+      void SplitExtTypeOffsetList(List<ExtendedTypeOffsets>? ExtTypeOffsetList) {
          ExtLineBlock4Subdiv.Clear();
          ExtAreaBlock4Subdiv.Clear();
          ExtPointBlock4Subdiv.Clear();

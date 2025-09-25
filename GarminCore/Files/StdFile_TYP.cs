@@ -51,7 +51,7 @@ namespace GarminCore.Files {
 
          public TypDataBlockWithRecordsize() : base() { }
 
-         public TypDataBlockWithRecordsize(DataBlockWithRecordsize block) {
+         public TypDataBlockWithRecordsize(DataBlockWithRecordsize? block) {
             if (block != null) {
                Offset = block.Offset;
                Length = block.Length;
@@ -156,19 +156,19 @@ namespace GarminCore.Files {
       /// <summary>
       /// Liste der <see cref="TableItem"/> für Polygone (nach dem Einlesen)
       /// </summary>
-      public List<TableItem> PolygonTableItems { get; private set; }
+      public List<TableItem>? PolygonTableItems { get; private set; }
       /// <summary>
       /// Liste der <see cref="TableItem"/> für Polylines (nach dem Einlesen)
       /// </summary>
-      public List<TableItem> PolylineTableItems { get; private set; }
+      public List<TableItem>? PolylineTableItems { get; private set; }
       /// <summary>
       /// Liste der <see cref="TableItem"/> für POI's (nach dem Einlesen)
       /// </summary>
-      public List<TableItem> PointTableItems { get; private set; }
+      public List<TableItem>? PointTableItems { get; private set; }
       /// <summary>
       /// Liste der <see cref="PolygonDraworderTableItem"/> für die Zeichenreihenfolge der Polygone (nach dem Einlesen)
       /// </summary>
-      public List<PolygonDraworderTableItem> PolygonDraworderTableItems { get; private set; }
+      public List<PolygonDraworderTableItem>? PolygonDraworderTableItems { get; private set; }
 
       // ----------------- NT-Daten -----------------
 
@@ -186,7 +186,7 @@ namespace GarminCore.Files {
       public UInt16 nt_unknown_0x9A { get; private set; }
       public byte[] nt_unknown_0x9C { get; private set; }
       public byte[] nt_unknown_0xA4 { get; private set; }
-      public byte[] nt_unknown_0xAE { get; private set; }
+      public byte[]? nt_unknown_0xAE { get; private set; }
 
       public enum Headertyp {
          Unknown,
@@ -337,12 +337,21 @@ namespace GarminCore.Files {
          FamilyID = tf.FamilyID;
          ProductID = tf.ProductID;
          encoding = tf.encoding;
-         for (int i = 0; i < tf.PoiCount; i++)
-            Insert(tf.GetPoi(i));
-         for (int i = 0; i < tf.PolygonCount; i++)
-            Insert(tf.GetPolygone(i));
-         for (int i = 0; i < tf.PolylineCount; i++)
-            Insert(tf.GetPolyline(i));
+         for (int i = 0; i < tf.PoiCount; i++) {
+            POI? p = tf.GetPoi(i);
+            if (p != null)
+               Insert(p);
+         }
+         for (int i = 0; i < tf.PolygonCount; i++) {
+            Polygone? p = tf.GetPolygone(i);
+            if (p != null)
+               Insert(p);
+         }
+         for (int i = 0; i < tf.PolylineCount; i++) {
+            Polyline? p = tf.GetPolyline(i);
+            if (p != null)
+               Insert(p);
+         }
       }
 
       public override void ReadHeader(BinaryReaderWriter br) {
@@ -754,11 +763,11 @@ namespace GarminCore.Files {
          // je Draworder eine Liste der Typen; je Typ eine Liste der Subtypes
          SortedList<uint, SortedList<uint, SortedList<uint, uint>>> draworderlist = new SortedList<uint, SortedList<uint, SortedList<uint, uint>>>();
          foreach (Polygone p in polygone.Keys) {
-            if (!draworderlist.TryGetValue(p.Draworder, out SortedList<uint, SortedList<uint, uint>> typelist)) {
+            if (!draworderlist.TryGetValue(p.Draworder, out SortedList<uint, SortedList<uint, uint>>? typelist)) {
                typelist = new SortedList<uint, SortedList<uint, uint>>();
                draworderlist.Add(p.Draworder, typelist);
             }
-            if (!typelist.TryGetValue(p.Type, out SortedList<uint, uint> subtypelist)) {
+            if (!typelist.TryGetValue(p.Type, out SortedList<uint, uint>? subtypelist)) {
                subtypelist = new SortedList<uint, uint>();
                typelist.Add(p.Type, subtypelist);
             }
@@ -856,7 +865,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <param name="idx"></param>
       /// <returns></returns>
-      public POI GetPoi(int idx) {
+      public POI? GetPoi(int idx) {
          return (0 <= idx && idx < poi.Count) ? poi.Keys[idx] : null;
       }
       /// <summary>
@@ -865,7 +874,7 @@ namespace GarminCore.Files {
       /// <param name="typ"></param>
       /// <param name="subtyp"></param>
       /// <returns></returns>
-      public POI GetPoi(uint typ, uint subtyp) {
+      public POI? GetPoi(uint typ, uint subtyp) {
          int idx = poi.IndexOfKey(new POI(typ, subtyp));
          return idx >= 0 ? GetPoi(idx) : null;
       }
@@ -891,7 +900,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <param name="idx"></param>
       /// <returns></returns>
-      public Polygone GetPolygone(int idx) {
+      public Polygone? GetPolygone(int idx) {
          return (0 <= idx && idx < polygone.Count) ? polygone.Keys[idx] : null;
       }
       /// <summary>
@@ -900,7 +909,7 @@ namespace GarminCore.Files {
       /// <param name="typ"></param>
       /// <param name="subtyp"></param>
       /// <returns></returns>
-      public Polygone GetPolygone(uint typ, uint subtyp) {
+      public Polygone? GetPolygone(uint typ, uint subtyp) {
          int idx = polygone.IndexOfKey(new Polygone(typ, subtyp));
          return idx >= 0 ? GetPolygone(idx) : null;
       }
@@ -926,7 +935,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <param name="idx"></param>
       /// <returns></returns>
-      public Polyline GetPolyline(int idx) {
+      public Polyline? GetPolyline(int idx) {
          return (0 <= idx && idx < polyline.Count) ? polyline.Keys[idx] : null;
       }
       /// <summary>
@@ -935,7 +944,7 @@ namespace GarminCore.Files {
       /// <param name="typ"></param>
       /// <param name="subtyp"></param>
       /// <returns></returns>
-      public Polyline GetPolyline(uint typ, uint subtyp) {
+      public Polyline? GetPolyline(uint typ, uint subtyp) {
          int idx = polyline.IndexOfKey(new Polyline(typ, subtyp));
          return idx >= 0 ? GetPolyline(idx) : null;
       }
@@ -962,11 +971,11 @@ namespace GarminCore.Files {
       /// <returns></returns>
       public bool Remove(GraphicElement ge) {
          if (ge is Polygone)
-            return polygone.Remove(ge as Polygone);
+            return polygone.Remove((Polygone)ge);
          if (ge is Polyline)
-            return polyline.Remove(ge as Polyline);
+            return polyline.Remove((Polyline)ge);
          if (ge is POI)
-            return poi.Remove(ge as POI);
+            return poi.Remove((POI)ge);
          return false;
       }
 
@@ -977,24 +986,24 @@ namespace GarminCore.Files {
       /// <returns></returns>
       public bool Insert(GraphicElement ge) {
          if (ge is Polygone) {
-            if (polygone.ContainsKey(ge as Polygone))
+            if (polygone.ContainsKey((Polygone)ge))
                return false;
             else
-               polygone.Add(ge as Polygone, 0);
+               polygone.Add((Polygone)ge, 0);
             return true;
          }
          if (ge is Polyline) {
-            if (polyline.ContainsKey(ge as Polyline))
+            if (polyline.ContainsKey((Polyline)ge))
                return false;
             else
-               polyline.Add(ge as Polyline, 0);
+               polyline.Add((Polyline)ge, 0);
             return true;
          }
          if (ge is POI) {
-            if (poi.ContainsKey(ge as POI))
+            if (poi.ContainsKey((POI)ge))
                return false;
             else
-               poi.Add(ge as POI, 0);
+               poi.Add((POI)ge, 0);
             return true;
          }
          return false;

@@ -16,9 +16,7 @@ namespace Unclassified.UI {
       }
 
       [Browsable(true), Category("dialogspezifisch"), Description("Anzahl der Arrayfarben")]
-      public int ArrayColorsCount {
-         get => specColorSelector1.ArrayColorsCount;
-      }
+      public int ArrayColorsCount => specColorSelector1.ArrayColorsCount;
 
 
       public SpecColorSelectorDialog() {
@@ -35,7 +33,7 @@ namespace Unclassified.UI {
             bottom_shortview = specColorSelector1.ActualControlBottom;
       }
 
-      private void SpecColorSelector1_FullViewChanged(object sender, EventArgs e) {
+      private void SpecColorSelector1_FullViewChanged(object? sender, EventArgs e) {
          int delta = 0;
          if (specColorSelector1.FullView) {
             bottom_fullview = specColorSelector1.ActualControlBottom;
@@ -51,29 +49,27 @@ namespace Unclassified.UI {
          Bounds = new Rectangle(Bounds.Location, new Size(Bounds.Width, Bounds.Height + delta));
       }
 
-      private void SpecColorSelector1_CloseWithOKRequested(object sender, EventArgs e) {
+      private void SpecColorSelector1_CloseWithOKRequested(object? sender, EventArgs e) {
          DialogResult = DialogResult.OK;
          Close();
       }
 
-      public Color GetArrayColor(int idx) {
-         return specColorSelector1.GetArrayColor(idx);
-      }
+      public Color GetArrayColor(int idx) => specColorSelector1.GetArrayColor(idx);
 
-      public void SetArrayColor(int idx, Color col) {
-         specColorSelector1.SetArrayColor(idx, col);
-      }
+      public void SetArrayColor(int idx, Color col) => specColorSelector1.SetArrayColor(idx, col);
 
-      public bool IsArrayColorEnabled(int idx) {
-         return specColorSelector1.IsArrayColorEnabled(idx);
-      }
+      public bool IsArrayColorEnabled(int idx) => specColorSelector1.IsArrayColorEnabled(idx);
 
-      public void EnableArrayColor(int idx, bool enable) {
-         specColorSelector1.EnableArrayColor(idx, enable);
-      }
+      public void EnableArrayColor(int idx, bool enable) => specColorSelector1.EnableArrayColor(idx, enable);
 
-      private void specColorSelector1_Load(object sender, EventArgs e) {
+      public void HighlightArrayColor(int idx, bool on) {
+         Control? ctrl = specColorSelector1.GetArrayControl(idx);
+
+         if (on && ctrl != null)
+            (ctrl as Panel).BorderStyle = BorderStyle.Fixed3D;
 
       }
+
+
    }
 }

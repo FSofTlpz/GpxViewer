@@ -1,19 +1,15 @@
 ﻿using FSofTUtils.Geography.Garmin;
+using SpecialMapCtrl.ToolTips;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-#if GMAP4SKIA
-using GMap.NET.Skia;
-#else
-using GMap.NET.WindowsForms;
-#endif
 
 namespace SpecialMapCtrl {
 
    /// <summary>
-   /// Erweiterung der <see cref="GMapMarker"/> um Gpx-Daten und grafische Daten
+   /// Erweiterung der <see cref="MapMarker"/> um Gpx-Daten und grafische Daten
    /// </summary>
-   public class VisualMarker : GMapMarker {
+   public class VisualMarker : MapMarker {
 
       /// <summary>
       /// Zuordnung von Bitmap und Bitmap-Offset für die geograf. Pos. für einen Marker
@@ -46,7 +42,7 @@ namespace SpecialMapCtrl {
                Offset = new Point((int)(Math.Round(mp.Offset.X * zoom)), (int)(Math.Round(mp.Offset.Y * zoom)));
             } else {
                Offset = mp.Offset;
-               Picture = mp.Picture.Clone() as Bitmap;
+               Picture = (Bitmap)mp.Picture.Clone();
             }
          }
 
@@ -114,7 +110,7 @@ namespace SpecialMapCtrl {
       }
 
 
-      static Dictionary<string, MarkerPicture> ExternSymbols = null;
+      static Dictionary<string, MarkerPicture>? ExternSymbols = null;
 
       // Die Standard-Marker sind 24x24 Bitmaps.
       // Ohne besondere Vorgabe wird der Bezugspunkt in die Mitte des Bildes gelegt.
@@ -139,21 +135,23 @@ namespace SpecialMapCtrl {
 
       static Color colShadow = Color.FromArgb(180, 0, 0, 0);
 
-      private Bitmap _bitmap;
+      object lockobj = new object();
 
-      public Bitmap Bitmap {
+      Bitmap? _bitmap;
+
+      public Bitmap? Bitmap {
          get => _bitmap;
          set => _bitmap = value;
       }
 
-      Bitmap _bitmapShadow;
+      Bitmap? _bitmapShadow;
 
       int shadowdeltapix = 0;
 
       /// <summary>
       /// Gpx-Daten
       /// </summary>
-      public Marker RealMarker { get; private set; } = null;
+      public Marker? RealMarker { get; private set; } = null;
 
       /// <summary>
       /// akt. Darstellung
@@ -177,36 +175,38 @@ namespace SpecialMapCtrl {
                           double symbolzoom = 1.0,
                           int shadowdeltapix = 3) :
          base(new GMap.NET.PointLatLng(marker.Waypoint.Lat, marker.Waypoint.Lon)) {
-         MarkerPicture mp = markerPicture4Style(style, symbolname, symbolzoom);
-         Bitmap = mp.Picture;
-         ActiveClientSize = new Size(Bitmap.Width, Bitmap.Height);
-         LocalOffset = mp.Offset;
-         ToolTipText = name;
-         RealMarker = marker;
-         IsHitTestVisible = true;
-         IsVisible = true;
-         Visualstyle = style;
-         this.shadowdeltapix = shadowdeltapix;
-         _bitmapShadow = createShadowBitmap(Bitmap, shadowdeltapix);
+         MarkerPicture? mp = markerPicture4Style(style, symbolname, symbolzoom);
+         if (mp != null) {
+            Bitmap = mp.Picture;
+            ActiveClientSize = new Size(Bitmap.Width, Bitmap.Height);
+            LocalOffset = mp.Offset;
+            ToolTipText = name;
+            RealMarker = marker;
+            IsHitTestVisible = true;
+            IsVisible = true;
+            Visualstyle = style;
+            this.shadowdeltapix = shadowdeltapix;
+            _bitmapShadow = createShadowBitmap(Bitmap, shadowdeltapix);
 
-         if (style != VisualStyle.FotoMarker) {
-            ToolTip = new GMapMarkerToolTip(this, 
-                                            Bitmap.Height * (float)symbolzoom *
+            if (style != VisualStyle.FotoMarker) {
+               ToolTip = new MapMarkerToolTip(this,
+                                               Bitmap.Height * (float)symbolzoom *
 #if GMAP4SKIA
-                                                                                0.015F);
+                                                                                   0.015F);
 #else
                                                                                 0.05F);
 #endif
-            ToolTipText = RealMarker.Text;
-            //ToolTipMode = GMap.NET.WindowsForms.MarkerTooltipMode.OnMouseOver;
-            ToolTipMode = MarkerTooltipMode.Always;
+               ToolTipText = RealMarker.Text;
+               //ToolTipMode = GMap.NET.WindowsForms.MarkerTooltipMode.OnMouseOver;
+               ToolTipMode = MarkerTooltipMode.Always;
+            }
          }
       }
 
       #region static
 
-      static MarkerPicture markerPicture4Style(VisualStyle style, string symbolname = null, double symbolzoom = 1.0) {
-         MarkerPicture mp = null;
+      static MarkerPicture? markerPicture4Style(VisualStyle style, string? symbolname = null, double symbolzoom = 1.0) {
+         MarkerPicture? mp = null;
          switch (style) {
             case VisualStyle.StandardMarker:
                if (string.IsNullOrEmpty(symbolname) ||
@@ -241,8 +241,8 @@ namespace SpecialMapCtrl {
       /// <param name="symbolname"></param>
       /// <param name="symbolzoom"></param>
       /// <returns></returns>
-      public static Bitmap Bitmap4Style(VisualStyle style, string symbolname = null, double symbolzoom = 1.0) {
-         MarkerPicture mp = markerPicture4Style(style, symbolname, symbolzoom);
+      public static Bitmap? Bitmap4Style(VisualStyle style, string? symbolname = null, double symbolzoom = 1.0) {
+         MarkerPicture? mp = markerPicture4Style(style, symbolname, symbolzoom);
          if (mp != null)
             return mp.Picture;
          return null; ;
@@ -256,9 +256,9 @@ namespace SpecialMapCtrl {
          }
       }
 
-      static Bitmap createShadowBitmap(Bitmap bm, int shadowdeltapix) {
+      static Bitmap? createShadowBitmap(Bitmap bm, int shadowdeltapix) {
          if (shadowdeltapix != 0) {
-            Bitmap shbm = bm.Clone() as Bitmap;
+            Bitmap shbm = (Bitmap)bm.Clone();
             for (int y = 0; y < shbm.Height; y++)
                for (int x = 0; x < shbm.Width; x++)
                   shbm.SetPixel(x, y, shbm.GetPixel(x, y).A > 100 ?
@@ -283,14 +283,19 @@ namespace SpecialMapCtrl {
 
       public override void OnRender(Graphics g) {
          if (IsOnClientVisible)
-            lock (Bitmap) {
+            lock (lockobj) {
                if (_bitmapShadow != null)
                   g.DrawImage(_bitmapShadow,
                               ActiveClientPosition.X + shadowdeltapix,
                               ActiveClientPosition.Y + shadowdeltapix,
                               ActiveClientSize.Width,
                               ActiveClientSize.Height);
-               g.DrawImage(Bitmap, ActiveClientPosition.X, ActiveClientPosition.Y, ActiveClientSize.Width, ActiveClientSize.Height);
+               if (Bitmap != null)
+                  g.DrawImage(Bitmap,
+                              ActiveClientPosition.X,
+                              ActiveClientPosition.Y,
+                              ActiveClientSize.Width,
+                              ActiveClientSize.Height);
             }
       }
 

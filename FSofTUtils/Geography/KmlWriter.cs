@@ -6,7 +6,6 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Web;
 
 namespace FSofTUtils.Geography {
    public class KmlWriter {
@@ -29,18 +28,17 @@ namespace FSofTUtils.Geography {
 
       class XPaths {
 
-         public static string Root { get { return "/x:kml"; } }
+         public static string Root => "/x:kml"; 
 
-         public static string Gdal_Document { get { return Root + "/x:Document[@id=\"root_doc\"]"; } }
+         public static string Gdal_Document => Root + "/x:Document[@id=\"root_doc\"]"; 
 
          /// <summary>
          /// 
          /// </summary>
          /// <param name="folderidx">Index 1,..</param>
          /// <returns></returns>
-         public static string Gdal_DocumentFolder(int folderidx) {
-            return Gdal_Document + "/x:Folder[" + folderidx.ToString() + "]";
-         }
+         public static string Gdal_DocumentFolder(int folderidx) => 
+            Gdal_Document + "/x:Folder[" + folderidx.ToString() + "]";
 
          /// <summary>
          /// 
@@ -48,14 +46,13 @@ namespace FSofTUtils.Geography {
          /// <param name="folderidx">Index 1,..</param>
          /// <param name="placemarkidx">Index 1,..</param>
          /// <returns></returns>
-         public static string Gdal_Placemark4Folder(int folderidx, int placemarkidx) {
-            return Gdal_DocumentFolder(folderidx) + "/Placemark[" + placemarkidx.ToString() + "]";
-         }
+         public static string Gdal_Placemark4Folder(int folderidx, int placemarkidx) =>
+            Gdal_DocumentFolder(folderidx) + "/Placemark[" + placemarkidx.ToString() + "]";
 
       }
 
 
-      SimpleXmlDocument2 kml;
+      SimpleXmlDocument2? kml;
 
 
       /// <summary>
@@ -88,22 +85,19 @@ namespace FSofTUtils.Geography {
          }
 
          int waypointcount = gpx.Waypoints.Count;
-         for (int w = 0; w < waypointcount; w++)
-            insertWaypoint_gdal(gpx.GetWaypoint(w));
+         for (int w = 0; w < waypointcount; w++) {
+            GpxWaypoint pt = gpx.Waypoints[w];
+            insertWaypoint_gdal(pt);
+         }
 
          writekml(filename,
                   Path.GetExtension(filename).ToLower() == ".kmz",
                   formatted);
       }
 
-      string codedTimeStamp(DateTime dt) {
-         return dt.ToString("s") + "Z";
-      }
+      string codedTimeStamp(DateTime dt) => dt.ToString("s") + "Z";
 
-      string codedText(string txt) {
-         return Text2String(txt);
-      }
-
+      string codedText(string txt) => BaseElement.XmlEncode(txt);
 
       void createbasekml_gdal(string filename) {
          kml = new SimpleXmlDocument2(filename, "kml") {
@@ -214,9 +208,9 @@ namespace FSofTUtils.Geography {
          sb.Append(buildMultiGeometry(track));
          sb.Append("</Placemark>");
 
-         kml.InsertXmlText(XPaths.Gdal_DocumentFolder(1),
-                           sb.ToString(),
-                           SimpleXmlDocument2.InsertPosition.AppendChild);
+         kml?.InsertXmlText(XPaths.Gdal_DocumentFolder(1),
+                            sb.ToString(),
+                            SimpleXmlDocument2.InsertPosition.AppendChild);
       }
 
       void insertTrack_gdal_gx(GpxTrack track,
@@ -230,7 +224,8 @@ namespace FSofTUtils.Geography {
 
          StringBuilder sb = new StringBuilder();
          sb.Append("<Placemark>");
-         sb.Append("<name>" + track.Name + "</name>");
+
+         sb.Append("<name>" + codedText(track.Name) + "</name>");
          if (BaseElement.ValueIsValid(dtMin) ||
              BaseElement.ValueIsValid(dtMax)) {
             sb.Append("<TimeSpan>");
@@ -241,14 +236,14 @@ namespace FSofTUtils.Geography {
             sb.Append("</TimeSpan>");
          }
          if (!string.IsNullOrEmpty(track.Description))
-            sb.Append("<description>" + track.Description + "</description>");
+            sb.Append("<description>" + codedText(track.Description) + "</description>");
          sb.Append(buildLineStyle(cola, colr, colg, colb, width));
          sb.Append(sb_multitrack);
          sb.Append("</Placemark>");
 
-         kml.InsertXmlText(XPaths.Gdal_DocumentFolder(1),
-                           sb.ToString(),
-                           SimpleXmlDocument2.InsertPosition.AppendChild);
+         kml?.InsertXmlText(XPaths.Gdal_DocumentFolder(1),
+                            sb.ToString(),
+                            SimpleXmlDocument2.InsertPosition.AppendChild);
       }
 
 
@@ -326,11 +321,12 @@ namespace FSofTUtils.Geography {
                      dtMax = pt.Time;
                }
 
-               sb_when.Append("<when>" +
-                              (BaseElement.ValueIsValid(pt.Time) ?
-                                 DateTime2String(pt.Time) :
-                                 "") +
-                              "</when>");
+               if (BaseElement.ValueIsValid(pt.Time))
+                  sb_when.Append("<when>" +
+                                 (BaseElement.ValueIsValid(pt.Time) ?
+                                    DateTime2String(pt.Time) :
+                                    "") +
+                                 "</when>");
 
                sb_coord.Append("<gx:coord>" +
                               Double2String(pt.Lon) + "," +
@@ -386,7 +382,7 @@ namespace FSofTUtils.Geography {
       void insertWaypoint_gdal(GpxWaypoint pt) {
          StringBuilder sb = new StringBuilder();
          sb.Append("<Placemark>");
-         sb.Append("<name>" + pt.Name + "</name>");
+         sb.Append("<name>" + codedText(pt.Name) + "</name>");
          sb.Append("<ExtendedData>");
          sb.Append("<SchemaData schemaUrl=\"#waypoints\">");
          if (BaseElement.ValueIsValid(pt.Elevation))
@@ -419,11 +415,10 @@ namespace FSofTUtils.Geography {
                </Point>
             </Placemark>
           */
-         kml.InsertXmlText(XPaths.Gdal_DocumentFolder(2),
-                           sb.ToString(),
-                           SimpleXmlDocument2.InsertPosition.AppendChild);
+         kml?.InsertXmlText(XPaths.Gdal_DocumentFolder(2),
+                            sb.ToString(),
+                            SimpleXmlDocument2.InsertPosition.AppendChild);
       }
-
 
       /// <summary>
       /// schreibt die KML-Daten als Datei
@@ -437,12 +432,12 @@ namespace FSofTUtils.Geography {
                using (ZipArchive archive = new ZipArchive(zipstream, ZipArchiveMode.Update)) {
                   ZipArchiveEntry file = archive.CreateEntry(defaultKmlFilename);
                   using (Stream writer = file.Open()) {
-                     kml.SaveData(null, true, writer);
+                     kml?.SaveData(null, true, writer);
                   }
                }
             }
          } else
-            kml.SaveData(filename, formatted);
+            kml?.SaveData(filename, formatted);
       }
 
       /// <summary>
@@ -450,27 +445,14 @@ namespace FSofTUtils.Geography {
       /// </summary>
       /// <param name="dt"></param>
       /// <returns></returns>
-      static string DateTime2String(DateTime dt) {
-         return dt.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
-      }
-
-      /// <summary>
-      /// liefert einen XML-codierten String
-      /// </summary>
-      /// <param name="txt"></param>
-      /// <returns></returns>
-      static string Text2String(string txt) {
-         return HttpUtility.HtmlEncode(txt);
-      }
+      static string DateTime2String(DateTime dt) => dt.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
 
       /// <summary>
       /// liefert eine double-Zahl als Text
       /// </summary>
       /// <param name="v"></param>
       /// <returns></returns>
-      static string Double2String(double v) {
-         return v.ToString(CultureInfo.InvariantCulture);
-      }
+      static string Double2String(double v) => v.ToString(CultureInfo.InvariantCulture);
 
       #region INFOS
 

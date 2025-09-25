@@ -66,12 +66,7 @@ namespace FSofTUtils.Geography.DEM {
    [Serializable]
    public class DEMHGTReader : DEM1x1 {
 
-      /// <summary>
-      /// "nodata" value in hgt-files
-      /// </summary>
-      const short HGT_NOVALUE = -32768;
-
-      string filename;
+      string filename = "";
 
       /// <summary>
       /// liest die Daten aus der entsprechenden HGT-Datei ein
@@ -116,40 +111,40 @@ namespace FSofTUtils.Geography.DEM {
 
          if (File.Exists(filename)) {     // direkt lesen
 
-            Stream dat = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
-            ReadFromStream(dat, dat.Length);
-            dat.Close();
+            using (Stream dat = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+               if (dat != null)
+                  ReadFromStream(dat, dat.Length);
+            }
 
          } else {
 
-            FileStream zipstream = null;
+            string zipfile = File.Exists(filename + ".zip") ?
+                                             filename + ".zip" :
+                                             filename.Substring(0, filename.Length - 4) + ".zip";
 
-            if (File.Exists(filename + ".zip"))
-               zipstream = new FileStream(filename + ".zip", FileMode.Open, FileAccess.Read, FileShare.Read);
-            else if (File.Exists(filename.Substring(0, filename.Length - 4) + ".zip"))
-               zipstream = new FileStream(filename.Substring(0, filename.Length - 4) + ".zip", FileMode.Open, FileAccess.Read, FileShare.Read);
+            using (FileStream? zipstream = new FileStream(zipfile, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+               if (zipstream != null) {
 
-            if (zipstream != null) {
-
-               using (ZipArchive zip = new ZipArchive(zipstream, ZipArchiveMode.Read)) {
-                  filename = Path.GetFileName(filename).ToUpper();
-                  ZipArchiveEntry entry = null;
-                  foreach (var item in zip.Entries) {
-                     if (filename == item.Name.ToUpper()) {
-                        entry = item;
-                        break;
+                  using (ZipArchive zip = new ZipArchive(zipstream, ZipArchiveMode.Read)) {
+                     filename = Path.GetFileName(filename).ToUpper();
+                     ZipArchiveEntry? entry = null;
+                     foreach (var item in zip.Entries) {
+                        if (filename == item.Name.ToUpper()) {
+                           entry = item;
+                           break;
+                        }
+                     }
+                     if (entry == null)
+                        throw new Exception(string.Format("file '{0}.zip' not include file '{0}'.", filename));
+                     using (Stream stream = entry.Open()) {    // liefert: "The stream that represents the contents of the entry" oder eine Exception
+                        ReadFromStream(stream, entry.Length);
                      }
                   }
-                  if (entry == null)
-                     throw new Exception(string.Format("file '{0}.zip' not include file '{0}'.", filename));
-                  Stream dat = entry.Open();
-                  ReadFromStream(dat, entry.Length);
-                  dat.Close();
-               }
-               zipstream.Dispose();
 
-            } else
-               throw new Exception(string.Format("file '{0}' nor '{0}.zip' nor {1}.zip exist", filename, filename.Substring(0, filename.Length - 4)));
+               } else
+                  throw new Exception(string.Format("file '{0}' nor '{0}.zip' nor {1}.zip exist", filename, filename.Substring(0, filename.Length - 4)));
+            }
+
 
          }
       }
@@ -157,25 +152,35 @@ namespace FSofTUtils.Geography.DEM {
       /// <summary>
       /// read data; set <see cref="Rows"/> and <see cref="Columns"/>
       /// </summary>
-      /// <param name="str"></param>
-      void ReadFromStream(Stream str, long streamlen) {
+      /// <param name="stream"></param>
+      protected void ReadFromStream(Stream stream, long entrylen) {
          Maximum = short.MinValue;
          Minimum = short.MaxValue;
-         Rows = Columns = (int)Math.Sqrt(streamlen / 2);     // standard is square
+         Rows = Columns = (int)Math.Sqrt(entrylen / 2);     // standard is square
 
          data = new short[Rows * Columns];               // 2 byte per value
          NotValid = 0;
 
          // ------------- reading with byte-buffer is much faster then direct stream-reading --------------------
-         byte[] inputbuffer = new byte[streamlen];
-         str.Read(inputbuffer, 0, (int)streamlen);
+         byte[] inputbuffer = new byte[entrylen];
+
+         // früher fkt. das noch aber
+         //int count = stream.Read(inputbuffer, 0, (int)entrylen);
+         // aber in .NET8 muss damit gerechnet werden, dass nur "portionsweise" geliefert wird:
+         int pos = 0;
+         int len = (int)entrylen;
+         while (0 < len) {
+            int read = stream.Read(inputbuffer, pos, len);
+            pos += read;
+            len -= read;
+         }
          // ------------------------------------------------------------------------------------------------
-         
+
          for (int i = 0; i < data.Length; i++) {
             //data[i] = (short)((str.ReadByte() << 8) + str.ReadByte());
             data[i] = (short)((inputbuffer[2 * i] << 8) + inputbuffer[2 * i + 1]);
 
-            if (data[i] != HGT_NOVALUE) {
+            if (data[i] != DEMNOVALUE) {
                if (Maximum < data[i])
                   Maximum = data[i];
                if (Minimum > data[i])

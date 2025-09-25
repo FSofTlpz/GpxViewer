@@ -209,7 +209,7 @@ namespace GarminCore.Files {
                         break;
 
                      case 1:
-                        stdfiles[i] = new StdFile_RGN(stdfiles[0] as StdFile_TRE);
+                        stdfiles[i] = new StdFile_RGN((StdFile_TRE)stdfiles[0]);
                         break;
 
                      case 2:
@@ -325,7 +325,7 @@ namespace GarminCore.Files {
 
       public StdFile_TRE TRE {
          get {
-            return stdfiles[(int)Filetype.TRE] as StdFile_TRE;
+            return (StdFile_TRE)stdfiles[(int)Filetype.TRE];
          }
          set {
             stdfiles[(int)Filetype.TRE] = value;
@@ -334,7 +334,7 @@ namespace GarminCore.Files {
 
       public StdFile_RGN RGN {
          get {
-            return stdfiles[(int)Filetype.RGN] as StdFile_RGN;
+            return (StdFile_RGN)stdfiles[(int)Filetype.RGN];
          }
          set {
             stdfiles[(int)Filetype.RGN] = value;
@@ -343,7 +343,7 @@ namespace GarminCore.Files {
 
       public StdFile_LBL LBL {
          get {
-            return stdfiles[(int)Filetype.LBL] as StdFile_LBL;
+            return (StdFile_LBL)stdfiles[(int)Filetype.LBL];
          }
          set {
             stdfiles[(int)Filetype.LBL] = value;
@@ -352,7 +352,7 @@ namespace GarminCore.Files {
 
       public StdFile_NET NET {
          get {
-            return stdfiles[(int)Filetype.NET] as StdFile_NET;
+            return (StdFile_NET)stdfiles[(int)Filetype.NET];
          }
          set {
             stdfiles[(int)Filetype.NET] = value;
@@ -361,7 +361,7 @@ namespace GarminCore.Files {
 
       public StdFile_NOD NOD {
          get {
-            return stdfiles[(int)Filetype.NOD] as StdFile_NOD;
+            return (StdFile_NOD)stdfiles[(int)Filetype.NOD];
          }
          set {
             stdfiles[(int)Filetype.NOD] = value;
@@ -370,7 +370,7 @@ namespace GarminCore.Files {
 
       public StdFile_DEM DEM {
          get {
-            return stdfiles[(int)Filetype.DEM] as StdFile_DEM;
+            return (StdFile_DEM)stdfiles[(int)Filetype.DEM];
          }
          set {
             stdfiles[(int)Filetype.DEM] = value;
@@ -379,7 +379,7 @@ namespace GarminCore.Files {
 
       public StdFile_MAR MAR {
          get {
-            return stdfiles[(int)Filetype.MAR] as StdFile_MAR;
+            return (StdFile_MAR)stdfiles[(int)Filetype.MAR];
          }
          set {
             stdfiles[(int)Filetype.MAR] = value;

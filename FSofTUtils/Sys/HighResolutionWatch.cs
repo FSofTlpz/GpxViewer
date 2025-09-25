@@ -73,13 +73,15 @@ namespace FSofTUtils.Sys {
       /// akt. Messwert speichern
       /// </summary>
       /// <returns>akt. Wert</returns>
-      public long Store(string description = "") {
+      public long Store(string? description = "") {
          ticks.Add(watch.ElapsedTicks);
+         if (description == null)
+            description = "";
          ticksdescription.Add(description);
          return ticks[ticks.Count - 1];
       }
 
-      public long Store(object description) {
+      public long Store(object? description) {
          return Store(description == null ? "" : description.ToString());
       }
 

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml.XPath;
 
 namespace FSofTUtils.Geography.PoorGpx {
 
@@ -12,18 +10,17 @@ namespace FSofTUtils.Geography.PoorGpx {
 
       public const string NODENAME = "rtept";
 
-      public string Name;
+      public string Name = string.Empty;
 
-      public string Comment;
+      public string Comment = string.Empty;
 
-      public string Description;
+      public string Description = string.Empty;
 
-      public string Symbol;
+      public string Symbol = string.Empty;
 
 
-      public GpxRoutePoint(string xmltext = null, bool removenamespace = false) :
-         base(NODENAME, xmltext, removenamespace) { }
-
+      public GpxRoutePoint(string? xmltext = null, bool removenamespace = false) :
+         base(xmltext, removenamespace) { }
 
       public GpxRoutePoint(GpxRoutePoint p) : base(NODENAME) {
          Lat = p.Lat;
@@ -45,9 +42,9 @@ namespace FSofTUtils.Geography.PoorGpx {
          Time = time;
       }
 
-      protected override void Init() {
-         BaseInit();
-      }
+      protected override void Init() => baseInit();
+
+      #region liest das Objekt aus einem XML-Text ein
 
       /// <summary>
       /// setzt die Objektdaten aus dem XML-Text
@@ -56,86 +53,55 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="removenamespace"></param>
       public override void FromXml(string xmltxt, bool removenamespace = false) {
          Init();
-         XPathNavigator nav = BaseFromXml(xmltxt, removenamespace);
-
-         string prefix = "/" + NODENAME + "/";
-         Name = XReadString(nav, prefix + "name");
-         Comment = XReadString(nav, prefix + "cmt");
-         Description = XReadString(nav, prefix + "desc");
-         Symbol = XReadString(nav, prefix + "sym");
-
-         // registrieren der unbehandelten Childs
-         RegisterUnhandledChild(nav,
-                                "/" + NODENAME + "/*",
-                                new string[] {
-                                   "<ele>",     // in GpxPointBase
-                                   "<time>",    //       "
-                                   "<name>",
-                                   "<cmt>",
-                                   "<desc>",
-                                   "<sym>",
-                                });
+         readDataFromXml(xmltxt, removenamespace, PointType.Routepoint);
       }
+
+      protected override bool checkExtChilds(string childtxt) {
+         bool getit = false;
+         string? tmp;
+         if (getString4ChildXml(childtxt, "<name>", out tmp)) {
+            Name = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<cmt>", out tmp)) {
+            Comment = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<desc>", out tmp)) {
+            Description = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<sym>", out tmp)) {
+            Symbol = tmp != null ? tmp : string.Empty;
+            getit = true;
+         }
+         return getit;
+      }
+
+      protected override int getExtChildCount() => 4;
+
+      #endregion
+
+      #region liefert das Objekt als XML
 
       /// <summary>
-      /// liefert den vollständigen XML-Text für das Objekt
+      /// liefert alle Childtexte für die Properties
       /// </summary>
-      /// <param name="scale">Umfang der Ausgabe</param>
+      /// <param name="scale"></param>
       /// <returns></returns>
-      public override string AsXml(int scale) {
-         List<string> attrname;
-         List<string> attrvalue;
-
-         StringBuilder sb = new StringBuilder(GetXmlNodeData(out attrname, out attrvalue));
-
-         // Sequenz: ele, time, magvar, geoidheight, name, cmt, desc, src, link (mehrfach), sym, type, fix, sat, hdop, vdop, pdop, ageofdgpsdata, dgpsid, extensions
-         int handled = 0; // für die Reihenfolge der handled Childs
-         int lastidx = -1;
-         string txt;
-         foreach (KeyValuePair<int, string> item in UnhandledChildXml) {
-            while (item.Key - 1 != lastidx) { // Lücke in der Folge der Childs, d.h. davor liegt min. 1 behandeltes Child
-               txt = HandledAsXml(handled++, scale);
-               if (txt != null)
-                  sb.Append(txt);
-               lastidx++;
-            }
-            if (scale > 1)
-               sb.Append(item.Value);
-            lastidx = item.Key;
-         }
-         while ((txt = HandledAsXml(handled++, scale)) != null) // noch alle behandelten Childs ausgegeben
-            sb.Append(txt);
-
-         return XWriteNode(NODENAME, attrname, attrvalue, sb.ToString());
+      protected override List<string> getChildTxt4Props(int scale) {
+         List<string> childtxt = new List<string>();
+         if (!string.IsNullOrEmpty(Name))
+            childtxt.Add(xWriteNode("name", XmlEncode(Name)));
+         if (!string.IsNullOrEmpty(Comment) && scale > 0)
+            childtxt.Add(xWriteNode("cmt", XmlEncode(Comment)));
+         if (!string.IsNullOrEmpty(Description) && scale > 0)
+            childtxt.Add(xWriteNode("desc", XmlEncode(Description)));
+         if (!string.IsNullOrEmpty(Symbol) && scale > 0)
+            childtxt.Add(xWriteNode("sym", XmlEncode(Symbol)));
+         return childtxt;
       }
 
-      protected string HandledAsXml(int handled, int scale) {
-         switch (handled) {
-            case 0:
-               if (!string.IsNullOrEmpty(Name))
-                  return XWriteNode("name", XmlClean(Name));
-               break;
+      protected override string getNodename() => NODENAME;
 
-            case 1:
-               if (!string.IsNullOrEmpty(Comment) && scale > 0)
-                  return XWriteNode("cmt", XmlClean(Comment));
-               break;
-
-            case 2:
-               if (!string.IsNullOrEmpty(Description) && scale > 0)
-                  return XWriteNode("desc", XmlClean(Description));
-               break;
-
-            case 3:
-               if (!string.IsNullOrEmpty(Symbol) && scale > 0)
-                  return XWriteNode("sym", XmlClean(Symbol));
-               break;
-
-            default:
-               return null; // keine behandelten Childs mehr
-         }
-         return "";
-      }
+      #endregion
 
       public override string ToString() {
          return base.ToString();

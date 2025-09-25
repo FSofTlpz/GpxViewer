@@ -23,63 +23,64 @@
       /// the contents of this method with the code editor.
       /// </summary>
       private void InitializeComponent() {
-         this.printPreviewControl1 = new System.Windows.Forms.PrintPreviewControl();
-         this.button_goon = new System.Windows.Forms.Button();
-         this.button_cancel = new System.Windows.Forms.Button();
-         this.SuspendLayout();
+         printPreviewControl1 = new PrintPreviewControl();
+         button_goon = new Button();
+         button_cancel = new Button();
+         SuspendLayout();
          // 
          // printPreviewControl1
          // 
-         this.printPreviewControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.printPreviewControl1.Location = new System.Drawing.Point(0, 0);
-         this.printPreviewControl1.Name = "printPreviewControl1";
-         this.printPreviewControl1.Size = new System.Drawing.Size(633, 463);
-         this.printPreviewControl1.TabIndex = 0;
+         printPreviewControl1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+         printPreviewControl1.Location = new Point(0, 0);
+         printPreviewControl1.Margin = new Padding(4, 3, 4, 3);
+         printPreviewControl1.Name = "printPreviewControl1";
+         printPreviewControl1.Size = new Size(833, 534);
+         printPreviewControl1.TabIndex = 0;
          // 
          // button_goon
          // 
-         this.button_goon.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-         this.button_goon.DialogResult = System.Windows.Forms.DialogResult.OK;
-         this.button_goon.Location = new System.Drawing.Point(12, 477);
-         this.button_goon.Name = "button_goon";
-         this.button_goon.Size = new System.Drawing.Size(81, 23);
-         this.button_goon.TabIndex = 1;
-         this.button_goon.Text = "weiter";
-         this.button_goon.UseVisualStyleBackColor = true;
-         this.button_goon.Click += new System.EventHandler(this.button_goon_Click);
+         button_goon.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+         button_goon.DialogResult = DialogResult.OK;
+         button_goon.Location = new Point(14, 550);
+         button_goon.Margin = new Padding(4, 3, 4, 3);
+         button_goon.Name = "button_goon";
+         button_goon.Size = new Size(94, 27);
+         button_goon.TabIndex = 1;
+         button_goon.Text = "weiter";
+         button_goon.UseVisualStyleBackColor = true;
+         button_goon.Click += button_goon_Click;
          // 
          // button_cancel
          // 
-         this.button_cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-         this.button_cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.button_cancel.Location = new System.Drawing.Point(146, 477);
-         this.button_cancel.Name = "button_cancel";
-         this.button_cancel.Size = new System.Drawing.Size(81, 23);
-         this.button_cancel.TabIndex = 2;
-         this.button_cancel.Text = "Abbruch";
-         this.button_cancel.UseVisualStyleBackColor = true;
-         this.button_cancel.Click += new System.EventHandler(this.button_cancel_Click);
+         button_cancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+         button_cancel.DialogResult = DialogResult.Cancel;
+         button_cancel.Location = new Point(170, 550);
+         button_cancel.Margin = new Padding(4, 3, 4, 3);
+         button_cancel.Name = "button_cancel";
+         button_cancel.Size = new Size(94, 27);
+         button_cancel.TabIndex = 2;
+         button_cancel.Text = "Abbruch";
+         button_cancel.UseVisualStyleBackColor = true;
+         button_cancel.Click += button_cancel_Click;
          // 
          // FormPrintPreview
          // 
-         this.AcceptButton = this.button_goon;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.CancelButton = this.button_cancel;
-         this.ClientSize = new System.Drawing.Size(633, 512);
-         this.ControlBox = false;
-         this.Controls.Add(this.button_cancel);
-         this.Controls.Add(this.button_goon);
-         this.Controls.Add(this.printPreviewControl1);
-         this.Name = "FormPrintPreview";
-         this.ShowIcon = false;
-         this.ShowInTaskbar = false;
-         this.Text = "Druckvorschau";
-         this.Load += new System.EventHandler(this.FormPrintPreview_Load);
-         this.ResumeLayout(false);
-
+         AcceptButton = button_goon;
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         CancelButton = button_cancel;
+         ClientSize = new Size(833, 591);
+         ControlBox = false;
+         Controls.Add(button_cancel);
+         Controls.Add(button_goon);
+         Controls.Add(printPreviewControl1);
+         Margin = new Padding(4, 3, 4, 3);
+         Name = "FormPrintPreview";
+         ShowIcon = false;
+         ShowInTaskbar = false;
+         Text = "Druckvorschau";
+         Load += FormPrintPreview_Load;
+         ResumeLayout(false);
       }
 
       #endregion

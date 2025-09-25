@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace FSofTUtils.Geography.DEM {
    /// <summary>
@@ -94,9 +94,9 @@ namespace FSofTUtils.Geography.DEM {
          /// </summary>
          /// <param name="cmp"></param>
          /// <returns></returns>
-         public DEM1x1 Get(int left, int bottom) {
+         public DEM1x1? Get(int left, int bottom) {
             int pos = -1;
-            DEM1x1 dem = null;
+            DEM1x1? dem = null;
             lock (locker) {
                pos = getPosInMem(left, bottom);
                if (pos < 0) {          // nicht im Hauptspeicher
@@ -119,7 +119,7 @@ namespace FSofTUtils.Geography.DEM {
          /// </summary>
          /// <returns></returns>
          public DEM1x1[] GetAll() {
-            DEM1x1[] dem = null;
+            DEM1x1[]? dem = null;
             lock (locker) {
                dem = new DEM1x1[cache.Count];
                cache.CopyTo(dem);
@@ -176,42 +176,79 @@ namespace FSofTUtils.Geography.DEM {
          //   }
          //}
 
-         DEM1x1 readFromCachePath(int left, int bottom) {
+         /// <summary>
+         /// bei einem Lesefehler wird versucht, die Datei zu löschen
+         /// </summary>
+         /// <param name="left"></param>
+         /// <param name="bottom"></param>
+         /// <returns></returns>
+         DEM1x1? readFromCachePath(int left, int bottom) {
             string name = getCacheName(left, bottom);
             if (File.Exists(name)) {
-               using (FileStream zipstream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                  if (zipstream != null) {
-                     using (ZipArchive zip = new ZipArchive(zipstream, ZipArchiveMode.Read)) {
-                        if (zip.Entries.Count > 0) {
-                           ZipArchiveEntry entry = zip.Entries[0];
-                           using (Stream dat = entry.Open()) {
-                              BinaryFormatter deserializer = new BinaryFormatter();
-                              return deserializer.Deserialize(dat) as DEM1x1;
+               try {
+                  using (FileStream zipstream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                     if (zipstream != null) {
+                        using (ZipArchive zip = new ZipArchive(zipstream, ZipArchiveMode.Read)) {
+                           if (zip.Entries.Count > 0) {
+                              ZipArchiveEntry entry = zip.Entries[0];
+                              using (Stream dat = entry.Open()) {
+                                 //BinaryFormatter deserializer = new BinaryFormatter();
+                                 //return deserializer.Deserialize(dat) as DEM1x1;
+
+                                 XmlSerializer serializer = new XmlSerializer(typeof(DEM1x1));
+                                 return serializer.Deserialize(dat) as DEM1x1;
+                              }
                            }
                         }
                      }
                   }
+               } catch (Exception ex) {
+                  tryDeleteFile(name, 20);
                }
             }
             return null;
          }
 
+         /// <summary>
+         /// bei einem Schreibfehler wird versucht, die Datei zu löschen
+         /// </summary>
+         /// <param name="dem"></param>
          void writeToCachePath(DEM1x1 dem) {
             string name = getCacheName((int)dem.Left, (int)dem.Bottom);
             if (!File.Exists(name)) {
-               using (FileStream zipstream = new FileStream(name, FileMode.Create, FileAccess.ReadWrite, FileShare.None)) {
-                  if (zipstream != null) {
-                     using (ZipArchive zip = new ZipArchive(zipstream, ZipArchiveMode.Update)) {
-                        ZipArchiveEntry entry = zip.CreateEntry(name, CompressionLevel.Fastest);
-                        using (Stream sw = entry.Open()) {
-                           BinaryFormatter serializer = new BinaryFormatter();
-                           serializer.Serialize(sw, dem);
+               try {
+                  using (FileStream zipstream = new FileStream(name, FileMode.Create, FileAccess.ReadWrite, FileShare.None)) {
+                     if (zipstream != null) {
+                        using (ZipArchive zip = new ZipArchive(zipstream, ZipArchiveMode.Update)) {
+                           ZipArchiveEntry entry = zip.CreateEntry(name, CompressionLevel.Fastest);
+                           using (Stream sw = entry.Open()) {
+                              //BinaryFormatter serializer = new BinaryFormatter();
+                              //serializer.Serialize(sw, dem);
+
+                              XmlSerializer serializer = new XmlSerializer(typeof(DEM1x1));
+                              serializer.Serialize(sw, dem);
+                           }
                         }
                      }
                   }
+               } catch {
+                  tryDeleteFile(name, 20);
                }
             }
          }
+
+         static void tryDeleteFile(string name, int trys) {
+            for (int i = 0; i < trys; i++) {
+               try {
+                  if (File.Exists(name))
+                     File.Delete(name);
+                  break;
+               } catch {
+                  Thread.Sleep(50);
+               }
+            }
+         }
+
 
          /*
             FileStream zipstream = null;
@@ -254,11 +291,11 @@ namespace FSofTUtils.Geography.DEM {
       class DemTilePipeline {
 
          class TaskWithCounter {
-            public Task<DEM1x1> t;
-            public int counter;
+            public Task<DEM1x1?> task;
+            int counter;
 
-            public TaskWithCounter(Task<DEM1x1> t, int count = 0) {
-               this.t = t;
+            public TaskWithCounter(Task<DEM1x1?> t, int count = 0) {
+               this.task = t;
                counter = count;
             }
 
@@ -266,26 +303,18 @@ namespace FSofTUtils.Geography.DEM {
             /// Inkrementiert den Zähler und liefert den neuen Wert
             /// </summary>
             /// <returns></returns>
-            public int Increment() {
-               return Interlocked.Increment(ref counter);
-            }
+            public int Increment() => Interlocked.Increment(ref counter);
 
             /// <summary>
             /// Inkrementiert den Zähler und liefert den neuen Wert
             /// </summary>
             /// <returns></returns>
-            public int Decrement() {
-               return Interlocked.Decrement(ref counter);
-            }
+            public int Decrement() => Interlocked.Decrement(ref counter);
 
             /// <summary>
             /// liefert den akt. Zählerstand
             /// </summary>
-            public int Counter {
-               get {
-                  return Interlocked.Add(ref counter, 0);
-               }
-            }
+            public int Counter => Interlocked.Add(ref counter, 0);
 
          }
 
@@ -296,18 +325,18 @@ namespace FSofTUtils.Geography.DEM {
 
          public DemTilePipeline() { }
 
-         public DEM1x1 GetTile(DemData dd, int lon, int lat) {
+
+         // Problem: Wenn das Tile angefordert wird, wird es SOFORT mit seinen Daten benötigt.
+
+         public DEM1x1? GetTile(DemData dd, int lon, int lat) {
             string taskname = (lon < 0 ? "-" : "+") + Math.Abs(lon).ToString("d3") +
                               (lat < 0 ? "-" : "+") + Math.Abs(lat).ToString("d2");
-            TaskWithCounter twc;
+            TaskWithCounter? twc;
 
             lock (locker) {
                if (!gettiletasks.TryGetValue(taskname, out twc)) {
-                  //Task<DEM1x1> t = Task.Run(() => dd.getTile(lon, lat));
-                  Task<DEM1x1> t = new Task<DEM1x1>(() => dd.getTile(lon, lat));
-                  twc = new TaskWithCounter(t, 1);
+                  twc = new TaskWithCounter(Task.Run(() => dd.getTile(lon, lat)), 1);
                   gettiletasks.Add(taskname, twc);
-                  twc.t.Start();
                } else {
                   int count = twc.Increment();
 
@@ -315,11 +344,11 @@ namespace FSofTUtils.Geography.DEM {
 
                }
             }
-            twc.t.Wait();
-            DEM1x1 result = twc.t.Result;
+            twc?.task.Wait();
+            DEM1x1? result = twc?.task.Result;
 
             lock (locker) {
-               if (twc.Decrement() == 0)
+               if (twc?.Decrement() == 0)
                   gettiletasks.Remove(taskname);
 
                //Debug.WriteLine("!!! DemTilePipeline Count=" + gettiletasks.Count);
@@ -328,6 +357,39 @@ namespace FSofTUtils.Geography.DEM {
             return result;
          }
 
+
+         //public DEM1x1? GetTile1(DemData dd, int lon, int lat) {
+         //   string taskname = (lon < 0 ? "-" : "+") + Math.Abs(lon).ToString("d3") +
+         //                     (lat < 0 ? "-" : "+") + Math.Abs(lat).ToString("d2");
+         //   TaskWithCounter? twc;
+
+         //   lock (locker) {
+         //      if (!gettiletasks.TryGetValue(taskname, out twc)) {
+         //         Task<DEM1x1?> t = Task.Run(() => dd.getTile(lon, lat));
+         //         if (t != null) {
+         //            twc = new TaskWithCounter(t, 1);
+         //            gettiletasks.Add(taskname, twc);
+         //            twc.t.Start();
+         //         }
+         //      } else {
+         //         int count = twc.Increment();
+
+         //         //Debug.WriteLine("!!! DemTilePipeline: Increment() -> " + count);
+
+         //      }
+         //   }
+         //   twc?.t.Wait();
+         //   DEM1x1? result = twc?.t.Result;
+
+         //   lock (locker) {
+         //      if (twc?.Decrement() == 0)
+         //         gettiletasks.Remove(taskname);
+
+         //      //Debug.WriteLine("!!! DemTilePipeline Count=" + gettiletasks.Count);
+         //   }
+
+         //   return result;
+         //}
       }
 
       DemCache demCache;
@@ -371,8 +433,10 @@ namespace FSofTUtils.Geography.DEM {
       public int GetHeight(double lon, double lat) {
          if (!IsActiv)
             return DEM1x1.DEMNOVALUE;
-         DEM1x1 dem = getTileOverPipeline(lon, lat);
-         double h = dem.InterpolatedHeight(lon, lat, DEM1x1.InterpolationType.standard);
+
+         getLeftBottom4Coord(lon, lat, out int left, out int bottom);
+         DEM1x1? dem = demTilePipeline.GetTile(this, left, bottom);
+         double h = dem != null ? dem.InterpolatedHeight(lon, lat, DEM1x1.InterpolationType.standard) : 0;
          return h == DEM1x1.NOVALUED ?
                      DEM1x1.DEMNOVALUE :
                      (int)Math.Round(h);
@@ -387,13 +451,27 @@ namespace FSofTUtils.Geography.DEM {
       //                  V0;
       //}
 
-      public byte[] GetShadingValueArray(double left,
+      /// <summary>
+      /// liefert ein Array mit 1 Byte je Pixel
+      /// <para>
+      /// Die niedrigen Werte sollten dunkel, die hohen hell dargestellt werden.
+      /// </para>
+      /// </summary>
+      /// <param name="left"></param>
+      /// <param name="bottom"></param>
+      /// <param name="right"></param>
+      /// <param name="top"></param>
+      /// <param name="pixelshorizontal"></param>
+      /// <param name="pixelsvertical"></param>
+      /// <param name="cancellationToken"></param>
+      /// <returns></returns>
+      public byte[]? GetShadingValueArray(double left,
                                          double bottom,
                                          double right,
                                          double top,
                                          int pixelshorizontal,
                                          int pixelsvertical,
-                                         CancellationToken cancellationToken) {
+                                         CancellationToken? cancellationToken) {
          if (!IsActiv)
             return null;
 
@@ -402,39 +480,42 @@ namespace FSofTUtils.Geography.DEM {
          byte[] array = new byte[pixelshorizontal * pixelsvertical];  // für die Bitmapdaten (ACHTUNG: Ausrichtung nach unten)
 
          // alle nötigen 1x1 DEM's ermitteln und dann immer 1 DEM komplett abarbeiten
-         int minlon4dem = (int)left;
+         int minlon4dem = (int)Math.Floor(left);         // das einfache "(int)left" ist für negative Werte falsch
          int maxlon4dem = (int)Math.Ceiling(right);
-         int minlat4dem = (int)bottom;
+         int minlat4dem = (int)Math.Floor(bottom);
          int maxlat4dem = (int)Math.Ceiling(top);
 
          for (int latdem = minlat4dem; latdem < maxlat4dem; latdem++)
             for (int londem = minlon4dem; londem < maxlon4dem; londem++) {
-               if (cancellationToken.IsCancellationRequested)
+               if (cancellationToken != null && cancellationToken.Value.IsCancellationRequested)
                   return null;
 
-               DEM1x1 dem = getTileOverPipeline(londem, latdem);
+               getLeftBottom4Coord(londem, latdem, out int _left, out int _bottom);
+               DEM1x1? dem = demTilePipeline.GetTile(this, _left, _bottom);
 
-               // gemeinsamer Bereich von DEM und Gesamtbereich
-               double l = dem.Left < left ? left : dem.Left;
-               double r = dem.Right < right ? dem.Right : right;
-               double b = dem.Bottom < bottom ? bottom : dem.Bottom;
-               double t = dem.Top < top ? dem.Top : top;
+               if (dem != null) {
+                  // gemeinsamer Bereich von DEM und Gesamtbereich
+                  double l = dem.Left < left ? left : dem.Left;
+                  double r = dem.Right < right ? dem.Right : right;
+                  double b = dem.Bottom < bottom ? bottom : dem.Bottom;
+                  double t = dem.Top < top ? dem.Top : top;
 
-               if (l < r && b < t) { // es ex. eine nichtleere Teilmenge
-                  // Pixelbereich für die Teilmenge bestimmen
-                  int pixlonfrom = Math.Min(pixelshorizontal - 1, (int)Math.Ceiling((l - left) / deltalon));
-                  int pixlonto = Math.Min(pixelshorizontal - 1, (int)((r - left) / deltalon));
-                  int pixlatfrom = Math.Min(pixelsvertical - 1, (int)Math.Ceiling((b - bottom) / deltalat));
-                  int pixlatto = Math.Min(pixelsvertical - 1, (int)((t - bottom) / deltalat));
+                  if (l < r && b < t) { // es ex. eine nichtleere Teilmenge
+                                        // Pixelbereich für die Teilmenge bestimmen
+                     int pixlonfrom = Math.Min(pixelshorizontal - 1, (int)Math.Ceiling((l - left) / deltalon));
+                     int pixlonto = Math.Min(pixelshorizontal - 1, (int)((r - left) / deltalon));
+                     int pixlatfrom = Math.Min(pixelsvertical - 1, (int)Math.Ceiling((b - bottom) / deltalat));
+                     int pixlatto = Math.Min(pixelsvertical - 1, (int)((t - bottom) / deltalat));
 
-                  for (int y = pixlatfrom; y <= pixlatto; y++) {
-                     for (int x = pixlonfrom; x <= pixlonto; x++) {
-                        // ACHTUNG: y ist im Array "abwärts" gerichtet0
-                        array[(pixelsvertical - 1 - y) * pixelshorizontal + x] = dem.ExistsHillShadeData ?
-                                                         dem.InterpolatedShadingValue(left + x * deltalon,
-                                                                                      bottom + y * deltalat,
-                                                                                      DEM1x1.InterpolationType.standard) :
-                                                         V0;
+                     for (int y = pixlatfrom; y <= pixlatto; y++) {
+                        for (int x = pixlonfrom; x <= pixlonto; x++) {
+                           // ACHTUNG: y ist im Array "abwärts" gerichtet0
+                           array[(pixelsvertical - 1 - y) * pixelshorizontal + x] = dem.ExistsHillShadeData ?
+                                                            dem.InterpolatedShadingValue(left + x * deltalon,
+                                                                                         bottom + y * deltalat,
+                                                                                         DEM1x1.InterpolationType.standard) :
+                                                            V0;
+                        }
                      }
                   }
                }
@@ -454,14 +535,14 @@ namespace FSofTUtils.Geography.DEM {
          return array;
       }
 
-      DEM1x1 getTileOverPipeline(double lon, double lat) {
-         return demTilePipeline.GetTile(this, (int)lon, (int)lat);
+      void getLeftBottom4Coord(double lon, double lat, out int left, out int bottom) {
+         left = (int)Math.Floor(lon);
+         bottom = (int)Math.Floor(lat);
       }
 
-      DEM1x1 getTile(double lon, double lat) {
-         int left = (int)Math.Floor(lon);
-         int bottom = (int)Math.Floor(lat);
-         DEM1x1 dem = demCache.Get(left, bottom);
+      DEM1x1? getTile(double lon, double lat) {
+         getLeftBottom4Coord(lon, lat, out int left, out int bottom);
+         DEM1x1? dem = demCache.Get(left, bottom);
          if (dem == null) {
             try {
                dem = new DEMHGTReader(left, bottom, path);
@@ -506,9 +587,7 @@ namespace FSofTUtils.Geography.DEM {
          }
       }
 
-      bool isCancel(ref long cancel) {
-         return Interlocked.Read(ref cancel) != 0;
-      }
+      //static bool isCancel(ref long cancel) => Interlocked.Read(ref cancel) != 0;
 
       #region Implementierung der IDisposable-Schnittstelle
 

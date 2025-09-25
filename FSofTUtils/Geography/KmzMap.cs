@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
 using System.Xml;
 using System.Xml.XPath;
 
@@ -13,33 +15,25 @@ namespace FSofTUtils.Geography {
    /// </summary>
    public class KmzMap : IDisposable {
 
-      public string Name { get; protected set; }
+      public string? Name { get; protected set; }
 
       public readonly double North, South, East, West;
 
 
       class Tile {
-         public string Path;
+         public string? Path;
          public double North, South, East, West;
 
-         public double DeltaLon {
-            get {
-               return East - West;
-            }
-         }
+         public double DeltaLon => East - West;
 
-         public double DeltaLat {
-            get {
-               return North - South;
-            }
-         }
+         public double DeltaLat => North - South;
 
          /// <summary>
          /// Ex. eine Schnittmenge?
          /// </summary>
          /// <param name="bound"></param>
          /// <returns></returns>
-         public Tile Intersection(Tile bound) {
+         public Tile? Intersection(Tile bound) {
             double l1 = West;
             double r1 = East;
             if (r1 < l1)
@@ -85,9 +79,7 @@ namespace FSofTUtils.Geography {
          /// <param name="width">Pixelanzahl für die gesamte Breite</param>
          /// <param name="lon"></param>
          /// <returns></returns>
-         public double Pixel4Lon(int width, double lon) {
-            return (lon - West) / (DeltaLon / width);
-         }
+         public double Pixel4Lon(int width, double lon) => (lon - West) / (DeltaLon / width);
 
          /// <summary>
          /// liefert den Pixelindex für die geograf. Breite (0 steht für den unteren Rand)
@@ -95,9 +87,7 @@ namespace FSofTUtils.Geography {
          /// <param name="height">Pixelanzahl für die gesamte Höhe</param>
          /// <param name="lat"></param>
          /// <returns></returns>
-         public double Pixel4Lat(int height, double lat) {
-            return (lat - South) / (DeltaLat / height);
-         }
+         public double Pixel4Lat(int height, double lat) => (lat - South) / (DeltaLat / height);
 
          public override string ToString() {
             return string.Format("{0}; {1}°..{2}° / {3}°..{4}°",
@@ -110,12 +100,19 @@ namespace FSofTUtils.Geography {
 
       }
 
+
+      readonly object readlock = new object();
+
       readonly ZipArchive kmz;
+
+      /// <summary>
+      /// Liste der Tiles (Bilder)
+      /// </summary>
       readonly List<Tile> tiles = new List<Tile>();
 
-      XmlDocument kmzDoc;
-      XPathNavigator kmzNavigator;
-      XmlNamespaceManager kmzNsMng;
+      XmlDocument? kmzDoc;
+      XPathNavigator? kmzNavigator;
+      XmlNamespaceManager? kmzNsMng;
 
 
       public KmzMap(string kmzfile) {
@@ -154,21 +151,22 @@ namespace FSofTUtils.Geography {
 
                Name = readValue("/kml:kml/kml:Document/kml:Name", "");
 
-               string[] imgpaths = readString("/kml:kml/kml:Document/kml:GroundOverlay/kml:Icon/kml:href");
-               for (int j = 0; j < imgpaths.Length; j++) {
-                  tiles.Add(new Tile() {
-                     Path = imgpaths[j],
-                     North = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:north", 0.0),
-                     South = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:south", 0.0),
-                     East = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:east", 0.0),
-                     West = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:west", 0.0),
-                  });
+               string[]? imgpaths = readString("/kml:kml/kml:Document/kml:GroundOverlay/kml:Icon/kml:href");
+               if (imgpaths != null)
+                  for (int j = 0; j < imgpaths.Length; j++) {
+                     tiles.Add(new Tile() {
+                        Path = imgpaths[j],
+                        North = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:north", 0.0),
+                        South = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:south", 0.0),
+                        East = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:east", 0.0),
+                        West = readValue("/kml:kml/kml:Document/kml:GroundOverlay[" + (j + 1).ToString() + "]/kml:LatLonBox/kml:west", 0.0),
+                     });
 
-                  North = Math.Max(North, tiles[tiles.Count - 1].North);
-                  South = Math.Min(South, tiles[tiles.Count - 1].South);
-                  West = Math.Max(West, tiles[tiles.Count - 1].West);
-                  East = Math.Min(East, tiles[tiles.Count - 1].East);
-               }
+                     North = Math.Max(North, tiles[tiles.Count - 1].North);
+                     South = Math.Min(South, tiles[tiles.Count - 1].South);
+                     West = Math.Max(West, tiles[tiles.Count - 1].West);
+                     East = Math.Min(East, tiles[tiles.Count - 1].East);
+                  }
                break;
             }
          }
@@ -183,16 +181,18 @@ namespace FSofTUtils.Geography {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      object[] readValueAsObject(string xpath) {
-         object[] ret = null;
+      object[]? readValueAsObject(string xpath) {
+         object[]? ret = null;
          try {
-            XPathNodeIterator nodes = kmzNavigator.Select(xpath, kmzNsMng);
-            if (nodes.Count == 0)
-               return null;
-            ret = new object[nodes.Count];
-            int i = 0;
-            while (nodes.MoveNext())
-               ret[i++] = nodes.Current.TypedValue;
+            if (kmzNavigator != null) {
+               XPathNodeIterator nodes = kmzNavigator.Select(xpath, kmzNsMng);
+               if (nodes.Count == 0)
+                  return null;
+               ret = new object[nodes.Count];
+               int i = 0;
+               while (nodes.MoveNext() && nodes.Current != null)
+                  ret[i++] = nodes.Current.TypedValue;
+            }
          } catch { }
          return ret;
       }
@@ -204,10 +204,12 @@ namespace FSofTUtils.Geography {
       /// <param name="defvalue">vordefinierter Wert</param>
       /// <returns></returns>
       string readValue(string xpath, string defvalue) {
-         object[] o = readValueAsObject(xpath);
+         object[]? o = readValueAsObject(xpath);
          if (o == null || o.Length != 1)
             return defvalue;
+#pragma warning disable CS8603 // Mögliche Nullverweisrückgabe.
          return o[0].ToString();
+#pragma warning restore CS8603 // Mögliche Nullverweisrückgabe.
       }
 
       /// <summary>
@@ -218,7 +220,7 @@ namespace FSofTUtils.Geography {
       /// <returns></returns>
       double readValue(string xpath, double defvalue) {
          double ret = defvalue;
-         object[] o = readValueAsObject(xpath);
+         object[]? o = readValueAsObject(xpath);
          if (o == null || o.Length != 1)
             return ret;
          try {
@@ -235,13 +237,15 @@ namespace FSofTUtils.Geography {
       /// </summary>
       /// <param name="xpath">XPath</param>
       /// <returns></returns>
-      string[] readString(string xpath) {
-         string[] ret = null;
-         object[] o = readValueAsObject(xpath);
+      string[]? readString(string xpath) {
+         string[]? ret = null;
+         object[]? o = readValueAsObject(xpath);
          if (o != null) {
             ret = new string[o.Length];
             for (int i = 0; i < o.Length; i++)
+#pragma warning disable CS8601 // Mögliche Nullverweiszuweisung.
                ret[i] = o[i].ToString();
+#pragma warning restore CS8601 // Mögliche Nullverweiszuweisung.
          }
          return ret;
       }
@@ -263,33 +267,37 @@ namespace FSofTUtils.Geography {
          };
 
          for (int i = 0; i < tiles.Count; i++) { // entsprechend der Reihenfolge der GroundOverlay's
-            Tile intersect = desttile.Intersection(tiles[i]);
+            Tile? intersect = desttile.Intersection(tiles[i]);
             if (intersect != null) {
-               Bitmap kmzbm = new Bitmap(kmz.Entries[i].Open());
+               lock (readlock) {    // MIST: Das Lesen ist NICHT threadsafe!
+                  using (Stream stream = kmz.Entries[i].Open()) {
+                     using (Bitmap kmzbm = new Bitmap(stream)) {
+                        if (kmzbm != null) {
+                           double srcleft = tiles[i].Pixel4Lon(kmzbm.Width, intersect.East);
+                           double srcright = tiles[i].Pixel4Lon(kmzbm.Width, intersect.West);
+                           double srcbottom = tiles[i].Pixel4Lat(kmzbm.Height, intersect.South);
+                           double srctop = tiles[i].Pixel4Lat(kmzbm.Height, intersect.North);
 
-               double srcleft = tiles[i].Pixel4Lon(kmzbm.Width, intersect.East);
-               double srcright = tiles[i].Pixel4Lon(kmzbm.Width, intersect.West);
-               double srcbottom = tiles[i].Pixel4Lat(kmzbm.Height, intersect.South);
-               double srctop = tiles[i].Pixel4Lat(kmzbm.Height, intersect.North);
+                           double dstleft = desttile.Pixel4Lon(bm.Width, intersect.East);
+                           double dstright = desttile.Pixel4Lon(bm.Width, intersect.West);
+                           double dstbottom = desttile.Pixel4Lat(bm.Height, intersect.South);
+                           double dsttop = desttile.Pixel4Lat(bm.Height, intersect.North);
 
-               double dstleft = desttile.Pixel4Lon(bm.Width, intersect.East);
-               double dstright = desttile.Pixel4Lon(bm.Width, intersect.West);
-               double dstbottom = desttile.Pixel4Lat(bm.Height, intersect.South);
-               double dsttop = desttile.Pixel4Lat(bm.Height, intersect.North);
+                           RectangleF srcRect = new RectangleF((float)Math.Round(srcleft),
+                                                               kmzbm.Height - (float)Math.Round(srctop),
+                                                               (float)Math.Round(srcright - srcleft),
+                                                               (float)Math.Round(srctop - srcbottom));
 
-               RectangleF srcRect = new RectangleF((float)Math.Round(srcleft),
-                                                   kmzbm.Height - (float)Math.Round(srctop),
-                                                   (float)Math.Round(srcright - srcleft),
-                                                   (float)Math.Round(srctop - srcbottom));
+                           RectangleF dstRect = new RectangleF((float)Math.Round(dstleft),
+                                                               bm.Height - (float)Math.Round(dsttop),
+                                                               (float)Math.Round(dstright - dstleft),
+                                                               (float)Math.Round(dsttop - dstbottom));
 
-               RectangleF dstRect = new RectangleF((float)Math.Round(dstleft),
-                                                   bm.Height - (float)Math.Round(dsttop),
-                                                   (float)Math.Round(dstright - dstleft),
-                                                   (float)Math.Round(dsttop - dstbottom));
-
-               graphics.DrawImage(kmzbm, dstRect, srcRect, GraphicsUnit.Pixel);
-
-               kmzbm.Dispose();
+                           graphics.DrawImage(kmzbm, dstRect, srcRect, GraphicsUnit.Pixel);
+                        }
+                     }
+                  }
+               }
             }
          }
 

@@ -24,101 +24,99 @@ namespace GpxViewer {
       /// the contents of this method with the code editor.
       /// </summary>
       private void InitializeComponent() {
-         this.components = new System.ComponentModel.Container();
-         this.listView1 = new System.Windows.Forms.ListView();
-         this.contextMenuStrip_LVType = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.toolStripMenuItem_LargeIcon = new System.Windows.Forms.ToolStripMenuItem();
-         this.toolStripMenuItem_Tile = new System.Windows.Forms.ToolStripMenuItem();
-         this.button_Cancel = new System.Windows.Forms.Button();
-         this.button_OK = new System.Windows.Forms.Button();
-         this.contextMenuStrip_LVType.SuspendLayout();
-         this.SuspendLayout();
+         components = new System.ComponentModel.Container();
+         listView1 = new ListView();
+         contextMenuStrip_LVType = new ContextMenuStrip(components);
+         toolStripMenuItem_LargeIcon = new ToolStripMenuItem();
+         toolStripMenuItem_Tile = new ToolStripMenuItem();
+         button_Cancel = new Button();
+         button_OK = new Button();
+         contextMenuStrip_LVType.SuspendLayout();
+         SuspendLayout();
          // 
          // listView1
          // 
-         this.listView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.listView1.ContextMenuStrip = this.contextMenuStrip_LVType;
-         this.listView1.HideSelection = false;
-         this.listView1.Location = new System.Drawing.Point(0, 0);
-         this.listView1.Name = "listView1";
-         this.listView1.Size = new System.Drawing.Size(570, 374);
-         this.listView1.TabIndex = 0;
-         this.listView1.UseCompatibleStateImageBehavior = false;
-         this.listView1.DoubleClick += new System.EventHandler(this.listView1_DoubleClick);
+         listView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+         listView1.ContextMenuStrip = contextMenuStrip_LVType;
+         listView1.Location = new Point(0, 0);
+         listView1.Margin = new Padding(4, 3, 4, 3);
+         listView1.Name = "listView1";
+         listView1.Size = new Size(664, 441);
+         listView1.TabIndex = 0;
+         listView1.UseCompatibleStateImageBehavior = false;
+         listView1.DoubleClick += listView1_DoubleClick;
          // 
          // contextMenuStrip_LVType
          // 
-         this.contextMenuStrip_LVType.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripMenuItem_LargeIcon,
-            this.toolStripMenuItem_Tile});
-         this.contextMenuStrip_LVType.Name = "contextMenuStrip1";
-         this.contextMenuStrip_LVType.Size = new System.Drawing.Size(124, 48);
-         this.contextMenuStrip_LVType.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip_LVType_Opening);
+         contextMenuStrip_LVType.Items.AddRange(new ToolStripItem[] { toolStripMenuItem_LargeIcon, toolStripMenuItem_Tile });
+         contextMenuStrip_LVType.Name = "contextMenuStrip1";
+         contextMenuStrip_LVType.Size = new Size(124, 48);
+         contextMenuStrip_LVType.Opening += contextMenuStrip_LVType_Opening;
          // 
          // toolStripMenuItem_LargeIcon
          // 
-         this.toolStripMenuItem_LargeIcon.Name = "toolStripMenuItem_LargeIcon";
-         this.toolStripMenuItem_LargeIcon.Size = new System.Drawing.Size(123, 22);
-         this.toolStripMenuItem_LargeIcon.Text = "Ansicht 1";
-         this.toolStripMenuItem_LargeIcon.Click += new System.EventHandler(this.toolStripMenuItem_LargeIcon_Click);
+         toolStripMenuItem_LargeIcon.Name = "toolStripMenuItem_LargeIcon";
+         toolStripMenuItem_LargeIcon.Size = new Size(123, 22);
+         toolStripMenuItem_LargeIcon.Text = "Ansicht 1";
+         toolStripMenuItem_LargeIcon.Click += toolStripMenuItem_LargeIcon_Click;
          // 
          // toolStripMenuItem_Tile
          // 
-         this.toolStripMenuItem_Tile.Name = "toolStripMenuItem_Tile";
-         this.toolStripMenuItem_Tile.Size = new System.Drawing.Size(123, 22);
-         this.toolStripMenuItem_Tile.Text = "Ansicht 2";
-         this.toolStripMenuItem_Tile.Click += new System.EventHandler(this.toolStripMenuItem_Tile_Click);
+         toolStripMenuItem_Tile.Name = "toolStripMenuItem_Tile";
+         toolStripMenuItem_Tile.Size = new Size(123, 22);
+         toolStripMenuItem_Tile.Text = "Ansicht 2";
+         toolStripMenuItem_Tile.Click += toolStripMenuItem_Tile_Click;
          // 
          // button_Cancel
          // 
-         this.button_Cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-         this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.button_Cancel.Image = global::GpxViewer.Properties.Resources.cancel;
-         this.button_Cancel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-         this.button_Cancel.Location = new System.Drawing.Point(325, 389);
-         this.button_Cancel.Name = "button_Cancel";
-         this.button_Cancel.Size = new System.Drawing.Size(99, 28);
-         this.button_Cancel.TabIndex = 1;
-         this.button_Cancel.Text = "Abbruch";
-         this.button_Cancel.UseVisualStyleBackColor = true;
-         this.button_Cancel.Click += new System.EventHandler(this.button_Cancel_Click);
+         button_Cancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+         button_Cancel.DialogResult = DialogResult.Cancel;
+         button_Cancel.Image = Properties.Resources.cancel;
+         button_Cancel.ImageAlign = ContentAlignment.MiddleLeft;
+         button_Cancel.Location = new Point(379, 459);
+         button_Cancel.Margin = new Padding(4, 3, 4, 3);
+         button_Cancel.Name = "button_Cancel";
+         button_Cancel.Size = new Size(115, 32);
+         button_Cancel.TabIndex = 1;
+         button_Cancel.Text = "Abbruch";
+         button_Cancel.UseVisualStyleBackColor = true;
+         button_Cancel.Click += button_Cancel_Click;
          // 
          // button_OK
          // 
-         this.button_OK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-         this.button_OK.DialogResult = System.Windows.Forms.DialogResult.OK;
-         this.button_OK.Image = global::GpxViewer.Properties.Resources.ok;
-         this.button_OK.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-         this.button_OK.Location = new System.Drawing.Point(459, 389);
-         this.button_OK.Name = "button_OK";
-         this.button_OK.Size = new System.Drawing.Size(99, 28);
-         this.button_OK.TabIndex = 2;
-         this.button_OK.Text = "Auswahl";
-         this.button_OK.UseVisualStyleBackColor = true;
-         this.button_OK.Click += new System.EventHandler(this.button_OK_Click);
+         button_OK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+         button_OK.DialogResult = DialogResult.OK;
+         button_OK.Image = Properties.Resources.ok;
+         button_OK.ImageAlign = ContentAlignment.MiddleLeft;
+         button_OK.Location = new Point(536, 459);
+         button_OK.Margin = new Padding(4, 3, 4, 3);
+         button_OK.Name = "button_OK";
+         button_OK.Size = new Size(115, 32);
+         button_OK.TabIndex = 2;
+         button_OK.Text = "Auswahl";
+         button_OK.UseVisualStyleBackColor = true;
+         button_OK.Click += button_OK_Click;
          // 
          // FormChooseMarkerTyp
          // 
-         this.AcceptButton = this.button_OK;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.CancelButton = this.button_Cancel;
-         this.ClientSize = new System.Drawing.Size(570, 429);
-         this.Controls.Add(this.button_OK);
-         this.Controls.Add(this.button_Cancel);
-         this.Controls.Add(this.listView1);
-         this.MaximizeBox = false;
-         this.MinimizeBox = false;
-         this.Name = "FormChooseMarkerTyp";
-         this.ShowIcon = false;
-         this.ShowInTaskbar = false;
-         this.Text = "Markerauswahl";
-         this.Load += new System.EventHandler(this.FormChooseMarkerTyp_Load);
-         this.contextMenuStrip_LVType.ResumeLayout(false);
-         this.ResumeLayout(false);
-
+         AcceptButton = button_OK;
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         CancelButton = button_Cancel;
+         ClientSize = new Size(665, 505);
+         Controls.Add(button_OK);
+         Controls.Add(button_Cancel);
+         Controls.Add(listView1);
+         Margin = new Padding(4, 3, 4, 3);
+         MaximizeBox = false;
+         MinimizeBox = false;
+         Name = "FormChooseMarkerTyp";
+         ShowIcon = false;
+         ShowInTaskbar = false;
+         Text = "Markerauswahl";
+         Load += FormChooseMarkerTyp_Load;
+         contextMenuStrip_LVType.ResumeLayout(false);
+         ResumeLayout(false);
       }
 
       #endregion

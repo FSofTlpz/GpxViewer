@@ -19,11 +19,11 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       class PoiDataExt {
 
-         public string Text;
+         public string? Text;
          public string Country;
          public string Region;
-         public string City;
-         public string Zip;
+         public string? City;
+         public string? Zip;
          public string Street;
          public string StreetNumber;
          //public string PhoneNumber;
@@ -203,7 +203,7 @@ namespace GarminCore.OptimizedReader {
       /// </summary>
       class RoadDataExt {
 
-         public string City;
+         public string? City;
          public string Zip;
          public List<string> Street;
          public uint RoadLength;
@@ -238,8 +238,11 @@ namespace GarminCore.OptimizedReader {
                   }
                }
 
-            for (int i = 0; i < rd.LabelInfo.Count; i++)
-               Street.Add(lbl.GetText(rd.LabelInfo[i], true));
+            for (int i = 0; i < rd.LabelInfo.Count; i++) {
+               string? street = lbl.GetText(rd.LabelInfo[i], true);
+               if (street != null)
+                  Street.Add(street);
+            }
 
             RoadLength = rd.RoadLength * 2;
          }
@@ -248,15 +251,18 @@ namespace GarminCore.OptimizedReader {
             City = rd.City;
             Zip = rd.Zip;
             Street = new List<string>();
-            foreach (string street in rd.Street)
+            for (int i = 0; i < rd.Street.Count; i++) {
+               string street = rd.Street[i];
                Street.Add(street);
+            }
+
             RoadLength = rd.RoadLength;
          }
 
          public override string ToString() {
             StringBuilder sb = new StringBuilder();
 
-            if (City.Length > 0) {
+            if (City != null && City.Length > 0) {
                if (sb.Length > 0)
                   sb.Append(", ");
                sb.Append(string.Format("City [{0}]", City));
@@ -282,19 +288,19 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// umgrenzendes Rechteck
       /// </summary>
-      public Bound Bound { get; protected set; } = null;
+      public Bound? Bound { get; protected set; } = null;
 
-      public GeoPoint[] Points { get; protected set; } = null;
+      public GeoPoint[]? Points { get; protected set; } = null;
 
-      public GeoPoly[] Areas { get; protected set; } = null;
+      public GeoPoly[]? Areas { get; protected set; } = null;
 
-      public GeoPoly[] Lines { get; protected set; } = null;
+      public GeoPoly[]? Lines { get; protected set; } = null;
 
 
       public SubdivMapData() { }
 
 
-      int listCount<T>(List<T> lst) => lst != null ? lst.Count : 0;
+      int listCount<T>(List<T>? lst) => lst != null ? lst.Count : 0;
 
 
       /// <summary>
@@ -319,7 +325,7 @@ namespace GarminCore.OptimizedReader {
 
          Areas = new GeoPoly[listCount(sd.AreaList) +
                              listCount(sd.ExtAreaList)];
-         if (listCount(sd.AreaList) > 0)
+         if (sd.AreaList != null && listCount(sd.AreaList) > 0)
             for (int i = 0; i < sd.AreaList.Count; i++)
                Areas[i] = getGeoPoly(sd.AreaList[i], coordbits, sdi.Center, lbl, rgn, net, false);
 
@@ -331,12 +337,12 @@ namespace GarminCore.OptimizedReader {
 
          Lines = new GeoPoly[listCount(sd.LineList) +
                              listCount(sd.ExtLineList)];
-         if (listCount(sd.LineList) > 0)
-            for (int i = 0; i < sd.LineList.Count; i++) 
+         if (sd.LineList != null && listCount(sd.LineList) > 0)
+            for (int i = 0; i < sd.LineList.Count; i++)
                Lines[i] = getGeoPoly(sd.LineList[i], coordbits, sdi.Center, lbl, rgn, net, false);
 
-         if (listCount(sd.ExtLineList) > 0)
-            for (int i = 0, dest = listCount(sd.LineList); i < sd.ExtLineList.Count; i++, dest++) 
+         if (sd.ExtLineList != null && listCount(sd.ExtLineList) > 0)
+            for (int i = 0, dest = listCount(sd.LineList); i < sd.ExtLineList.Count; i++, dest++)
                Lines[dest] = getGeoPoly(sd.ExtLineList[i], coordbits, sdi.Center, lbl);
 
          for (int i = 0; i < Lines.Length; i++) {  // Höhenlinien: Feet -> Meter
@@ -344,7 +350,9 @@ namespace GarminCore.OptimizedReader {
                 Lines[i].MainType == 0x21 ||
                 Lines[i].MainType == 0x22)
                if (!string.IsNullOrEmpty(Lines[i].Text))
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
                   Lines[i].Text = getMeter4Feet(Lines[i].Text);
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
          }
 
          // ================ Punkte verarbeiten
@@ -352,24 +360,30 @@ namespace GarminCore.OptimizedReader {
          Points = new GeoPoint[listCount(sd.PointList2) +
                                listCount(sd.PointList1) +
                                listCount(sd.ExtPointList)];
-         if (listCount(sd.PointList2) > 0)
+         if (sd.PointList2 != null && listCount(sd.PointList2) > 0)
             for (int i = 0, dest = 0; i < sd.PointList2.Count; i++, dest++) { // vor den "normalen" Punkten einlesen, damit der ev. Index-Verweise stimmen (z.B. für Exits)
                Points[dest] = getGeoPoint(sd.PointList2[i], coordbits, sdi.Center, 2, lbl, rgn, false);
             }
 
-         if (listCount(sd.PointList1) > 0)
+         if (sd.PointList1 != null && listCount(sd.PointList1) > 0)
             for (int i = 0, dest = listCount(sd.PointList2); i < sd.PointList1.Count; i++, dest++) {
                Points[dest] = getGeoPoint(sd.PointList1[i], coordbits, sdi.Center, 1, lbl, rgn, false);
             }
 
-         if (listCount(sd.ExtPointList) > 0)
+         if (sd.ExtPointList != null && listCount(sd.ExtPointList) > 0)
             for (int i = 0, dest = listCount(sd.PointList2) + listCount(sd.PointList1); i < sd.ExtPointList.Count; i++, dest++) {
                Points[dest] = getGeoPoint(sd.ExtPointList[i], coordbits, sdi.Center, lbl, rgn);
             }
       }
 
 
-      PointF[] getPolyPointsAndBound(List<MapUnitPoint> mupts, out GarminCore.Bound bound) {
+      /// <summary>
+      /// rechnet die Punkte aus Mapunits um 
+      /// </summary>
+      /// <param name="mupts"></param>
+      /// <param name="bound">umgebendes Rechteck (null wenn keine Punkte vorhanden sind)</param>
+      /// <returns></returns>
+      PointF[] getPolyPointsAndBound(List<MapUnitPoint> mupts, out GarminCore.Bound? bound) {
          PointF[] pts = new PointF[mupts.Count];
          for (int i = 0; i < mupts.Count; i++)
             pts[i] = new PointF((float)mupts[i].LongitudeDegree, (float)mupts[i].LatitudeDegree);
@@ -398,9 +412,9 @@ namespace GarminCore.OptimizedReader {
                          StdFile_RGN rgn,
                          StdFile_NET net,
                          bool withexttxt) {
-         PointF[] pts = getPolyPointsAndBound(poly.GetMapUnitPoints(coordbits, subdiv_center), out GarminCore.Bound bound);
+         PointF[] pts = getPolyPointsAndBound(poly.GetMapUnitPoints(coordbits, subdiv_center), out GarminCore.Bound? bound);
 
-         string txt = "";
+         string? txt = "";
          if (poly.LabelOffset != UInt32.MaxValue)
             if (!poly.LabelInNET)
                txt = lbl.GetText(poly.LabelOffset, false);   // keine Garmin-Steuerzeichen für Symbole u.ä.
@@ -431,6 +445,9 @@ namespace GarminCore.OptimizedReader {
                }
             }
 
+         if (bound == null)
+            bound = new Bound();    // es sind dann gar keine Punkte vorhanden
+
          return new GeoPoly((poly.Type << 8) | poly.Subtype,
                             txt,
                             pts,
@@ -446,11 +463,14 @@ namespace GarminCore.OptimizedReader {
                          int coordbits,
                          MapUnitPoint subdiv_center,
                          StdFile_LBL lbl) {
-         PointF[] pts = getPolyPointsAndBound(poly.GetMapUnitPoints(coordbits, subdiv_center), out GarminCore.Bound bound);
+         PointF[] pts = getPolyPointsAndBound(poly.GetMapUnitPoints(coordbits, subdiv_center), out GarminCore.Bound? bound);
 
-         string txt = "";
+         string? txt = "";
          if (poly.HasLabel)
             txt = lbl.GetText(poly.LabelOffset, false);
+
+         if (bound == null)
+            bound = new Bound();    // es sind dann gar keine Punkte vorhanden
 
          return new GeoPoly(((0x100 | poly.Type) << 8) | poly.Subtype,
                             txt,
@@ -472,7 +492,7 @@ namespace GarminCore.OptimizedReader {
                            bool withexttxt) {
          MapUnitPoint mup = new MapUnitPoint(subdiv_center.Longitude + Coord.RawUnits2MapUnits(rawpt.RawDeltaLongitude, coordbits),
                                              subdiv_center.Latitude + Coord.RawUnits2MapUnits(rawpt.RawDeltaLatitude, coordbits));
-         string txt = "";
+         string? txt = "";
          if (rawpt.LabelOffset != 0)
             if (!rawpt.IsPoiOffset) {
                txt = lbl.GetText(rawpt.LabelOffset, true);
@@ -548,7 +568,7 @@ namespace GarminCore.OptimizedReader {
                            StdFile_RGN rgn) {
          MapUnitPoint mup = new MapUnitPoint(subdiv_center.Longitude + Coord.RawUnits2MapUnits(rawpt.RawDeltaLongitude, coordbits),
                                              subdiv_center.Latitude + Coord.RawUnits2MapUnits(rawpt.RawDeltaLatitude, coordbits));
-         string txt = "";
+         string? txt = "";
          if (rawpt.HasLabel)
             txt = lbl.GetText(rawpt.LabelOffset, false);
          return new GeoPoint(((0x100 | rawpt.Type) << 8) | rawpt.Subtype,
@@ -599,17 +619,19 @@ namespace GarminCore.OptimizedReader {
       protected virtual void Dispose(bool notfromfinalizer) {
          if (!this._isdisposed) {            // bisher noch kein Dispose erfolgt
             if (notfromfinalizer) {          // nur dann alle managed Ressourcen freigeben
-               foreach (var item in Points) {
-                  item.Dispose();
-               }
+               if (Points != null)
+                  foreach (var item in Points)
+                     item.Dispose();
                Points = null;
-               foreach (var item in Areas) {
-                  item.Dispose();
-               }
+
+               if (Areas != null)
+                  foreach (var item in Areas)
+                     item.Dispose();
                Areas = null;
-               foreach (var item in Lines) {
-                  item.Dispose();
-               }
+
+               if (Lines != null)
+                  foreach (var item in Lines)
+                     item.Dispose();
                Lines = null;
 
             }

@@ -87,11 +87,11 @@ namespace GarminCore.DskImg {
       /// <summary>
       /// Kartenname Teil 1 (indirekt über <see cref="Description"/> setzen)
       /// </summary>
-      public string Description1 { get; private set; }
+      public string Description1 { get; private set; } = "";
       /// <summary>
       /// Kartenname Teil 2 (indirekt über <see cref="Description"/> setzen)
       /// </summary>
-      public string Description2 { get; private set; }
+      public string Description2 { get; private set; } = "";
       /// <summary>
       /// vollständiger Kartenname
       /// </summary>
@@ -250,7 +250,7 @@ namespace GarminCore.DskImg {
       public byte[] Unknown_x47;
       public byte[] Unknown_x83;
       public byte[] Unknown_x1ce;
-      public byte[] Unknown_x200;
+      public byte[]? Unknown_x200;
 
 
       public Header() {

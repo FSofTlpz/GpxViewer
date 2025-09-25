@@ -43,7 +43,7 @@ namespace GarminCore.Files {
 
       public byte[] Unknown_x15 = { 1, 0 };
 
-      public ShortDataBlock ContentsBlock;
+      public ShortDataBlock? ContentsBlock;
 
       public byte[] Unknown_x1D = { };
 
@@ -112,16 +112,16 @@ namespace GarminCore.Files {
       }
 
 
-      public string Description;
-      public SortHeader Sortheader;
+      public string Description = "";
+      public SortHeader? Sortheader;
 
       /// <summary>
       /// liefert den PostHeader-Datenbereich
       /// </summary>
       /// <returns></returns>
-      public DataBlock PostHeaderDataBlock { get; private set; }
-      public DataBlock DescriptionBlock { get; private set; }
-      public DataBlock CharacterLookupTableBlock { get; private set; }
+      public DataBlock? PostHeaderDataBlock { get; private set; }
+      public DataBlock? DescriptionBlock { get; private set; }
+      public DataBlock? CharacterLookupTableBlock { get; private set; }
 
 
       public StdFile_SRT()
@@ -221,14 +221,15 @@ namespace GarminCore.Files {
          // mit den endgültigen Offsets setzen
          SetData2Filesection((int)InternalFileSections.ContentsBlock, true);
 
-         DataBlockWithRecordsize tmp = Filesections.GetPosition((int)InternalFileSections.ContentsBlock);
-         ContentsBlock = new ShortDataBlock(tmp.Offset, (ushort)tmp.Length);
+         DataBlockWithRecordsize? tmp = Filesections.GetPosition((int)InternalFileSections.ContentsBlock);
+         if (tmp != null)
+            ContentsBlock = new ShortDataBlock(tmp.Offset, (ushort)tmp.Length);
       }
 
 
       #region Decodierung der Datenblöcke
 
-      void Decode_ContentsBlock(BinaryReaderWriter br, DataBlock block) {
+      void Decode_ContentsBlock(BinaryReaderWriter? br, DataBlock? block) {
          if (br != null && block != null && block.Length > 0) {
             br.Seek(block.Offset);
             DescriptionBlock = new DataBlock(br);
@@ -238,17 +239,17 @@ namespace GarminCore.Files {
          }
       }
 
-      void Decode_DescriptionBlock(BinaryReaderWriter br, DataBlock block) {
+      void Decode_DescriptionBlock(BinaryReaderWriter? br, DataBlock? block) {
          if (br != null && block != null && block.Length > 0) {
             br.Seek(block.Offset);
             Description = br.ReadString((int)block.Length);
          }
       }
 
-      void Decode_CharacterLookupTableBlock(BinaryReaderWriter br, DataBlock block) {
+      void Decode_CharacterLookupTableBlock(BinaryReaderWriter? br, DataBlock? block) {
          if (br != null && block != null && block.Length > 0) {
             br.Seek(block.Offset);
-            Sortheader.Read(br);
+            Sortheader?.Read(br);
             if (Locked == 0) {
 
 
@@ -265,8 +266,13 @@ namespace GarminCore.Files {
 
       void Encode_ContentsBlock(BinaryReaderWriter bw) {
          if (bw != null) {
-            (Filesections.GetPosition((int)InternalFileSections.DescriptionBlock) as DataBlock).Write(bw);
-            (Filesections.GetPosition((int)InternalFileSections.CharacterLookupTableBlock) as DataBlock).Write(bw);
+            DataBlockWithRecordsize? blk;
+            blk = Filesections.GetPosition((int)InternalFileSections.DescriptionBlock);
+            if (blk != null)
+               ((DataBlock)blk).Write(bw);
+            blk = Filesections.GetPosition((int)InternalFileSections.CharacterLookupTableBlock);
+            if (blk != null)
+               ((DataBlock)blk).Write(bw);
          }
       }
 
@@ -291,7 +297,7 @@ namespace GarminCore.Files {
             base.Encode_Header(bw);
 
             bw.Write(Unknown_x15);
-            ContentsBlock.Write(bw);
+            ContentsBlock?.Write(bw);
 
             if (Headerlength > 0x1D) {       // auch 0x25 gesehen mit 8 zusätzlichen Byte: 00 00 35 00 00 00 10 00
 

@@ -31,7 +31,6 @@ diesem Programm erhalten haben. Falls nicht, siehe
 <http://www.gnu.org/licenses/>. 
 */
 using System.Collections.Generic;
-using System.IO;
 
 namespace GarminCore.Files {
 
@@ -52,12 +51,12 @@ namespace GarminCore.Files {
          /// <summary>
          /// Daten
          /// </summary>
-         public byte[] Data;
+         public byte[]? Data;
 
          /// <summary>
          /// beliebig verwendbare zusätzliche Infodaten für das Objekt
          /// </summary>
-         public object ExtData;
+         public object? ExtData;
 
 
          /// <summary>
@@ -88,7 +87,7 @@ namespace GarminCore.Files {
             this() {
             Read(br, block.Offset, block.Length);
             if (block is DataBlockWithRecordsize)
-               Position.Recordsize = (block as DataBlockWithRecordsize).Recordsize;
+               Position.Recordsize = ((DataBlockWithRecordsize)block).Recordsize;
          }
 
          /// <summary>
@@ -154,10 +153,10 @@ namespace GarminCore.Files {
             Position.Offset = offs;
          }
 
-         public int CompareTo(object obj) {
+         public int CompareTo(object? obj) {
             if (obj == null || !(obj is Section))
                return 1;
-            Section sec = obj as Section;
+            Section sec = (Section)obj;
             if (Position.Offset > sec.Position.Offset)
                return 1;
             if (Position.Offset < sec.Position.Offset)
@@ -253,7 +252,7 @@ namespace GarminCore.Files {
       /// <returns></returns>
       public bool AddSection(int type, DataBlock block) {
          return block is DataBlockWithRecordsize ?
-                           AddSection(type, block.Offset, block.Length, (block as DataBlockWithRecordsize).Recordsize) :
+                           AddSection(type, block.Offset, block.Length, ((DataBlockWithRecordsize)block).Recordsize) :
                            AddSection(type, block.Offset, block.Length);
       }
 
@@ -424,7 +423,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <param name="type"></param>
       /// <returns>null, wenn keine Daten vorhanden sind</returns>
-      public BinaryReaderWriter GetSectionDataReader(int type) {
+      public BinaryReaderWriter? GetSectionDataReader(int type) {
          if (!ContainsType(type))
             return null;
          Section sec = sections[type];
@@ -531,7 +530,7 @@ namespace GarminCore.Files {
       /// <returns>false, wenn der Typ nicht existiert</returns>
       public bool SetPosition(int type, DataBlock block) {
          return block is DataBlockWithRecordsize ?
-            SetPosition(type, block.Offset, block.Length, (block as DataBlockWithRecordsize).Recordsize) :
+            SetPosition(type, block.Offset, block.Length, ((DataBlockWithRecordsize)block).Recordsize) :
             SetPosition(type, block.Offset, block.Length);
       }
 
@@ -541,7 +540,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <param name="type"></param>
       /// <returns>null, wenn der Typ nicht existiert</returns>
-      public DataBlockWithRecordsize GetPosition(int type) {
+      public DataBlockWithRecordsize? GetPosition(int type) {
          if (ContainsType(type))
             return sections[type].Position;
          return null;
@@ -578,7 +577,7 @@ namespace GarminCore.Files {
       public uint GetDataLength(int type) {
          if (ContainsType(type)) {
             Section sec = sections[type];
-            return sec != null ? (uint)sec.Data.Length : 0;
+            return sec != null && sec.Data != null ? (uint)sec.Data.Length : 0;
          }
          return 0;
       }
@@ -616,7 +615,8 @@ namespace GarminCore.Files {
             foreach (Section sec in SortedList4Offset())
                if (sec.Position.Length > 0 || !onlyused) {
                   offs[pos] = sec.Position.Offset;
-                  type[pos++] = (int)sec.ExtData;
+                  if (sec.ExtData != null)
+                     type[pos++] = (int)sec.ExtData;
                }
          }
 
@@ -645,7 +645,7 @@ namespace GarminCore.Files {
       /// </summary>
       /// <returns></returns>
       public uint GetOffsetBehind() {
-         Section lastsec = sections.Count > 0 ? SortedList4Offset()[sections.Count - 1] : null;
+         Section? lastsec = sections.Count > 0 ? SortedList4Offset()[sections.Count - 1] : null;
          return lastsec != null ? lastsec.Position.Offset + lastsec.Position.Length : 0;
       }
 
@@ -671,10 +671,14 @@ namespace GarminCore.Files {
          if (sections.Count > 0) {
             List<Section> lst = SortedList4Offset(); // nach den akt. Offsets sortiert
             lst[0].Position.Offset = startoffset;
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
             lst[0].Position.Length = (uint)(lst[0].Data != null ? lst[0].Data.Length : 0);
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
             for (int i = 1; i < lst.Count; i++) {
                lst[i].Position.Offset = lst[i - 1].Position.Offset + lst[i - 1].Position.Length;
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
                lst[i].Position.Length = (uint)(lst[i].Data != null ? lst[i].Data.Length : 0);
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
             }
 
             int[] keys = new int[sections.Count];

@@ -1,18 +1,19 @@
-﻿using System;
+﻿#if ANDROID
 using System.Drawing;
+#endif
 using FSofTUtils.Geography.DEM;
 using FSofTUtils.Geometry;
 using SpecialMapCtrl;
-//using Microsoft.Win32;
 using Gpx = FSofTUtils.Geography.PoorGpx;
+using MyDrawing = System.Drawing;
 
-#if Android
+#if ANDROID
 namespace TrackEddi.Common {
 #else
 namespace GpxViewer.Common {
 #endif
    /// <summary>
-   /// Hilfsfunktionen für das Editieren
+   /// Hilfsfunktionen für das Editieren (wird nur von <see cref="GpxWorkbench"/> verwendet)
    /// </summary>
    public class EditHelper {
 
@@ -39,24 +40,22 @@ namespace GpxViewer.Common {
       /// <summary>
       /// ein neuer Marker sollte eingefügt werden
       /// </summary>
-      public event EventHandler<MarkerEventArgs> MarkerShouldInsertEvent;
+      public event EventHandler<MarkerEventArgs>? MarkerShouldInsertEvent;
 
       /// <summary>
       /// die Anzeige eines Tracks wird ein- oder ausgeschaltet
       /// </summary>
-      public event EventHandler<TrackEventArgs> TrackEditShowEvent;
-
-      public event EventHandler RefreshProgramStateEvent;
+      public event EventHandler<TrackEventArgs>? TrackEditShowEvent;
 
 
       /// <summary>
       /// Farbe der Hilfslinie 
       /// </summary>
-      public Color HelperLineColor {
+      public MyDrawing.Color HelperLineColor {
          get => penHelper.Color;
          set {
             penHelper = new Pen(value) {
-               DashStyle = System.Drawing.Drawing2D.DashStyle.Dash,
+               DashStyle = MyDrawing.Drawing2D.DashStyle.Dash,
                Width = penHelper.Width,
             };
          }
@@ -71,43 +70,65 @@ namespace GpxViewer.Common {
       }
 
       /// <summary>
-      /// Bearbeitung "in Arbeit" (kann nur eine Verschiebung sein)
+      /// Ist ein Markerbearbeitung gestartet?
       /// </summary>
-      public bool MarkerInWork => markerInEdit != null;
+      public bool MarkerIsInWork => markerinwork;
 
       /// <summary>
-      /// eine Bearbeitung ist "in Arbeit"
+      /// Ist ein Trackbearbeitung gestartet?
       /// </summary>
-      public bool TrackInWork => TrackInEdit != null;
+      public bool TrackIsInWork => trackinwork;
 
       /// <summary>
       /// akt. bearbeiteter Track
       /// </summary>
-      public Track TrackInEdit { get; protected set; }
+      public Track? TrackInEdit { get; protected set; }
 
 
       /// <summary>
       /// akt. zu verschiebender Marker
       /// </summary>
-      Marker markerInEdit;
+      Marker? markerInEdit;
+
+      /// <summary>
+      /// Läuft eine Markerbearbeitung?
+      /// </summary>
+      bool markerinwork = false;
 
       /// <summary>
       /// Kopie des Markers
       /// </summary>
-      Marker markerCopy;
+      Marker? markerCopy;
 
       /// <summary>
       /// Kopie des Tracks
       /// </summary>
-      Track trackCopy;
+      Track? trackCopy;
 
-      bool trackchanged = false;
+      /// <summary>
+      /// Läuft eine Trackbearbeitung?
+      /// </summary>
+      bool trackinwork = false;
 
+      /// <summary>
+      /// Wurde <see cref="TrackInEdit"/> verändert?
+      /// </summary>
+      bool trackchanged;
+
+      /// <summary>
+      /// Ist <see cref="TrackInEdit"/> ein neuer Track?
+      /// </summary>
       bool trackIsNew;
 
-      SpecialMapCtrl.SpecialMapCtrl mapControl;
+      /// <summary>
+      /// Control für die Anzeige des akt. bearbeitetenden Objektes
+      /// </summary>
+      SpecialMapCtrl.SpecialMapCtrl mapCtrl;
 
-      GpxAllExt gpx;
+      /// <summary>
+      /// Container des akt. bearbeitetenden Objektes
+      /// </summary>
+      GpxData gpx;
 
       /// <summary>
       /// Pen für Hilfslinien beim Editieren
@@ -116,10 +137,10 @@ namespace GpxViewer.Common {
 
 
       public EditHelper(SpecialMapCtrl.SpecialMapCtrl mapControl,
-                        GpxAllExt editableGpx,
-                        Color helperPenColor,
+                        GpxData editableGpx,
+                        MyDrawing.Color helperPenColor,
                         float helperPenWidth) {
-         this.mapControl = mapControl;
+         mapCtrl = mapControl;
          gpx = editableGpx;
          penHelper = new Pen(helperPenColor) {
             DashStyle = System.Drawing.Drawing2D.DashStyle.Dash,
@@ -130,14 +151,6 @@ namespace GpxViewer.Common {
       #region private
 
       /// <summary>
-      /// der Programmstatus wird aktualisiert
-      /// <para>
-      /// sieht blöd aus, aber: Der Cursor wird intern beim Leave wieder auf Standard umgestellt. Mit diesem Trick erscheint wieder der richtige.
-      /// </para>
-      /// </summary>
-      void refreshProgramState() => RefreshProgramStateEvent?.Invoke(this, new EventArgs());
-
-      /// <summary>
       /// liefert die Geodaten für den Clientpunkt
       /// </summary>
       /// <param name="ptclient"></param>
@@ -145,8 +158,8 @@ namespace GpxViewer.Common {
       /// <param name="lon">geografische Höhe</param>
       /// <param name="lat">geografische Länge</param>
       /// <returns>Höhe</returns>
-      double getGeoDat4ClientPoint(Point ptclient, DemData dem, out double lon, out double lat) {
-         PointD ptgeo = getPointD4ClientPoint(ptclient);
+      double getGeoDat4ClientPoint(MyDrawing.Point ptclient, DemData? dem, out double lon, out double lat) {
+         PointD ptgeo = mapCtrl.M_Client2LonLat(ptclient);
          double h = dem != null ? dem.GetHeight(ptgeo.X, ptgeo.Y) : DEM1x1.DEMNOVALUE;
          if (h == DEM1x1.DEMNOVALUE)
             h = Gpx.BaseElement.NOTVALID_DOUBLE;
@@ -156,43 +169,34 @@ namespace GpxViewer.Common {
       }
 
       /// <summary>
-      /// liefert die Geodaten für den Clientpunkt
-      /// </summary>
-      /// <param name="ptclient"></param>
-      /// <returns></returns>
-      PointD getPointD4ClientPoint(Point ptclient) => mapControl.SpecMapClient2LonLat(ptclient);
-
-      Point convertTrackPoint2Point(Gpx.GpxTrackPoint pt) => mapControl.SpecMapLonLat2Client(pt);
-
-      /// <summary>
-      /// liefert einen <see cref="Gpx.GpxWaypoint"/> zum Punkt des Kartenclients
-      /// </summary>
-      /// <param name="ptclient"></param>
-      /// <param name="dem"></param>
-      /// <returns></returns>
-      Gpx.GpxWaypoint GetGpxWaypoint(Point ptclient, DemData dem) {
-         double ele = getGeoDat4ClientPoint(ptclient, dem, out double lon, out double lat);
-         return new Gpx.GpxWaypoint(lon, lat, ele);
-      }
-
-      /// <summary>
-      /// liefert einen <see cref="Gpx.GpxTrackPoint"/> zum Punkt des Kartenclients
-      /// </summary>
-      /// <param name="ptclient"></param>
-      /// <param name="dem"></param>
-      /// <returns></returns>
-      Gpx.GpxTrackPoint getGpxTrackPoint(Point ptclient, DemData dem) {
-         double ele = getGeoDat4ClientPoint(ptclient, dem, out double lon, out double lat);
-         return new Gpx.GpxTrackPoint(lon, lat, ele);
-      }
-
-      /// <summary>
       /// zeichnet die Hilfslinie
       /// </summary>
       /// <param name="g"></param>
       /// <param name="from"></param>
       /// <param name="to"></param>
-      void drawHelperLine(Graphics g, Point from, Point to) => g.DrawLine(penHelper, from, to);
+      void drawHelperLine(Graphics g, MyDrawing.Point from, MyDrawing.Point to) => g.DrawLine(penHelper, from, to);
+
+      #endregion
+
+      /// <summary>
+      /// Anzeige akt. falls ein Objekt in Arbeit ist
+      /// </summary>
+      public void Refresh() {
+         if (MarkerIsInWork || TrackIsInWork)
+            mapCtrl.M_Refresh();
+      }
+
+      /// <summary>
+      /// liefert die Höhe zum Punkt des Kartenclients
+      /// </summary>
+      /// <param name="ptclient"></param>
+      /// <param name="dem"></param>
+      /// <returns></returns>
+      public double GetHeight(MyDrawing.Point ptclient, DemData? dem) => getGeoDat4ClientPoint(ptclient, dem, out _, out _);
+
+      #region Marker
+
+      #region private
 
       /// <summary>
       /// ändert die Sichtbarkeit des <see cref="Marker"/>
@@ -200,14 +204,142 @@ namespace GpxViewer.Common {
       /// <param name="marker"></param>
       /// <param name="visible"></param>
       void showMarker(Marker marker, bool visible) =>
-         mapControl.SpecMapShowMarker(marker,
-                                      visible,
-                                      visible ?
-                                         gpx.NextVisibleMarker(marker) :
-                                         null);
+         mapCtrl.M_ShowMarker(marker,
+                              visible,
+                              visible ?
+                                 gpx.NextVisibleMarker(marker) :
+                                 null);
+
+      #endregion
 
       /// <summary>
-      /// ändert die Sichtbarkeit des <see cref="Track"/> und informiert per Event darüber
+      /// neu anzeigen (weil sich die Daten geändert haben)
+      /// </summary>
+      /// <param name="marker"></param>
+      public void RefreshOnMap(Marker marker) => marker.UpdateVisualMarker(mapCtrl);
+
+      /// <summary>
+      /// fügt eine Kopie des <see cref="Marker"/> in den Container ein
+      /// </summary>
+      /// <param name="orgmarker"></param>
+      /// <param name="pos"></param>
+      /// <returns></returns>
+      public Marker InsertCopy(Marker orgmarker, int pos = -1) =>
+         gpx.MarkerInsertCopyWithLock(orgmarker, pos, Marker.MarkerType.EditableStandard);
+
+      /// <summary>
+      /// entfernt den <see cref="Marker"/> aus dem Container
+      /// </summary>
+      /// <param name="marker"></param>
+      public void Remove(Marker marker) {
+         showMarker(marker, false);          // Sichtbarkeit ausschalten
+         gpx.MarkerRemoveWithLock(marker);
+      }
+
+      /// <summary>
+      /// verschiebt die Position des <see cref="Marker"/> im Container
+      /// </summary>
+      /// <param name="fromidx"></param>
+      /// <param name="toidx"></param>
+      public void MarkerChangeOrder(int fromidx, int toidx) {
+         gpx.MarkerOrderChangeWithLock(fromidx, toidx);
+
+         Marker m = gpx.MarkerList[toidx];
+         if (m.IsVisible)
+            m.UpdateVisualMarker(mapCtrl);
+      }
+
+      /// <summary>
+      /// Cursor akt. (nur als Reaktion auf OnMarkerLeave nötig)
+      /// </summary>
+      public void RefreshCursor() {
+         if (MarkerIsInWork) {
+            Marker? tmp = markerInEdit;
+            // sieht blöd aus, aber: Der Cursor wird intern beim Leave wieder auf Standard umgestellt. Mit diesem Trick erscheint wieder der richtige.
+            mapCtrl.M_Refresh(false, false, false, false); 
+            markerInEdit = tmp;
+         }
+      }
+
+      #region Marker editieren
+
+      /// <summary>
+      /// Erweiterung zu Paint() (wenn <see cref="MarkerIsInWork"/>==true); Hilfslinie anzeigen
+      /// </summary>
+      public void DrawHelperLine2NewMarkerPosition(Graphics canvas, MyDrawing.Point ptLastMouseLocation) {
+         if (MarkerIsInWork && markerInEdit != null)
+            canvas.DrawLine(penHelper, mapCtrl.M_LonLat2Client(markerInEdit.Waypoint), ptLastMouseLocation);
+      }
+
+      /// <summary>
+      /// Start für Marker verschieben oder neuen einfügen (marker == null)
+      /// </summary>
+      /// <returns>true wenn erfolgreich</returns>
+      public bool MarkerEdit_Start(bool cancellast, Marker? marker) {
+         if (cancellast && markerinwork)
+            MarkerEdit_End(true);
+
+         if (!markerinwork) {
+            markerinwork = true;
+            markerInEdit = marker;
+            markerCopy = marker != null ?
+                              new Marker(marker) :
+                              null;
+            return true;
+         }
+         return false;
+      }
+
+      /// <summary>
+      /// neuen Marker setzen oder vorhandenen Marker an neue Position setzen
+      /// </summary>
+      /// <param name="ptclient"></param>
+      /// <param name="dem"></param>
+      /// <param name="cancel"></param>
+      public void MarkerEdit_End(MyDrawing.Point ptclient, DemData? dem, bool cancel) {
+         if (markerinwork) {
+            markerinwork = false;
+            if (cancel) {
+               markerCopy = null;
+               if (markerInEdit != null)
+                  RefreshOnMap(markerInEdit);
+               markerInEdit = null;
+            } else {
+               double ele = getGeoDat4ClientPoint(ptclient, dem, out double lon, out double lat);
+               Gpx.GpxWaypoint wp = new Gpx.GpxWaypoint(lon, lat, ele);
+               if (markerInEdit == null) {
+                  MarkerShouldInsertEvent?.Invoke(this,
+                                                  new MarkerEventArgs(new Marker(wp, Marker.MarkerType.EditableStandard, null)));  // neuer Marker
+               } else {
+                  // (nur) Pos. und Höhe neu setzen
+                  markerInEdit.Longitude = wp.Lon;
+                  markerInEdit.Latitude = wp.Lat;
+                  markerInEdit.Elevation = wp.Elevation;
+                  gpx.GpxDataChanged = true;  // muss explizit gesetzt werden, weil die Eigenschaften eines vorhandenen Objekts geändert werden
+                  RefreshOnMap(markerInEdit);
+               }
+            }
+         }
+      }
+
+      public void MarkerEdit_End(bool cancel) =>
+         MarkerEdit_End(MyDrawing.Point.Empty, null, cancel);
+
+      #endregion
+
+      #endregion
+
+      #region Track
+
+      #region private
+
+      Gpx.ListTS<Gpx.GpxTrackPoint>? getTrackPoints(Track? track) =>
+                                            track != null &&
+                                            track.GpxSegment != null &&
+                                            track.GpxSegment.Points.Count >= 0 ? track.GpxSegment.Points : null;
+
+      /// <summary>
+      /// ändert die Sichtbarkeit des <see cref="Track"/> und informiert (nur) bei true vorher (!) per Event darüber
       /// </summary>
       /// <param name="track"></param>
       /// <param name="visible"></param>
@@ -217,344 +349,175 @@ namespace GpxViewer.Common {
          showTrack(track, visible);
       }
 
-      void showTrack(Track track, bool visible) => mapControl.SpecMapShowTrack(track,
-                                                                               visible,
-                                                                               visible ?
-                                                                                    gpx.NextVisibleTrack(track) :
-                                                                                    null);
+      void showTrack(Track track, bool visible) => mapCtrl.M_ShowTrack(track,
+                                                                       visible,
+                                                                       visible ?
+                                                                            gpx.NextVisibleTrack(track) :
+                                                                            null);
+
+      bool appendPoint(Track? track, MyDrawing.Point ptclient, DemData? dem) {
+         if (track != null) {
+            Gpx.ListTS<Gpx.GpxTrackPoint>? points = getTrackPoints(track);
+            if (points != null) {
+               showTrackWithEvent(track, false);         // Anzeige des bisherigen Tracks löschen
+               double ele = getGeoDat4ClientPoint(ptclient, dem, out double lon, out double lat);
+               points.Add(new Gpx.GpxTrackPoint(lon, lat, ele)); // neuen Punkt aufnehmen
+               trackchanged = true;
+               track.CalculateStats();
+               track.UpdateVisualTrack(mapCtrl);
+               showTrackWithEvent(track);       // veränderten Track anzeigen
+               return true;
+            }
+         }
+         return false;
+      }
+
+      bool removeLastPoint(Track? track) {
+         if (track != null) {
+            Gpx.ListTS<Gpx.GpxTrackPoint>? points = getTrackPoints(track);
+            if (points != null &&
+                points.Count > 0) {
+               showTrackWithEvent(track, false);         // Anzeige des bisherigen Tracks löschen
+               points.RemoveAt(points.Count - 1);
+               trackchanged = true;
+               track.CalculateStats();
+               track.UpdateVisualTrack(mapCtrl);
+               showTrackWithEvent(track);                                // veränderten Track anzeigen
+            }
+            return true;
+         }
+         return false;
+      }
+
+      bool removeNextPoint(Track? track, MyDrawing.Point ptClient) {
+         if (track != null) {
+            if (ptClient != MyDrawing.Point.Empty) {                   // Aktion NICHT abgebrochen
+               bool ok = false;
+               int ptidx = track.GetNearestPtIdx(mapCtrl.M_Client2LonLat(ptClient));
+               if (ptidx >= 0) {
+                  showTrackWithEvent(track, false);                     // Anzeige des bisherigen Tracks ausschalten
+                  if (gpx.TrackRemovePointWithLock(track, ptidx)) {
+                     trackchanged = true;
+                     track.CalculateStats();
+                     track.UpdateVisualTrack();
+                     ok = true;
+                  }
+                  showTrackWithEvent(track);     // wieder anzeigen
+               }
+               return ok;
+            }
+         }
+         return false;
+      }
+
+      /// <summary>
+      /// trennt den Track am Trackpunkt, der dem Clientpunkt am nächsten liegt und liefert den neuen Track
+      /// </summary>
+      /// <param name="track"></param>
+      /// <param name="ptClient"></param>
+      /// <returns>wenn erfolgreich, neuer Track (bei Abbruch auch null)</returns>
+      Track? trackSplit(Track? track, MyDrawing.Point ptClient, bool cancel) {
+         Track? newtrack = null;
+         if (track != null) {
+            int ptidx = track.GetNearestPtIdx(mapCtrl.M_Client2LonLat(ptClient));
+            if (ptidx >= 0) {
+               showTrackWithEvent(track, false);                     // Anzeige des bisherigen Tracks ausschalten
+               track.IsOnEdit = false;
+               if (!cancel) {                                        // Aktion NICHT abgebrochen
+                  newtrack = gpx.TrackSplitWithLock(track, ptidx);
+                  track.IsMarked4Edit = false;
+                  track.UpdateVisualTrack();
+                  if (newtrack != null) {
+                     newtrack.LineColor = track.LineColor;
+                     newtrack.LineWidth = track.LineWidth;
+                     newtrack.UpdateVisualTrack();
+                     showTrackWithEvent(newtrack);
+                  }
+               }
+               showTrackWithEvent(track);     // wieder anzeigen
+            }
+         }
+         return newtrack;
+      }
+
+      /// <summary>
+      /// beendet das Verknüpfen von 2 Tracks
+      /// </summary>
+      /// <param name="track">1. Track</param>
+      /// <param name="trackappend">wenn null, dann Abbruch</param>
+      /// <returns>true wenn erfolgreich oder abgebrochen</returns>
+      bool trackConcat(Track? track, Track? trackappend) {
+         if (track != null) {
+            if (trackappend == null ||
+                (trackappend != null && trackappend.IsEditable)) {
+               showTrackWithEvent(track, false);               // Anzeige des bisherigen Tracks löschen
+               track.IsOnEdit = false;
+               if (trackappend != null) {                         // sonst Aktion abgebrochen
+                  showTrackWithEvent(trackappend, false);
+                  gpx.TrackConcatWithLock(track, trackappend);
+                  track.UpdateVisualTrack();
+               }
+               showTrackWithEvent(track);     // wieder anzeigen
+               return true;
+            }
+         }
+         return false;
+      }
 
       #endregion
 
+      #region Hilfslinien
+
       /// <summary>
-      /// Anzeige akt.
+      /// zeichnet eine Hilfslinie vom Ende des akt. bearbeiteten Tracks zum angegebenen Punkt
       /// </summary>
-      public void Refresh() {
-         if (MarkerInWork ||
-             (TrackInWork && TrackInEdit.GpxSegment.Points.Count > 0))
-            mapControl.Map_Refresh();
+      /// <param name="canvas"></param>
+      /// <param name="ptClient"></param>
+      public void DrawHelperLine2LastTrackPoint(Graphics canvas, MyDrawing.Point ptClient) {
+         Gpx.ListTS<Gpx.GpxTrackPoint>? points = getTrackPoints(TrackInEdit);
+         if (points != null && points.Count > 0)
+            canvas.DrawLine(penHelper, mapCtrl.M_LonLat2Client(points[points.Count - 1]), ptClient);
       }
 
       /// <summary>
-      /// liefert die Höhe zum Punkt des Kartenclients
+      /// zeichnet eine Hilfslinie vom angegebenen Punkt zum nächstgelegenen Trackpunkt des akt. bearbeiteten Tracks
       /// </summary>
-      /// <param name="ptclient"></param>
-      /// <param name="dem"></param>
-      /// <returns></returns>
-      public double GetHeight(Point ptclient, DemData dem) => getGeoDat4ClientPoint(ptclient, dem, out _, out _);
-
-      #region Marker
-
-      /// <summary>
-      /// neu anzeigen (weil sich die Daten geändert haben)
-      /// </summary>
-      /// <param name="marker"></param>
-      public void RefreshOnMap(Marker marker) => marker.UpdateVisualMarker(mapControl);
-
-      /// <summary>
-      /// fügt eine Kopie des <see cref="Marker"/> in den Container ein
-      /// </summary>
-      /// <param name="orgmarker"></param>
-      /// <param name="pos"></param>
-      /// <returns></returns>
-      public Marker InsertCopy(Marker orgmarker, int pos = -1) =>
-         gpx.MarkerInsertCopy(orgmarker, pos, Marker.MarkerType.EditableStandard);
-
-      /// <summary>
-      /// entfernt den <see cref="Marker"/> aus dem Container
-      /// </summary>
-      /// <param name="marker"></param>
-      public void Remove(Marker marker) {
-         showMarker(marker, false);          // Sichtbarkeit ausschalten
-         gpx.MarkerRemove(marker);
-      }
-
-      /// <summary>
-      /// verschiebt die Position des <see cref="Marker"/> im Container
-      /// </summary>
-      /// <param name="fromidx"></param>
-      /// <param name="toidx"></param>
-      public void MarkerChangeOrder(int fromidx, int toidx) {
-         gpx.MarkerOrderChange(fromidx, toidx);
-
-         Marker m = gpx.MarkerList[toidx];
-         if (m.IsVisible)
-            m.UpdateVisualMarker(mapControl);
-      }
-
-      /// <summary>
-      /// Cursor akt. (nur als Reaktion auf OnMarkerLeave nötig)
-      /// </summary>
-      public void RefreshCursor() {
-         if (MarkerInWork) {
-            Marker tmp = markerInEdit;
-            refreshProgramState();  // sieht blöd aus, aber: Der Cursor wird intern beim Leave wieder auf Standard umgestellt. Mit diesem Trick erscheint wieder der richtige.
-            markerInEdit = tmp;
+      /// <param name="canvas"></param>
+      /// <param name="ptClient"></param>
+      public void DrawHelperLine2NextTrackPoint(Graphics canvas, MyDrawing.Point ptClient) {
+         Gpx.ListTS<Gpx.GpxTrackPoint>? points = getTrackPoints(TrackInEdit);
+         if (points != null && TrackInEdit != null) {
+            int ptidx = TrackInEdit.GetNearestPtIdx(mapCtrl.M_Client2LonLat(ptClient));
+            if (ptidx >= 0)
+               canvas.DrawLine(penHelper, mapCtrl.M_LonLat2Client(points[ptidx]), ptClient);
          }
       }
 
-      #region Marker editieren
-
       /// <summary>
-      /// Start für Marker verschieben oder neuen einfügen (marker == null)
+      /// zeichnet eine Hilfslinie vom Ende des akt. bearbeiteten Tracks zum Anfang des angegebenen Tracks
       /// </summary>
-      public void MarkerEditStart(Marker marker = null) {
-         markerInEdit = marker;
-         markerCopy = marker != null ?
-                           new Marker(marker) :
-                           null;
-      }
-
-      /// <summary>
-      /// Erweiterung zu Paint() (wenn <see cref="MarkerInWork"/>==true); Hilfslinie anzeigen
-      /// </summary>
-      public void MarkerEditDrawDestinationLine(Graphics canvas, Point ptLastMouseLocation) {
-         if (MarkerInWork)
-            drawHelperLine(canvas, mapControl.SpecMapLonLat2Client(markerInEdit.Waypoint), ptLastMouseLocation);
-      }
-
-      /// <summary>
-      /// setzt die (neue) Position (implizit erfolgt auch <see cref="MarkerEditEnd"/>)
-      /// </summary>
-      /// <param name="ptclient"></param>
-      /// <param name="dem"></param>
-      public void MarkerEditSetNewPos(Point ptclient, DemData dem) {
-         Gpx.GpxWaypoint wp = GetGpxWaypoint(ptclient, dem);
-         if (markerInEdit != null) {
-            // (nur) Pos. und Höhe neu setzen
-            markerInEdit.Longitude = wp.Lon;
-            markerInEdit.Latitude = wp.Lat;
-            markerInEdit.Elevation = wp.Elevation;
-            gpx.GpxDataChanged = true;  // muss explizit gesetzt werden, weill die Eigenschaften eines vorhandenen Objekts geändert werden
-            RefreshOnMap(markerInEdit);
-         } else
-            MarkerShouldInsertEvent?.Invoke(this, new MarkerEventArgs(new Marker(wp, Marker.MarkerType.EditableStandard, null)));  // neuer Marker
-         MarkerEditEnd();
-      }
-
-      public void MarkerEditEnd(bool cancel = false) {
-         if (markerInEdit != null && cancel) {
-            markerInEdit.Longitude = markerCopy.Longitude;
-            markerInEdit.Latitude = markerCopy.Latitude;
-            markerInEdit.Elevation = markerCopy.Elevation;
-         }
-         markerInEdit = null;
+      /// <param name="canvas"></param>
+      /// <param name="trackappend"></param>
+      public void DrawHelperLine2NextTrack(Graphics canvas, Track trackappend) {
+         Gpx.ListTS<Gpx.GpxTrackPoint>? points = getTrackPoints(TrackInEdit);
+         Gpx.ListTS<Gpx.GpxTrackPoint>? pointsapp = getTrackPoints(trackappend);
+         if (points != null && points.Count > 0 &&
+             pointsapp != null && pointsapp.Count > 0)
+            canvas.DrawLine(penHelper,
+                            mapCtrl.M_LonLat2Client(points[points.Count - 1]),
+                            mapCtrl.M_LonLat2Client(pointsapp[0]));
       }
 
       #endregion
-
-      #endregion
-
-      #region Track
 
       /// <summary>
       /// liefert true wenn genau dieser Track gerade bearbeitet wird
       /// </summary>
       /// <param name="track"></param>
       /// <returns></returns>
-      public bool TrackIsInWork(Track track) {
-         return track != null &&
-                TrackInEdit != null &&
-                Equals(track, TrackInEdit);
-      }
-
-      #region Hilfslinien
-
-      /// <summary>
-      /// Vorschau für neuen zusätzlichen Punkt
-      /// </summary>
-      /// <param name="canvas"></param>
-      /// <param name="ptDestination"></param>
-      public void TrackDrawDestinationLine(Graphics canvas, Point ptDestination) {
-         if (TrackInEdit != null &&
-             TrackInEdit.GpxSegment.Points.Count > 0) {
-            drawHelperLine(canvas,
-                           convertTrackPoint2Point(TrackInEdit.GpxSegment.Points[TrackInEdit.GpxSegment.Points.Count - 1]),
-                           ptDestination);
-         }
-      }
-
-      /// <summary>
-      /// Vorschau auf den Punkt für die Trennung
-      /// </summary>
-      /// <param name="canvas"></param>
-      /// <param name="ptLastMouseLocation"></param>
-      public void TrackDrawSplitPoint(Graphics canvas, Point ptLastMouseLocation) {
-         if (TrackInEdit != null &&
-             TrackInEdit.GpxSegment.Points.Count > 0) {
-            int ptidx = TrackInEdit.GetNearestPtIdx(getPointD4ClientPoint(ptLastMouseLocation));
-            drawHelperLine(canvas,
-                           convertTrackPoint2Point(TrackInEdit.GpxSegment.Points[ptidx]),
-                           ptLastMouseLocation);
-         }
-      }
-
-      /// <summary>
-      /// Vorschau für die Verbindung zweier Tracks
-      /// </summary>
-      /// <param name="canvas"></param>
-      /// <param name="trackappend"></param>
-      public void TrackDrawConcatLine(Graphics canvas, Track trackappend) {
-         if (TrackInEdit != null &&
-             TrackInEdit.GpxSegment.Points.Count > 0 &&
-             trackappend != null &&
-             trackappend.GpxSegment.Points.Count > 0)
-            drawHelperLine(canvas,
-                           convertTrackPoint2Point(TrackInEdit.GpxSegment.Points[TrackInEdit.GpxSegment.Points.Count - 1]),
-                           convertTrackPoint2Point(trackappend.GpxSegment.Points[0]));
-      }
-
-      #endregion
-
-      #region Track editieren
-
-      /// <summary>
-      /// bestehenden <see cref="Track"/> bearbeiten oder einen neuen erzeugen
-      /// </summary>
-      /// <param name="track"></param>
-      public void TrackEditStart(Track track = null) {
-         trackchanged = false;
-         trackIsNew = track == null;
-         trackCopy = null;
-
-         if (track != null) {
-            TrackInEdit = track;
-            trackCopy = Track.CreateCopy(track);
-
-            showTrackWithEvent(track, false);   // normale Darstellung ausschalten
-            TrackInEdit.IsOnEdit = true;
-            TrackInEdit.UpdateVisualTrack();
-            showTrackWithEvent(TrackInEdit);    // "Edit"-Darstellung einschalten
-         }
-      }
-
-      /// <summary>
-      /// neuen Punkt anhängen
-      /// </summary>
-      /// <param name="ptclient"></param>
-      /// <param name="dem"></param>
-      public void TrackEditDraw_AppendPoint(Point ptclient, DemData dem) {
-         if (TrackInEdit == null) {                // 1. Punkt für neuen Track
-            TrackInEdit = InsertCopy(new Track(new Gpx.GpxTrackPoint[0],
-                                               "Track " + DateTime.Now.ToString(@"d.MM.yyyy, H:mm:ss")),
-                                     0);
-            TrackInEdit.IsOnEdit = true;
-            showTrack(TrackInEdit, true);           // als editierbaren Track anzeigen
-         }
-
-         if (TrackInEdit != null) {
-            showTrackWithEvent(TrackInEdit, false);                         // Anzeige des bisherigen Tracks löschen
-            TrackInEdit.GpxSegment.Points.Add(getGpxTrackPoint(ptclient, dem));  // neuen Punkt aufnehmen
-            gpx.GpxDataChanged = true;
-            TrackInEdit.UpdateVisualTrack(mapControl);
-            showTrackWithEvent(TrackInEdit);                                // veränderten Track anzeigen
-            trackchanged = true;
-         }
-      }
-
-      /// <summary>
-      /// letzten Punkt wieder entfernen
-      /// </summary>
-      public void TrackEditDraw_RemoveLastPoint() {
-         if (TrackInEdit != null &&
-             TrackInEdit.GpxSegment.Points.Count > 1) {
-            showTrackWithEvent(TrackInEdit, false);                         // Anzeige des bisherigen Tracks löschen
-            TrackInEdit.GpxSegment.Points.RemoveAt(TrackInEdit.GpxSegment.Points.Count - 1);
-            gpx.GpxDataChanged = true;
-            TrackInEdit.UpdateVisualTrack(mapControl);
-            showTrackWithEvent(TrackInEdit);                                // veränderten Track anzeigen
-            trackchanged = true;
-         }
-      }
-
-      /// <summary>
-      /// Abschluss des <see cref="Track"/>-Zeichnen
-      /// </summary>
-      /// <param name="cancel"></param>
-      public void TrackEditEndDraw(bool cancel = false) {
-         if (TrackInEdit != null) {
-            showTrackWithEvent(TrackInEdit, false);          // Anzeige des bisherigen Tracks löschen
-            TrackInEdit.IsOnEdit = false;
-
-            if (trackchanged) {
-               if (cancel) {           // Abbruch
-
-                  if (!trackIsNew) {        // alte Version wiederherstellen
-                     TrackInEdit.ReplaceAllPoints(trackCopy.GpxSegment);
-                     showTrackWithEvent(TrackInEdit);                // wieder anzeigen
-                  } else {             // neuen Track entfernen
-                     Remove(TrackInEdit);
-                  }
-
-               } else {
-
-                  if (TrackInEdit.GpxSegment.Points.Count > 1) {     // Trackaufzeichnung beenden und Track im Container speichern
-                     showTrackWithEvent(TrackInEdit);                // wieder anzeigen
-                     TrackInEdit.RefreshBoundingbox();
-                     TrackInEdit.CalculateStats();
-                  } else {       // zu wenig Punkte
-                     Remove(TrackInEdit);
-                  }
-
-               }
-            } else
-               showTrackWithEvent(TrackInEdit);                      // wieder anzeigen
-
-         }
-         TrackInEdit = null;
-      }
-
-      /// <summary>
-      /// Abschluss des <see cref="Track"/>-Trennen
-      /// </summary>
-      /// <param name="ptLastMouseLocation"></param>
-      public Track TrackEndSplit(Point ptLastMouseLocation) {
-         Track resulttrack = null;
-         if (TrackInEdit != null &&
-             TrackInEdit.GpxSegment.Points.Count > 0) {
-
-            showTrackWithEvent(TrackInEdit, false);                     // Anzeige des bisherigen Tracks ausschalten
-            TrackInEdit.IsOnEdit = false;
-
-            if (ptLastMouseLocation != Point.Empty) {                   // Aktion NICHT abgebrochen
-               int ptidx = TrackInEdit.GetNearestPtIdx(getPointD4ClientPoint(ptLastMouseLocation));
-               Track newtrack = gpx.TrackSplit(TrackInEdit, ptidx);
-               TrackInEdit.IsMarked4Edit = false;
-               TrackInEdit.UpdateVisualTrack();
-               newtrack.LineColor = TrackInEdit.LineColor;
-               newtrack.LineWidth = TrackInEdit.LineWidth;
-               newtrack.IsMarked4Edit = true;
-               resulttrack = newtrack;
-            }
-
-            showTrackWithEvent(TrackInEdit);     // wieder anzeigen
-         }
-         TrackInEdit = null;
-         return resulttrack;
-      }
-
-      /// <summary>
-      /// Abschluss für die Verbindung von 2 <see cref="Track"/>
-      /// </summary>
-      /// <param name="track"></param>
-      public void TrackEndConcat(Track track) {
-         if (TrackInEdit != null &&
-             TrackInEdit.GpxSegment.Points.Count > 0 &&
-             (track == null || (track != null && track.IsEditable))) {
-            showTrackWithEvent(TrackInEdit, false);     // Anzeige des bisherigen Tracks löschen
-            TrackInEdit.IsOnEdit = false;
-
-            if (track != null) {                         // sonst Aktion abgebrochen
-               showTrackWithEvent(track, false);
-               gpx.TrackConcat(TrackInEdit, track);
-               TrackInEdit.UpdateVisualTrack();
-            }
-
-            showTrackWithEvent(TrackInEdit);     // wieder anzeigen
-         }
-         TrackInEdit = null;
-      }
-
-      #endregion
+      public bool ThisTrackIsInWork(Track track) => TrackIsInWork &&
+                                                    track != null &&
+                                                    Equals(track, TrackInEdit);
 
       /// <summary>
       /// fügt eine Kopie des <see cref="Track"/> in den Container ein
@@ -564,25 +527,202 @@ namespace GpxViewer.Common {
       /// <param name="useorgprops">bei false wird die Farbe vom Container verwendet</param>
       /// <returns></returns>
       public Track InsertCopy(Track orgtrack, int pos = -1, bool useorgprops = false) =>
-         gpx.TrackInsertCopy(orgtrack, pos, useorgprops);
+         gpx.TrackInsertCopyWithLock(orgtrack, pos, useorgprops);
 
       /// <summary>
       /// entfernt den <see cref="Track"/> aus dem Container
       /// </summary>
       /// <param name="track"></param>
-      /// <param name="lb"></param>
       public void Remove(Track track) {
-         showTrack(track, false);            // Sichtbarkeit ausschalten
-         gpx.TrackRemove(track);
+         if (!track.IsOnLiveDraw) {
+            showTrack(track, false);            // Sichtbarkeit ausschalten
+            gpx.TrackRemoveWithLock(track);
+         }
       }
 
       /// <summary>
       /// verschiebt die Position des <see cref="Track"/> im Container
       /// </summary>
-      /// <param name="lb"></param>
       /// <param name="fromidx"></param>
       /// <param name="toidx"></param>
-      public void TrackChangeOrder(int fromidx, int toidx) => gpx.TrackOrderChange(fromidx, toidx);
+      public void TrackChangeOrder(int fromidx, int toidx) => gpx.TrackOrderChangeWithLock(fromidx, toidx);
+
+      #region Track editieren
+
+      /// <summary>
+      /// Start der Bearbeitung eines bestehenden <see cref="Track"/> (mit Erzeugung einer Kopie) 
+      /// oder einen neuen Track erzeugen
+      /// </summary>
+      /// <param name="cancellast">bei true wird eine ev. noch laufende Aktion abgebrochen</param>
+      /// <param name="track"></param>
+      /// <returns>true wenn erfolgreich</returns>
+      public bool TrackEdit_Start(bool cancellast, Track? track) {
+         if (cancellast && trackinwork)
+            TrackEdit_End(true);
+
+         if (!trackinwork) {
+            // Init.
+            trackchanged = false;
+            trackIsNew = track == null;
+            trackCopy = null;
+
+            if (track != null) {    // bestehender Track
+               TrackInEdit = track;
+               trackCopy = Track.CreateCopy(track);
+
+               showTrackWithEvent(track, false);   // normale Darstellung ausschalten
+               TrackInEdit.IsOnEdit = true;
+               TrackInEdit.UpdateVisualTrack();
+               showTrackWithEvent(TrackInEdit);    // "Edit"-Darstellung einschalten
+            }
+            trackinwork = true;
+            return true;
+         }
+         return false;
+      }
+
+      /// <summary>
+      /// neuen Punkt anhängen
+      /// </summary>
+      /// <param name="ptclient"></param>
+      /// <param name="dem"></param>
+      public bool TrackEdit_AppendPoint(MyDrawing.Point ptclient, DemData? dem) {
+         if (trackinwork) {
+            if (TrackInEdit == null) {                // 1. Punkt für neuen Track
+               TrackInEdit = InsertCopy(new Track([], "Track " + DateTime.Now.ToString(@"d.MM.yyyy, H:mm:ss")),
+                                        0);
+               TrackInEdit.IsOnEdit = true;
+               TrackInEdit.UpdateVisualTrack();
+               showTrackWithEvent(TrackInEdit);       // "Edit"-Darstellung einschalten
+            }
+            if (appendPoint(TrackInEdit, ptclient, dem)) {
+               gpx.GpxDataChanged = true;
+               return true;
+            }
+         }
+         return false;
+      }
+
+      /// <summary>
+      /// letzten Punkt wieder entfernen
+      /// </summary>
+      public bool TrackEdit_RemoveLastPoint() {
+         if (trackinwork &&
+             TrackInEdit != null &&
+             TrackInEdit.GpxSegment != null) {
+            if (removeLastPoint(TrackInEdit)) {
+               gpx.GpxDataChanged = true;
+               if (TrackInEdit.GpxSegment.Points.Count == 0)
+                  TrackEdit_End(false);
+               return true;
+            }
+         }
+         return false;
+      }
+
+      public bool TrackEdit_RemoveNextPoint(MyDrawing.Point ptClient) {
+         if (trackinwork &&
+             TrackInEdit != null &&
+             TrackInEdit.GpxSegment != null) {
+            if (removeNextPoint(TrackInEdit, ptClient)) {
+               gpx.GpxDataChanged = true;
+               if (TrackInEdit.GpxSegment.Points.Count == 0)
+                  TrackEdit_End(false);
+               return true;
+            }
+         }
+         return false;
+      }
+
+      /// <summary>
+      /// Abschluss des <see cref="Track"/>-Zeichnen
+      /// </summary>
+      /// <param name="cancel">wenn true dann Abbruch der Bearbeitung</param>
+      /// <returns>true wenn die Trackeditierung beendet oder abgebrochen werden konnte</returns>
+      public bool TrackEdit_End(bool cancel) {
+         if (trackinwork) {
+            trackinwork = false;
+            if (TrackInEdit != null) {
+               showTrackWithEvent(TrackInEdit, false);          // Anzeige des bisherigen Tracks löschen
+               TrackInEdit.IsOnEdit = false;
+
+               if (trackchanged) {
+                  if (cancel) {           // Abbruch
+
+                     if (trackIsNew)      // neuen Track entfernen
+                        Remove(TrackInEdit);
+                     else {               // alte Version wiederherstellen ...
+                        if (trackCopy != null &&
+                            trackCopy.GpxSegment != null) {
+                           showTrackWithEvent(TrackInEdit, false);
+                           TrackInEdit.ReplaceAllPoints(trackCopy.GpxSegment);
+                           showTrackWithEvent(TrackInEdit);                // ... und wieder anzeigen
+                        }
+                     }
+
+                  } else {
+
+                     trackCopy = null;
+
+                     if (TrackInEdit.GpxSegment != null &&
+                         TrackInEdit.GpxSegment.Points.Count > 1) {     // Trackaufzeichnung beenden und Track im Container speichern
+                        showTrackWithEvent(TrackInEdit);                // wieder anzeigen
+                        TrackInEdit.RefreshBoundingbox();
+                        TrackInEdit.CalculateStats();
+                     } else {       // zu wenig Punkte
+                        Remove(TrackInEdit);
+                     }
+
+                  }
+               } else
+                  showTrackWithEvent(TrackInEdit);                      // wieder anzeigen
+
+               TrackInEdit = null;
+               return true;
+            }
+         }
+         return false;
+      }
+
+      /// <summary>
+      /// Abschluss des <see cref="Track"/>-Trennen
+      /// </summary>
+      /// <param name="ptClient">wenn </param>
+      /// <param name="newtrack">neuer Track</param>
+      /// <param name="cancel">wenn true dann Abbruch der Bearbeitung</param>
+      /// <returns>true wenn die Trackeditierung beendet oder abgebrochen werden konnte</returns>
+      public bool TrackEdit_End(MyDrawing.Point ptClient, out Track? newtrack, bool cancel) {
+         if (trackinwork) {
+            newtrack = trackSplit(TrackInEdit, ptClient, cancel);
+            if (!cancel && newtrack != null)
+               gpx.GpxDataChanged = true;
+            return TrackEdit_End(cancel) ||
+                   newtrack != null;
+         }
+         newtrack = null;
+         return false;
+      }
+
+      /// <summary>
+      /// Verknüpft den <see cref="TrackInEdit"/> mit dem <see cref="Track"/>
+      /// </summary>
+      /// <param name="track"></param>
+      /// <returns>true wenn erfolgreich oder abgebrochen</returns>
+      public bool TrackEdit_End(Track? track, bool cancel) {
+         if (trackinwork) {
+            if (!cancel && trackConcat(TrackInEdit, track)) {
+               gpx.GpxDataChanged = true;
+               return TrackEdit_End(cancel);
+            }
+            if (cancel)
+               return TrackEdit_End(true);
+            else
+               TrackEdit_End(true);
+         }
+         return false;
+      }
+
+      #endregion
 
       #endregion
    }

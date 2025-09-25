@@ -15,7 +15,7 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Road definitions (0x15)
       /// </summary>
-      public DataBlock RoadDefinitionsBlock { get; private set; }
+      public DataBlock? RoadDefinitionsBlock { get; private set; }
 
       /// <summary>
       /// Road definitions offset multiplier (power of 2) (0x1D)
@@ -25,7 +25,7 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Segmented roads (0x1E)
       /// </summary>
-      public DataBlock SegmentedRoadsBlock { get; private set; }
+      public DataBlock? SegmentedRoadsBlock { get; private set; }
 
       /// <summary>
       /// Segmented roads offset multiplier (power of 2) (0x26)
@@ -35,7 +35,7 @@ namespace GarminCore.OptimizedReader {
       /// <summary>
       /// Sorted roads (0x27)
       /// </summary>
-      public DataBlockWithRecordsize SortedRoadsBlock { get; private set; }
+      public DataBlockWithRecordsize? SortedRoadsBlock { get; private set; }
 
       byte[] Unknown_0x31 = new byte[4];
       byte Unknown_0x35;
@@ -132,7 +132,7 @@ namespace GarminCore.OptimizedReader {
                /// <summary>
                /// tatsächlich gelesene Daten
                /// </summary>
-               public RawData4Node rawdata;
+               public RawData4Node? rawdata;
 
                public Housenumbers4Node() {
                   Idx = -1;
@@ -336,7 +336,7 @@ namespace GarminCore.OptimizedReader {
                /// liefert den NumberStyle links und rechts, falls zunächst 2 0-Bits folgen
                /// </summary>
                /// <returns>null wenn kein NumberStyle oder nicht genug Bits im Bitstreams</returns>
-               public NumberStyle[] ReadNumberStyles() {
+               public NumberStyle[]? ReadNumberStyles() {
                   if (RestBits() < 2)
                      return null;
                   if (Get(2) == 0) {
@@ -420,12 +420,12 @@ namespace GarminCore.OptimizedReader {
                /// </summary>
                /// <param name="isSingleSide"></param>
                /// <returns>null wenn nicht genug Bits im Bitstreams</returns>
-               public RawData4Node ReadRawNumbers(bool isSingleSide) {
+               public RawData4Node? ReadRawNumbers(bool isSingleSide) {
                   if (RestBits() < 6 ||
                       !Get1())      // 1-Bit nötig
                      return null;
 
-                  RawData4Node rawdata = new RawData4Node();
+                  RawData4Node? rawdata = new RawData4Node();
 
                   bool diffstartexist = false;
                   bool diffendexist = false;
@@ -524,7 +524,7 @@ namespace GarminCore.OptimizedReader {
                            if (skip >= 0) {
                               idx += skip + 1;
                               // ev. neuer NumberStyle
-                              NumberStyle[] nrtmp = sr.ReadNumberStyles();
+                              NumberStyle[]? nrtmp = sr.ReadNumberStyles();
                               if (nrtmp != null) {
                                  nr[0] = nrtmp[0];
                                  nr[1] = nrtmp[1];
@@ -548,7 +548,7 @@ namespace GarminCore.OptimizedReader {
 
                               // jetzt müssen Zahlen folgen
                               bool isSingleSide = !(nr[0] != NumberStyle.None && nr[1] != NumberStyle.None);
-                              RawData4Node rawdata = sr.ReadRawNumbers(isSingleSide);
+                              RawData4Node? rawdata = sr.ReadRawNumbers(isSingleSide);
                               if (rawdata != null) { // es folgen Nummern
                                  if (Numbers.Count == 0) {
                                     rawdata.base1 = init;
@@ -558,37 +558,41 @@ namespace GarminCore.OptimizedReader {
                                     bool lastIsSingleSide = lastnums.LeftStyle == NumberStyle.None || lastnums.RightStyle == NumberStyle.None;
 
                                     // letzte Basiswerte übernehmen ...
-                                    rawdata.base1 = lastnums.rawdata.base1;
-                                    rawdata.base2 = lastnums.rawdata.base2;
+                                    // letzte Basiswerte übernehmen ...
+                                    if (lastnums.rawdata != null) {
+                                       rawdata.base1 = lastnums.rawdata.base1;
+                                       rawdata.base2 = lastnums.rawdata.base2;
 
-                                    // ... und ev. anpassen
-                                    if (!lastIsSingleSide) {
-                                       rawdata.base1 = lastnums.LeftTo + 1;
-                                       if (lastnums.LeftFrom > lastnums.LeftTo)
-                                          rawdata.base1 -= 2;
-
-                                       rawdata.base2 = lastnums.RightTo + 1;
-                                       if (lastnums.RightFrom > lastnums.RightTo)
-                                          rawdata.base2 -= 2;
-                                    } else {
-
-                                       if (lastnums.LeftStyle != NumberStyle.None) {
+                                       // ... und ev. anpassen
+                                       if (!lastIsSingleSide) {
                                           rawdata.base1 = lastnums.LeftTo + 1;
                                           if (lastnums.LeftFrom > lastnums.LeftTo)
                                              rawdata.base1 -= 2;
-                                       } else if (lastnums.RightStyle != NumberStyle.None) {
-                                          rawdata.base1 = lastnums.RightTo + 1;
+
+                                          rawdata.base2 = lastnums.RightTo + 1;
                                           if (lastnums.RightFrom > lastnums.RightTo)
-                                             rawdata.base1 -= 2;
+                                             rawdata.base2 -= 2;
+                                       } else {
+
+                                          if (lastnums.LeftStyle != NumberStyle.None) {
+                                             rawdata.base1 = lastnums.LeftTo + 1;
+                                             if (lastnums.LeftFrom > lastnums.LeftTo)
+                                                rawdata.base1 -= 2;
+                                          } else if (lastnums.RightStyle != NumberStyle.None) {
+                                             rawdata.base1 = lastnums.RightTo + 1;
+                                             if (lastnums.RightFrom > lastnums.RightTo)
+                                                rawdata.base1 -= 2;
+                                          }
+
                                        }
 
-                                    }
+                                       if (rawdata.diffstartisequal)
+                                          if (rawdata.commonbase1)
+                                             rawdata.base2 = rawdata.base1;
+                                          else
+                                             rawdata.base1 = rawdata.base2;
 
-                                    if (rawdata.diffstartisequal)
-                                       if (rawdata.commonbase1)
-                                          rawdata.base2 = rawdata.base1;
-                                       else
-                                          rawdata.base1 = rawdata.base2;
+                                    }
 
                                  }
 
@@ -708,17 +712,17 @@ namespace GarminCore.OptimizedReader {
          /// <summary>
          /// Index-Liste für die Zip-Tabelle links rechts mit dem Node-Index
          /// </summary>
-         public Dictionary<int, int>[] ZipIndex4Node { get; protected set; }
+         public Dictionary<int, int>?[]? ZipIndex4Node { get; protected set; }
 
          /// <summary>
          /// Index-Liste für die City-Tabelle links rechts mit dem Node-Index
          /// </summary>
-         public Dictionary<int, int>[] CityIndex4Node { get; protected set; }
+         public Dictionary<int, int>?[]? CityIndex4Node { get; protected set; }
 
          /// <summary>
          /// Stream, der die Hausnummernbereiche enthält
          /// </summary>
-         byte[] NumberStream;
+         byte[]? NumberStream;
 
          NodInfo NODFlag;
 
@@ -750,13 +754,13 @@ namespace GarminCore.OptimizedReader {
          int RawBytes;
 
 
-         public override void Read(BinaryReaderWriter br, object data) {
+         public override void Read(BinaryReaderWriter br, object? data) {
             if (data == null)
                throw new Exception("RoadData.Read(): Die Daten können ohne gültige LBL-Datei nicht gelesen werden.");
 
             long startpos = br.Position;
 
-            StdFile_LBL lbl = data as StdFile_LBL;
+            StdFile_LBL lbl = (StdFile_LBL)data;
             uint tmpu = 0;
             bool label = true;
             do {     // 1..4 Labels
@@ -812,7 +816,7 @@ namespace GarminCore.OptimizedReader {
             RawBytes = (int)(br.Position - startpos); // Anzahl der Bytes, die gelesen wurden
          }
 
-         public override void Write(BinaryReaderWriter bw, object data) { }
+         public override void Write(BinaryReaderWriter bw, object? data) { }
 
          /// <summary>
          /// liefert den Node/Index-Dictionarys links [0] und rechts [1] für die Zip- oder City-Tabelle
@@ -821,9 +825,9 @@ namespace GarminCore.OptimizedReader {
          /// <param name="flag">0, 1, 2 oder 3</param>
          /// <param name="idxsize">Anzahl der Bytes für den Index (oder die Speicherlänge bei flag=2)</param>
          /// <returns>Liste der eingelesenen Indexe links und rechts</returns>
-         Dictionary<int, int>[] GetIndex4CityOrZip(BinaryReaderWriter br, int flag, int idxsize) {
+         Dictionary<int, int>?[]? GetIndex4CityOrZip(BinaryReaderWriter br, int flag, int idxsize) {
             int n;
-            Dictionary<int, int>[] indexes = null;
+            Dictionary<int, int>?[]? indexes = null;
             switch (flag) {
                case 0x0:
                   return parseList(br, br.Read1UInt(), idxsize);    // 1 Byte für Datenbereichslänge für die Liste
@@ -843,11 +847,11 @@ namespace GarminCore.OptimizedReader {
                         throw new Exception("GetCityZip(): Dekodierung nicht bekannt.");
                   }
                   if (n != 0) {
-                     indexes = new Dictionary<int, int>[] {
+                     indexes = [
                         new Dictionary<int, int>(),
                         null,
-                     };
-                     indexes[0].Add(-1, n - 1);
+                     ];
+                     indexes[0]?.Add(-1, n - 1);
                   }
                   break;
 
@@ -864,9 +868,9 @@ namespace GarminCore.OptimizedReader {
          /// <param name="datalen">Länge des Datenbereiches</param>
          /// <param name="size">1 oder 2 Byte für Daten</param>
          /// <returns>Liste der Dictionarys (node, index) für links und rechts</returns>
-         Dictionary<int, int>[] parseList(BinaryReaderWriter br, int datalen, int size) {
-            Dictionary<int, int> indexesleft = null;
-            Dictionary<int, int> indexesright = null;
+         Dictionary<int, int>?[]? parseList(BinaryReaderWriter br, int datalen, int size) {
+            Dictionary<int, int>? indexesleft = null;
+            Dictionary<int, int>? indexesright = null;
             long endPos = br.Position + datalen;
             int node = 0; // not yet used
             while (br.Position < endPos) {
@@ -905,7 +909,7 @@ namespace GarminCore.OptimizedReader {
                   indexesright.Add(node, right - 1);
                }
             }
-            return new Dictionary<int, int>[] { indexesleft, indexesright };
+            return [indexesleft, indexesright];
          }
 
          /// <summary>
@@ -931,7 +935,7 @@ namespace GarminCore.OptimizedReader {
          /// <param name="br"></param>
          /// <param name="size4memlen">0 (1 Byte), 1 (2 Byte), 2 (3 Byte) oder 3 (nichts)</param>
          /// <returns></returns>
-         byte[] GetNumberStream(BinaryReaderWriter br, int size4memlen) {
+         byte[]? GetNumberStream(BinaryReaderWriter br, int size4memlen) {
             int n;
             switch (size4memlen) {
                case 0x0:
@@ -960,9 +964,9 @@ namespace GarminCore.OptimizedReader {
          /// <param name="side"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetZipText(StdFile_LBL lbl, Side side, bool withctrl) {
+         public string? GetZipText(StdFile_LBL lbl, Side side, bool withctrl) {
             if (ZipIndex4Node != null) {
-               Dictionary<int, int> dict = ZipIndex4Node[side == Side.Left ? 0 : 1];
+               Dictionary<int, int>? dict = ZipIndex4Node[side == Side.Left ? 0 : 1];
                if (dict != null) {
                   string txt = "";
                   foreach (var item in dict) {
@@ -994,9 +998,9 @@ namespace GarminCore.OptimizedReader {
          /// <param name="side"></param>
          /// <param name="withctrl">wenn false, dann alle Steuerzeichen als '.'</param>
          /// <returns></returns>
-         public string GetCityText(StdFile_LBL lbl, StdFile_RGN rgn, Side side, bool withctrl) {
+         public string? GetCityText(StdFile_LBL lbl, StdFile_RGN rgn, Side side, bool withctrl) {
             if (CityIndex4Node != null) {
-               Dictionary<int, int> dict = CityIndex4Node[side == Side.Left ? 0 : 1];
+               Dictionary<int, int>? dict = CityIndex4Node[side == Side.Left ? 0 : 1];
                if (dict != null) {
                   string txt = "";
                   foreach (var item in dict) {
@@ -1056,9 +1060,9 @@ namespace GarminCore.OptimizedReader {
       /// muss vor dem Lesen/Schreiben gesetzt sein, wenn interpretierte Daten verwendet werden sollen
       /// <para>Andernfalls werden nur die Rohdaten der Datenblöcke verwendet.</para>
       /// </summary>
-      public StdFile_LBL Lbl;
+      public StdFile_LBL? Lbl;
 
-      BinaryReaderWriter livereader;
+      BinaryReaderWriter? livereader;
 
 
       public StdFile_NET()
@@ -1160,10 +1164,12 @@ namespace GarminCore.OptimizedReader {
          }
       }
 
-     internal RoadData Decode_RoadDefinition(uint offset, StdFile_LBL lbl) {
-         livereader.Seek(RoadDefinitionsBlock.Offset + offset);
+      internal RoadData Decode_RoadDefinition(uint offset, StdFile_LBL lbl) {
          RoadData rd = new RoadData();
-         rd.Read(livereader, lbl);
+         if (livereader != null && RoadDefinitionsBlock != null) {
+            livereader.Seek(RoadDefinitionsBlock.Offset + offset);
+            rd.Read(livereader, lbl);
+         }
          return rd;
       }
 

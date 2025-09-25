@@ -1,13 +1,7 @@
 ﻿using FSofTUtils.Geography;
 using SpecialMapCtrl;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.IO;
 using System.Text;
-using System.Windows.Forms;
 using Gpx = FSofTUtils.Geography.PoorGpx;
 
 namespace GpxViewer {
@@ -17,16 +11,17 @@ namespace GpxViewer {
 
       public class SelectedPointsEventArgs : EventArgs {
          /// <summary>
-         /// Route
+         /// Track
          /// </summary>
          public Track Track { get; private set; }
+
          /// <summary>
          /// Index-Liste der markierten Punkte
          /// </summary>
          public List<int> PointList { get; private set; }
 
-         public SelectedPointsEventArgs(Track route, List<int> ptlst) {
-            Track = route;
+         public SelectedPointsEventArgs(Track track, List<int> ptlst) {
+            Track = track;
             PointList = ptlst;
          }
       }
@@ -34,24 +29,24 @@ namespace GpxViewer {
       /// <summary>
       /// die Selektion der Punkte hat sich verändert
       /// </summary>
-      public event EventHandler<SelectedPointsEventArgs> SelectedPoints;
+      public event EventHandler<SelectedPointsEventArgs>? SelectedPoints;
 
       /// <summary>
       /// die selektierten Punkte werden entfernt
       /// </summary>
-      public event EventHandler<SelectedPointsEventArgs> SelectedPointsRemoving;
+      public event EventHandler<SelectedPointsEventArgs>? SelectedPointsRemoving;
 
       #endregion
 
       /// <summary>
       /// <see cref="GpxViewer.Track"/> für die die Info ist
       /// </summary>
-      public Track Track { get; protected set; } = null;
+      public Track? Track { get; protected set; } = null;
 
       /// <summary>
-      /// <see cref="GpxAllExt"/> für die die Info ist
+      /// <see cref="GpxData"/> für die die Info ist
       /// </summary>
-      public GpxAllExt GpxObject { get; protected set; } = null;
+      public GpxData? GpxObject { get; protected set; } = null;
 
       /// <summary>
       /// Wurden Daten geändert?
@@ -84,19 +79,20 @@ namespace GpxViewer {
       /// </summary>
       public bool TrackIsReadOnly = false;
 
-      private Label labelgpx;
+      /// <summary>
+      /// Control für die Info zur gesamten GPX-Datei
+      /// </summary>
+      RichTextBox? ctrlGpxfileInfo;
 
       /// <summary>
-      /// Liste der <see cref="Label"/> für Profile
+      /// Liste der <see cref="RichTextBox"/> für die einzelnen Trackprofile
       /// </summary>
-      readonly List<Label> profileLabels = new List<Label>();
+      readonly List<RichTextBox> ctrlTrackInfo = new List<RichTextBox>();
 
       /// <summary>
-      /// Liste der <see cref="PictureBox"/> für Profile
+      /// Liste der <see cref="PictureBox"/> für die einzelnen Trackprofile
       /// </summary>
-      readonly List<PictureBox> profilePictureBoxes = new List<PictureBox>();
-
-
+      readonly List<PictureBox> ctrlProfilePicture = new List<PictureBox>();
 
 
       public FormTrackInfoAndEdit() {
@@ -109,7 +105,7 @@ namespace GpxViewer {
          Text = caption;
       }
 
-      public FormTrackInfoAndEdit(GpxAllExt gpx, string caption) :
+      public FormTrackInfoAndEdit(GpxData gpx, string caption) :
          this() {
          GpxObject = gpx;
 
@@ -122,11 +118,11 @@ namespace GpxViewer {
       private void FormExtTrackInfoAndEdit_Load(object sender, EventArgs e) {
          TrackChanged = false;
 
-         BuildInfoControls(splitContainer1.Panel2,
-                           labelProfile1,
+         buildInfoControls(splitContainer1.Panel2,
+                           richTextBoxInfo1,
                            pictureBoxProfile1);
-         FillInfoControls();
-         LocateAndResizeControls();
+         fillGpxInfoControl(ctrlGpxfileInfo);
+         locateAndResizeControls();
 
          //Gpx.Metadata.Time        lohnt nicht
 
@@ -148,7 +144,7 @@ namespace GpxViewer {
             textBoxSource.Text = Track.GpxTrack.Source;
             showTrackLength();
 
-            FillDataGridView();
+            fillDataGridView();
          } else {
             splitContainer1.Height += splitContainer1.Top - 2;
             splitContainer1.Top = 2;
@@ -159,21 +155,21 @@ namespace GpxViewer {
       }
 
       private void FormExtTrackInfoAndEdit_Shown(object sender, EventArgs e) {
-         for (int i = 0; i < profilePictureBoxes.Count; i++)
-            profilePictureBoxes[i].Image = Common.TrackHeightProfile.BuildImage4Track(
-                                                            profilePictureBoxes[i].ClientSize.Width,
-                                                            profilePictureBoxes[i].ClientSize.Height,
+         for (int i = 0; i < ctrlProfilePicture.Count; i++)
+            ctrlProfilePicture[i].Image = Common.TrackHeightProfile.BuildImage4Track(
+                                                            ctrlProfilePicture[i].ClientSize.Width,
+                                                            ctrlProfilePicture[i].ClientSize.Height,
                                                             GpxObject == null ? Track : GpxObject.TrackList[i],
-                                                            GetSelectedPoints());
+                                                            getSelectedPoints());
       }
 
-      private void Pb_SizeChanged(object sender, EventArgs e) {
-         PictureBox pb = sender as PictureBox;
+      private void Pb_SizeChanged(object? sender, EventArgs e) {
+         PictureBox? pb = sender as PictureBox;
          if (pb.Tag != null)
             pb.Image = Common.TrackHeightProfile.BuildImage4Track(pb.ClientSize.Width,
                                                                   pb.ClientSize.Height,
-                                                                  pb.Tag as Track,
-                                                                  GetSelectedPoints());
+                                                                  (Track)pb.Tag,
+                                                                  getSelectedPoints());
       }
 
       private void FormExtTrackInfoAndEdit_KeyDown(object sender, KeyEventArgs e) {
@@ -200,19 +196,29 @@ namespace GpxViewer {
       }
 
       private void FormExtTrackInfoAndEdit_ClientSizeChanged(object sender, EventArgs e) {
-         LocateAndResizeControls();
+         locateAndResizeControls();
       }
 
       private void ToolStripMenuItem_CopyText_Click(object sender, EventArgs e) {
-         ToolStripMenuItem tmi = sender as ToolStripMenuItem;
-         ContextMenuStrip cms = tmi.GetCurrentParent() as ContextMenuStrip;
+         ToolStripMenuItem? tmi = sender as ToolStripMenuItem;
+         ContextMenuStrip? cms = tmi.GetCurrentParent() as ContextMenuStrip;
          Clipboard.SetText(cms.SourceControl.Text, TextDataFormat.Text);
       }
 
+      private void ToolStripMenuItem_CopyMarkedText_Click(object sender, EventArgs e) {
+         ToolStripMenuItem? tmi = sender as ToolStripMenuItem;
+         ContextMenuStrip? cms = tmi.GetCurrentParent() as ContextMenuStrip;
+         Clipboard.SetText((cms.SourceControl as RichTextBox).SelectedText, TextDataFormat.Text);
+      }
+
       private void ToolStripMenuItem_CopyPicture_Click(object sender, EventArgs e) {
-         ToolStripMenuItem tmi = sender as ToolStripMenuItem;
-         ContextMenuStrip cms = tmi.GetCurrentParent() as ContextMenuStrip;
-         Clipboard.SetImage(new Bitmap((cms.SourceControl as PictureBox).Image));
+         ToolStripMenuItem? tmi = (ToolStripMenuItem)sender;
+         ContextMenuStrip? cms = (ContextMenuStrip?)tmi.GetCurrentParent();
+         if (cms.SourceControl != null &&
+             (cms.SourceControl as PictureBox).Image != null)
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
+            Clipboard.SetImage(new Bitmap(((PictureBox)cms.SourceControl).Image));
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
       }
 
       private void button_Save_Click(object sender, EventArgs e) {
@@ -222,70 +228,86 @@ namespace GpxViewer {
          }
       }
 
+      private void contextMenuStripText_Opening(object sender, System.ComponentModel.CancelEventArgs e) {
+         ContextMenuStrip? cms = sender as ContextMenuStrip;
+         RichTextBox? rtb = cms.SourceControl as RichTextBox;
+         ToolStripMenuItem_CopyMarkedText.Enabled = false;
+         if (rtb != null &&
+             !string.IsNullOrEmpty(rtb.SelectedText))
+            ToolStripMenuItem_CopyMarkedText.Enabled = true;
+      }
+
       /// <summary>
       /// notwendige Info-Controls erzeugen
       /// </summary>
       /// <param name="parent"></param>
-      /// <param name="masterlabel"></param>
-      /// <param name="masterpicturebox"></param>
-      void BuildInfoControls(Control parent,
-                             Label masterlabel,
+      /// <param name="masterctrl">1. (im Designer angelegtes) Control für die Trackinfo</param>
+      /// <param name="masterpicturebox">1. (im Designer angelegtes) Control für das Trackprofil</param>
+      void buildInfoControls(Control parent,
+                             RichTextBox masterctrl,
                              PictureBox masterpicturebox) {
-         string baselabelname = masterlabel.Name;
+         string baselabelname = masterctrl.Name;
+
          if (GpxObject != null ||                           // GPX-Datei oder ...
              (Track != null &&                              // ... Track mit ParentGpx die nur genau 1 Route enthält
               Track.GpxDataContainer != null &&
               Track.GpxDataContainer.TrackList.Count == 1)) {
 
             if (GpxObject == null)
+#pragma warning disable CS8601 // Mögliche Nullverweiszuweisung.
                GpxObject = Track.GpxDataContainer;
+#pragma warning restore CS8601 // Mögliche Nullverweiszuweisung.
 
-            labelgpx = new Label() {
-               Anchor = masterlabel.Anchor,
-               AutoEllipsis = masterlabel.AutoEllipsis,
-               AutoSize = masterlabel.AutoSize,
-               BackColor = masterlabel.BackColor,
-               BorderStyle = masterlabel.BorderStyle,
-               ContextMenuStrip = masterlabel.ContextMenuStrip,
+            ctrlGpxfileInfo = new RichTextBox() {
+               Anchor = masterctrl.Anchor,
+               AutoSize = masterctrl.AutoSize,
+               BackColor = masterctrl.BackColor,
+               BorderStyle = masterctrl.BorderStyle,
+               ContextMenuStrip = masterctrl.ContextMenuStrip,
                Location = new Point(0, 2),
                Name = baselabelname + "gpx",
-               Size = masterlabel.Size,
+               Size = masterctrl.Size,
+               Multiline = masterctrl.Multiline,
+               ScrollBars = masterctrl.ScrollBars,
+               WordWrap = masterctrl.WordWrap,
+               ReadOnly = masterctrl.ReadOnly,
                TabIndex = 0,
             };
-            labelgpx.Paint += Label_Paint;
-            parent.Controls.Add(labelgpx);
+            parent.Controls.Add(ctrlGpxfileInfo);
          }
 
-         masterlabel.Paint += Label_Paint;
-         profileLabels.Add(masterlabel);
-         profilePictureBoxes.Add(masterpicturebox);
+         ctrlTrackInfo.Add(masterctrl);
+         ctrlProfilePicture.Add(masterpicturebox);
 
          if (Track != null) { // nur 1 Route
             masterpicturebox.Tag = Track;
          } else {
             masterpicturebox.Tag = GpxObject.TrackList[0];
 
-            if (labelgpx != null)
-               profileLabels[0].TabIndex++;
+            if (ctrlGpxfileInfo != null)
+               ctrlTrackInfo[0].TabIndex++;
 
-            string basepictureboxname = pictureBoxProfile1.Name;
+            // Controls für die Tracks 2, ... usw. erzeugen
+            string basepictureboxname = masterpicturebox.Name;
             for (int i = 1; i < GpxObject.TrackList.Count; i++) {
-               Label label = new Label() {
-                  Anchor = masterlabel.Anchor,
-                  AutoEllipsis = masterlabel.AutoEllipsis,
-                  AutoSize = masterlabel.AutoSize,
-                  BackColor = masterlabel.BackColor,
-                  BorderStyle = masterlabel.BorderStyle,
-                  ContextMenuStrip = masterlabel.ContextMenuStrip,
+               RichTextBox? label = new RichTextBox() {
+                  Anchor = masterctrl.Anchor,
+                  AutoSize = masterctrl.AutoSize,
+                  BackColor = masterctrl.BackColor,
+                  BorderStyle = masterctrl.BorderStyle,
+                  ContextMenuStrip = masterctrl.ContextMenuStrip,
                   Name = "label" + (i + 1).ToString(),
-                  Size = masterlabel.Size,
-                  TabIndex = masterlabel.TabIndex + 2 * i,
+                  Size = masterctrl.Size,
+                  Multiline = masterctrl.Multiline,
+                  ScrollBars = masterctrl.ScrollBars,
+                  WordWrap = masterctrl.WordWrap,
+                  ReadOnly = masterctrl.ReadOnly,
+                  TabIndex = masterctrl.TabIndex + 2 * i,
                };
-               label.Paint += Label_Paint;
                parent.Controls.Add(label);
-               profileLabels.Add(label);
+               ctrlTrackInfo.Add(label);
 
-               PictureBox pb = new PictureBox() {
+               PictureBox? pb = new PictureBox() {
                   ContextMenuStrip = masterpicturebox.ContextMenuStrip,
                   Name = masterpicturebox.Name = basepictureboxname + (i + 1).ToString(),
                   Size = masterpicturebox.Size,
@@ -295,46 +317,30 @@ namespace GpxViewer {
                };
                pb.Tag = GpxObject.TrackList[i];
                parent.Controls.Add(pb);
-               profilePictureBoxes.Add(pb);
+               ctrlProfilePicture.Add(pb);
             }
          }
 
-         for (int i = 0; i < profilePictureBoxes.Count; i++) {
-            profileLabels[i].Text = (profilePictureBoxes[i].Tag as Track).GetSimpleStatsText();
-            profilePictureBoxes[i].Left = masterlabel.Left;
-            profilePictureBoxes[i].SizeChanged += Pb_SizeChanged;
+         for (int i = 0; i < ctrlProfilePicture.Count; i++) {
+            ctrlTrackInfo[i].Text = (ctrlProfilePicture[i].Tag as Track).GetSimpleStatsText().Trim();
+            ctrlProfilePicture[i].Left = masterctrl.Left;
+            ctrlProfilePicture[i].SizeChanged += Pb_SizeChanged;
          }
 
       }
 
       /// <summary>
-      /// zusätzliche (!) Paint nach dem internen Paint
+      /// Info-Control für GPX-Datei füllen
       /// </summary>
-      /// <param name="sender"></param>
-      /// <param name="e"></param>
-      private void Label_Paint(object sender, PaintEventArgs e) {
-         Label label = sender as Label;
-         e.Graphics.Clear(label.BackColor);  // Ist nötig, um die Originalausgabe zu löschen!
-         TextRenderer.DrawText(e.Graphics,
-                               label.Text,
-                               label.Font,
-                               label.ClientRectangle,
-                               label.ForeColor,
-                               label.BackColor,
-                               TextFormatFlags.WordEllipsis | TextFormatFlags.ModifyString);
-      }
-
-      /// <summary>
-      /// Info-Controls füllen
-      /// </summary>
-      void FillInfoControls() {
-         if (labelgpx != null) {
-            StringBuilder sb = new StringBuilder();
+      /// <param name="ctrl"></param>
+      void fillGpxInfoControl(Control? ctrl) {
+         if (ctrl != null) {
+            StringBuilder? sb = new StringBuilder();
 
             if (!string.IsNullOrEmpty(GpxObject.GpxFilename)) {
                sb.AppendLine("GPX-Datei: " + GpxObject.GpxFilename);
                try {
-                  FileInfo fi = new FileInfo(GpxObject.GpxFilename);
+                  FileInfo? fi = new FileInfo(GpxObject.GpxFilename);
                   sb.AppendFormat("{0:F1} kB ({1} Bytes), ", fi.Length / 1024.0, fi.Length);
                   sb.AppendLine(fi.LastWriteTime.ToString(@"ddd, d. MMMM yyyy, H:mm:ss U\hr (UTC)"));
                } catch (Exception ex) {
@@ -362,7 +368,7 @@ namespace GpxViewer {
                if (!string.IsNullOrEmpty(GpxObject.GpxPictureFilename)) {
                   sb.AppendLine("GPX-Bilderdatei: " + GpxObject.GpxPictureFilename);
                   try {
-                     FileInfo fi = new FileInfo(GpxObject.GpxPictureFilename);
+                     FileInfo? fi = new FileInfo(GpxObject.GpxPictureFilename);
                      sb.AppendFormat("{0:F1} kB ({1} Bytes), ", fi.Length / 1024.0, fi.Length);
                      sb.AppendLine(fi.LastWriteTime.ToString(@"ddd, d. MMMM yyyy, H:mm:ss U\hr (UTC)"));
                   } catch (Exception ex) {
@@ -372,33 +378,42 @@ namespace GpxViewer {
                sb.AppendLine("Bildpunkte: " + GpxObject.MarkerListPictures.Count.ToString());
             }
 
-            labelgpx.Text = sb.ToString();
+            ctrl.Text = sb.ToString().Trim();
          }
       }
 
       /// <summary>
       /// Anpassung der Größe und Position der Info-Controls
       /// </summary>
-      void LocateAndResizeControls() {
-         if (labelgpx != null) {
-
-            //labelgpx.Height = calculateLabelHeight(labelgpx);
-
-            labelgpx.Height = TextRenderer.MeasureText(labelgpx.Text, labelgpx.Font).Height;
-
-
-            profileLabels[0].Top = labelgpx.Bottom + 5;
-
+      void locateAndResizeControls() {
+         if (ctrlGpxfileInfo != null) {
+            setControlHeight(ctrlGpxfileInfo);
+            ctrlTrackInfo[0].Top = ctrlGpxfileInfo.Bottom + 5;
          }
 
-         int width = profilePictureBoxes[0].Parent.Width - 2 * profilePictureBoxes[0].Left - SystemInformation.VerticalScrollBarWidth;
-         for (int i = 0; i < profilePictureBoxes.Count; i++) {
+         int width = ctrlProfilePicture[0].Parent.Width - 2 * ctrlProfilePicture[0].Left - SystemInformation.VerticalScrollBarWidth;
+         for (int i = 0; i < ctrlProfilePicture.Count; i++) {
             if (i > 0)
-               profileLabels[i].Top = profilePictureBoxes[i - 1].Bottom + 5;
-            profileLabels[i].Height = TextRenderer.MeasureText(profileLabels[i].Text, profileLabels[i].Font).Height;
-            profilePictureBoxes[i].Top = profileLabels[i].Bottom + 2;
-            profilePictureBoxes[i].Size = new Size(width, (3 * width) / 4);
+               ctrlTrackInfo[i].Top = ctrlProfilePicture[i - 1].Bottom + 5;
+            setControlHeight(ctrlTrackInfo[i]);
+            ctrlProfilePicture[i].Top = ctrlTrackInfo[i].Bottom + 2;
+            ctrlProfilePicture[i].Size = new Size(width, (3 * width) / 4);
          }
+      }
+
+      void setControlHeight(RichTextBox ctrl) {
+         Size szText = TextRenderer.MeasureText(ctrl.Text, ctrl.Font);
+         int ext = 0;
+         switch (ctrl.BorderStyle) {
+            case BorderStyle.FixedSingle: ext += 2 * SystemInformation.Border3DSize.Height; break;
+            case BorderStyle.Fixed3D: ext += 2 * SystemInformation.BorderSize.Height; break;
+         }
+         if (ctrl.Lines.Length > 0)
+            ext += TextRenderer.MeasureText("X", ctrl.Font).Height / 2;  // 1/2 Zeile (exp.; sollte eigentlich nicht nötig sein)
+
+         ctrl.Height = szText.Height + ext;
+         if (ctrl.Height - ctrl.ClientSize.Height >= SystemInformation.HorizontalScrollBarHeight)   // hor. Scrollbar sichtbar
+            ctrl.Height += SystemInformation.HorizontalScrollBarHeight;
       }
 
       /// <summary>
@@ -415,6 +430,8 @@ namespace GpxViewer {
          Track.GpxTrack.Source = textBoxSource.Text.Trim();
       }
 
+      #region Punkt/e markieren
+
       private void contextMenuStripPoints_Opening(object sender, System.ComponentModel.CancelEventArgs e) {
          if (!Track.IsEditable ||
              TrackIsReadOnly ||
@@ -422,38 +439,38 @@ namespace GpxViewer {
             e.Cancel = true;
       }
 
-      private void ToolStripMenuItem_PointsRemoving_Click(object sender, EventArgs e) {
+      private void ToolStripMenuItem_PointsRemoving_Click(object? sender, EventArgs e) {
          for (int i = dataGridViewPoints.Rows.Count - 1; i >= 0; i--)
             if (dataGridViewPoints.Rows[i].Selected)
                Track.RemovePoint(i);
          pointschanged = true;
          Track.Refresh();     // falls sichtbar, Anzeige akt.
-         FillDataGridView();
+         fillDataGridView();
 
          showTrackLength();
 
-         OnSelectedPointsRemoving(new SelectedPointsEventArgs(Track, GetSelectedPoints()));
+         OnSelectedPointsRemoving(new SelectedPointsEventArgs(Track, getSelectedPoints()));
       }
 
       private void dataGridViewPoints_SelectionChanged(object sender, EventArgs e) {
-         OnSelectedPoints(new SelectedPointsEventArgs(Track, GetSelectedPoints()));
-         Pb_SizeChanged(profilePictureBoxes[0], null);
+         if (Track != null) {
+            OnSelectedPoints(new SelectedPointsEventArgs(Track, getSelectedPoints()));
+            Pb_SizeChanged(ctrlProfilePicture[0], EventArgs.Empty);
+         }
       }
 
       private void dataGridViewPoints_KeyDown(object sender, KeyEventArgs e) {
          if (Track.IsEditable && !TrackIsReadOnly)
             if (e.KeyData == Keys.Delete &&
                 dataGridViewPoints.SelectedRows.Count > 0)
-               ToolStripMenuItem_PointsRemoving_Click(null, null);
+               ToolStripMenuItem_PointsRemoving_Click(null, EventArgs.Empty);
       }
 
-      protected virtual void OnSelectedPoints(SelectedPointsEventArgs e) {
-         SelectedPoints?.Invoke(this, e);
-      }
+      protected virtual void OnSelectedPoints(SelectedPointsEventArgs e) => SelectedPoints?.Invoke(this, e);
 
-      protected virtual void OnSelectedPointsRemoving(SelectedPointsEventArgs e) {
-         SelectedPointsRemoving?.Invoke(this, e);
-      }
+      protected virtual void OnSelectedPointsRemoving(SelectedPointsEventArgs e) => SelectedPointsRemoving?.Invoke(this, e);
+
+      #endregion
 
       void showTrackLength() {
          double len = Track.Length();
@@ -463,19 +480,19 @@ namespace GpxViewer {
                                                 len);
       }
 
-      void FillDataGridView() {
+      void fillDataGridView() {
          dataGridViewPoints.SuspendLayout();
          dataTablePoints.Rows.Clear();
          double length = 0;
          for (int i = 0; i < Track.GpxSegment.Points.Count; i++) {
             Gpx.GpxTrackPoint pt = Track.GpxSegment.Points[i];
 
-            DataRow row = dataTablePoints.NewRow();
+            DataRow? row = dataTablePoints.NewRow();
             row[dataColumnIdx] = i + 1;
             row[dataColumnLat] = string.Format("{0:F8}", pt.Lat);
             row[dataColumnLon] = string.Format("{0:F8}", pt.Lon);
             if (pt.Elevation != Gpx.BaseElement.NOTVALID_DOUBLE)
-               row[dataColumnElevation] = string.Format("{0:F0}", pt.Elevation);
+               row[dataColumnElevation] = string.Format("{0:F3}", pt.Elevation);
             if (pt.Time != Gpx.BaseElement.NOTVALID_TIME)
                row[dataColumnTime] = pt.Time;
             if (i > 0) {
@@ -494,13 +511,12 @@ namespace GpxViewer {
       /// liefert die Index-Liste der akt. markierten Punkte
       /// </summary>
       /// <returns></returns>
-      List<int> GetSelectedPoints() {
+      List<int> getSelectedPoints() {
          List<int> ptlst = new List<int>();
          for (int i = 0; i < dataGridViewPoints.Rows.Count; i++)
             if (dataGridViewPoints.Rows[i].Selected)
                ptlst.Add(i);
          return ptlst;
       }
-
    }
 }

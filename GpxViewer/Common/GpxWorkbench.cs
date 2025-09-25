@@ -1,61 +1,87 @@
 ﻿using FSofTUtils.Geography.GeoCoding;
-using GMap.NET.CoreExt.MapProviders;
+using GMap.NET.FSofTExtented.MapProviders;
 using SpecialMapCtrl;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using MapCtrl = SpecialMapCtrl.SpecialMapCtrl;
-using System.IO;
-using System.Threading.Tasks;
-#if Android
-using GMap.NET.Skia;
-using Xamarin.Forms;
-#else
 
-#endif
+#if ANDROID
+using System.Drawing;
 
-#if Android
 namespace TrackEddi.Common {
 #else
 namespace GpxViewer.Common {
 #endif
    public class GpxWorkbench {
 
-#if Android
-      /// <summary>
-      /// Masterpage
-      /// </summary>
-      MainPage mainpage;
-#endif
+      // kann zusätzlich das UIHelper.SetBusyStatusEvent (auch mit null als Page) auslösen
+
+      #region Events
 
       public class LoadEventArgs {
 
-         public string Info;
+         public enum Reason {
+            ReadXml,
+            ReadGDB,
+            ReadKml,
+            InsertWaypoints,
+            InsertTracks,
+            InsertWaypoint,
+            InsertTrack,
 
-         public LoadEventArgs(string info) {
-            Info = info;
+            SplitMultiSegmentTracks,
+            RemoveEmptyTracks,
+            RebuildTrackList,
+            RebuildMarkerList,
+
+            ReadIsReady
          }
+
+         public Reason LoadReason;
+
+
+         public LoadEventArgs(Reason reason) => LoadReason = reason;
 
       }
 
+      public static event EventHandler<LoadEventArgs>? LoadInfoEvent;
+
+      /// <summary>
+      /// ein neuer Marker sollte eingefügt werden
+      /// </summary>
+      public event EventHandler<EditHelper.MarkerEventArgs>? MarkerShouldInsertEvent;
+
+      /// <summary>
+      /// die Anzeige eines Tracks wird ein- oder ausgeschaltet
+      /// </summary>
+      public event EventHandler<EditHelper.TrackEventArgs>? TrackEditShowEvent;
+
+      #endregion
+
+      #region Props
+
+#if ANDROID
+      /// <summary>
+      /// Masterpage
+      /// </summary>
+      readonly MainPage mainpage;
+#endif
 
       /// <summary>
       /// für die Ermittlung der Höhendaten
       /// </summary>
-      FSofTUtils.Geography.DEM.DemData Dem = null;
+      readonly FSofTUtils.Geography.DEM.DemData? Dem = null;
 
-      EditHelper editHelper = null;
+      readonly EditHelper editHelper;
 
-      MapCtrl Map;
+      readonly MapCtrl map;
 
       /// <summary>
       /// alle akt. GPX-Daten
       /// </summary>
-      public readonly GpxAllExt Gpx;
+      public readonly GpxData Gpx;
 
       // "Abkürzungen"
 
-      public string InternalFilename => Gpx.GpxFilename;
+      public string InternalFilename => Gpx.GpxFilename ?? string.Empty;
 
       public int TrackCount => Gpx.TrackList.Count;
 
@@ -71,7 +97,7 @@ namespace GpxViewer.Common {
 
       public List<bool> VisibleStatusMarkerList {
          get {
-            List<bool> lst = new List<bool>();
+            List<bool> lst = [];
             foreach (var marker in Gpx.MarkerList)
                lst.Add(marker.IsVisible);
             return lst;
@@ -80,7 +106,7 @@ namespace GpxViewer.Common {
 
       public List<bool> VisibleStatusTrackList {
          get {
-            List<bool> lst = new List<bool>();
+            List<bool> lst = [];
             foreach (var track in Gpx.TrackList)
                lst.Add(track.IsVisible);
             return lst;
@@ -92,49 +118,39 @@ namespace GpxViewer.Common {
          set => Gpx.GpxDataChanged = value;
       }
 
-
-      public static event EventHandler<LoadEventArgs> LoadInfoEvent;
-
-      public event EventHandler RefreshProgramStateEvent;
+      /// <summary>
+      /// Anzahl der akt. moch nicht gespeicherten Livetrack-Punkte (nur ext. Verwendung)
+      /// </summary>
+      public int UnsavedLivetrackPoints = 0;
 
       /// <summary>
-      /// ein neuer Marker sollte eingefügt werden
+      /// Ist ein Track gerade in Bearbeitung?
       /// </summary>
-      public event EventHandler<EditHelper.MarkerEventArgs> MarkerShouldInsertEvent;
-
-      /// <summary>
-      /// die Anzeige eines Tracks wird ein- oder ausgeschaltet
-      /// </summary>
-      public event EventHandler<EditHelper.TrackEventArgs> TrackEditShowEvent;
+      public bool TrackIsInWork => editHelper.TrackIsInWork;
 
       /// <summary>
       /// akt. bearbeiteter <see cref="Track"/> (oder null)
       /// </summary>
-      public Track TrackInEdit =>
-         editHelper?.TrackInEdit;
+      public Track? TrackInEdit => editHelper.TrackInEdit;
+
+      public bool MarkerIsInWork => editHelper.MarkerIsInWork;
 
       /// <summary>
       /// Ist eine <see cref="Marker"/> oder <see cref="Track"/> in Bearbeitung?
       /// </summary>
-      public bool InWork =>
-         editHelper.MarkerInWork || editHelper.TrackInWork;
+      public bool InWork => editHelper != null && (MarkerIsInWork || TrackIsInWork);
 
-      /// <summary>
-      /// public nur für Android
-      /// </summary>
-#if Android
-      public
-#endif
-      Track MarkedTrack = null;
+      DateTime FileDateTime = DateTime.MinValue;
 
+      #endregion
 
 
       public GpxWorkbench(
-#if Android
+#if ANDROID
                           MainPage page,
 #endif
                           MapCtrl map,
-                          FSofTUtils.Geography.DEM.DemData dem,
+                          FSofTUtils.Geography.DEM.DemData? dem,
                           string workbenchfile,
                           System.Drawing.Color colHelperLine,
                           float widthHelperLine,
@@ -142,103 +158,247 @@ namespace GpxViewer.Common {
                           float widthTrack,
                           double symbolzoomfactor,
                           bool datachanged) {
-#if Android
+#if ANDROID
          mainpage = page;
 #endif
-         Map = map;
+         this.map = map;
          Dem = dem;
 
          Gpx = load(workbenchfile, widthTrack, colTrack, symbolzoomfactor, datachanged);
 
-         if (editHelper == null) {
-            editHelper = new EditHelper(map, Gpx, colHelperLine, widthHelperLine);
-            editHelper.MarkerShouldInsertEvent += (object sender, EditHelper.MarkerEventArgs ea) => {
-               MarkerShouldInsertEvent?.Invoke(sender, ea);
-            };
-            editHelper.TrackEditShowEvent += (object sender, EditHelper.TrackEventArgs ea) => {
-               TrackEditShowEvent?.Invoke(sender, ea);
-            };
-            editHelper.RefreshProgramStateEvent += (object sender, EventArgs ea) => {
-               RefreshProgramStateEvent?.Invoke(sender, ea);
-            };
-         }
+         editHelper = new EditHelper(map, Gpx, colHelperLine, widthHelperLine);
+         editHelper.MarkerShouldInsertEvent += (object? sender, EditHelper.MarkerEventArgs ea) => {
+            MarkerShouldInsertEvent?.Invoke(sender, ea);
+         };
+         editHelper.TrackEditShowEvent += (object? sender, EditHelper.TrackEventArgs ea) => {
+            TrackEditShowEvent?.Invoke(sender, ea);
+         };
       }
 
-      GpxAllExt load(string gpxworkbenchfile,
+      GpxData load(string gpxworkbenchfile,
                      double trackwidth,
                      System.Drawing.Color trackcolor,
                      double symbolzoomfactor,
                      bool datachanged) {
-         GpxAllExt gpx = new GpxAllExt();                // Gleich hier global setzen weil ShowTrack() das benötigt!!!
-         gpx.LoadInfoEvent += Gpx_LoadInfoEvent;
+         GpxData gpx = new();                // Gleich hier global setzen weil ShowTrack() das benötigt!!!
+         gpx.ExtLoadEvent += Gpx_LoadInfoEvent;
          gpx.TrackColor = trackcolor;
          gpx.TrackWidth = trackwidth;
          gpx.GpxFileEditable = true;
+         gpx.GpxFilename = gpxworkbenchfile;
          if (File.Exists(gpxworkbenchfile)) {
-            gpx.Load(gpxworkbenchfile, true);
-            LoadInfoEvent?.Invoke(this, new LoadEventArgs("Workbenchdatei geladen"));
-            gpx.GpxFilename = gpxworkbenchfile;
-
-            foreach (Marker marker in gpx.MarkerList)
-               marker.Symbolzoom = symbolzoomfactor;
-         } else
-            gpx.GpxFilename = gpxworkbenchfile;
+            UIHelper.SetBusyStatus(null);
+            List<System.Drawing.Color> trackcolors = gpx.Load(gpxworkbenchfile, true, trackcolor);
+            for (int i = 0; i < gpx.TrackList.Count && i < trackcolors.Count; i++)
+               gpx.TrackList[i].LineColor = trackcolors[i];
+            UIHelper.SetBusyStatus(null, false);
+            LoadInfoEvent?.Invoke(this, new LoadEventArgs(LoadEventArgs.Reason.ReadIsReady));
+            FileDateTime = File.GetLastWriteTime(gpxworkbenchfile);
+         }
+         foreach (Marker marker in gpx.MarkerList)
+            marker.Symbolzoom = symbolzoomfactor;
          gpx.GpxDataChanged = datachanged;
-         gpx.LoadInfoEvent -= Gpx_LoadInfoEvent;
+         gpx.ExtLoadEvent -= Gpx_LoadInfoEvent;
          return gpx;
       }
 
-      private void Gpx_LoadInfoEvent(object sender, GpxAllExt.LoadEventArgs e) {
-         LoadInfoEvent?.Invoke(this, new LoadEventArgs(e.Info));
+      private void Gpx_LoadInfoEvent(object? sender, GpxData.ExtLoadEventArgs e) {
+         if (LoadInfoEvent != null) {
+            LoadEventArgs? lea = null;
+            switch (e.LoadReason) {
+               case GpxData.ExtLoadEventArgs.Reason.ReadXml:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.ReadXml);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.ReadGDB:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.ReadGDB);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.ReadKml:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.ReadKml);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.InsertWaypoints:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.InsertWaypoints);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.InsertTracks:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.InsertTracks);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.InsertWaypoint:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.InsertWaypoint);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.InsertTrack:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.InsertTrack);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.SplitMultiSegmentTracks:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.SplitMultiSegmentTracks);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.RemoveEmptyTracks:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.RemoveEmptyTracks);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.RebuildTrackList:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.RebuildTrackList);
+                  break;
+               case GpxData.ExtLoadEventArgs.Reason.RebuildMarkerList:
+                  lea = new LoadEventArgs(LoadEventArgs.Reason.RebuildMarkerList);
+                  break;
+            }
+            if (lea != null)
+               LoadInfoEvent.Invoke(this, lea);
+         }
       }
 
-      public void TrackDrawDestinationLine(Graphics g, System.Drawing.Point destpt) => editHelper.TrackDrawDestinationLine(g, destpt);
+      #region Hilfslinien zeichnen
 
-      public void TrackDrawSplitPoint(Graphics g, System.Drawing.Point destpt) => editHelper.TrackDrawSplitPoint(g, destpt);
+      /// <summary>
+      /// zeichnet eine Hilfslinie vom Ende des akt. bearbeiteten Tracks zum Clientpunkt
+      /// </summary>
+      /// <param name="g"></param>
+      /// <param name="ptClient"></param>
+      public void TrackDrawDestinationLine(Graphics g, System.Drawing.Point ptClient) =>
+         editHelper.DrawHelperLine2LastTrackPoint(g, ptClient);
 
-      public void TrackDrawConcatLine(Graphics g, Track trackappend) => editHelper.TrackDrawConcatLine(g, trackappend);
+      /// <summary>
+      /// zeichnet eine Hilfslinie vom Clientpunkt zum nächstgelegenen Trackpunkt des akt. bearbeiteten Tracks
+      /// </summary>
+      /// <param name="g"></param>
+      /// <param name="ptClient"></param>
+      public void TrackDrawNextTrackPoint(Graphics g, System.Drawing.Point ptClient) =>
+         editHelper.DrawHelperLine2NextTrackPoint(g, ptClient);
+
+      /// <summary>
+      /// zeichnet eine Hilfslinie vom akt. bearbeiteten Track zum anzuhängenden Track
+      /// </summary>
+      /// <param name="g"></param>
+      /// <param name="trackappend"></param>
+      public void TrackDrawConcatLine(Graphics g, Track trackappend) =>
+         editHelper.DrawHelperLine2NextTrack(g, trackappend);
+
+      //public void ChangeHelperLineColor(System.Drawing.Color col) => editHelper.HelperLineColor = col;
+
+      //public void ChangeHelperLineWidth(float width) => editHelper.HelperLineWidth = width;
+
+      #endregion
+
+      #region Trackbearbeitung
+
+      /// <summary>
+      /// start der Trackbearbeitung für diesen Track (oder einen neuen Track)
+      /// </summary>
+      /// <param name="cancellast">bei true wird eine ev. noch laufende Aktion abgebrochen</param>
+      /// <param name="track">bei null neur Track</param>
+      public bool TrackStartEdit(bool cancellast, Track? track) => editHelper.TrackEdit_Start(cancellast, track);
 
       /// <summary>
       /// fügt an den akt. bearbeiteten Track einen Punkt an
       /// <para>Falls kein Track bearbeitet wird, wird ein neuer Track erzeugt.</para>
       /// </summary>
       /// <param name="clientpt"></param>
-      public void TrackAddPoint(System.Drawing.Point clientpt) {
-         if (!editHelper.TrackInWork)
-            editHelper.TrackEditStart();
-         editHelper.TrackEditDraw_AppendPoint(clientpt, Dem);
+      public bool TrackAddPoint(System.Drawing.Point clientpt) {
+         if (!TrackIsInWork)
+            editHelper.TrackEdit_Start(true, null);
+         return editHelper.TrackEdit_AppendPoint(clientpt, Dem);
       }
 
       /// <summary>
       /// entfernt den letzten Punkt aus dem akt. bearbeiteten Track
       /// </summary>
-      public void TrackRemovePoint() {
-         if (editHelper.TrackInWork)
-            editHelper.TrackEditDraw_RemoveLastPoint();
-      }
+      public bool TrackRemoveLastPoint() => editHelper.TrackEdit_RemoveLastPoint();
 
-      public void TrackEndDraw() {
-         if (editHelper.TrackInWork) {
-            Track t = editHelper.TrackInEdit;
-            editHelper.TrackEditEndDraw();
-            t.UpdateVisualTrack(Map); // "echte" Farbe statt Farbe für editierbare Tracks
+      /// <summary>
+      /// löscht aus dem akt. bearbeiteten Track den nächstgelegenen Trackpunkt
+      /// </summary>
+      /// <param name="clientpt"></param>
+      public bool TrackRemoveNextPoint(System.Drawing.Point clientpt) => editHelper.TrackEdit_RemoveNextPoint(clientpt);
+
+      /// <summary>
+      /// beendet das Zeichnen des akt. Tracks
+      /// </summary>
+      public void TrackEndEdit(bool cancel) {
+         if (TrackIsInWork) {
+            Track? t = editHelper.TrackInEdit;
+            editHelper.TrackEdit_End(cancel);
+            t?.UpdateVisualTrack(map); // "echte" Farbe statt Farbe für editierbare Tracks
          }
-         MarkedTrack = null;
       }
 
-      public Track GetTrack(int idx) => 0 <= idx && idx < TrackCount ? Gpx.TrackList[idx] : null;
+      /// <summary>
+      /// akt. bearbeiteter Track wird am nächstgelegenen Trackpunkt getrennt
+      /// </summary>
+      /// <param name="clientpt"></param>
+      /// <param name="cancel">Operation abbrechen</param>
+      public void TrackEndEdit(System.Drawing.Point clientpt, bool cancel) {
+         if (TrackIsInWork) {
+            Track? t = editHelper.TrackInEdit;
+            editHelper.TrackEdit_End(clientpt, out _, cancel);
+            t?.UpdateVisualTrack(map); // "echte" Farbe statt Farbe für editierbare Tracks
+         }
+      }
 
+      /// <summary>
+      /// an den akt. bearbeiteten Track wird ein anderer Track angehängt
+      /// </summary>
+      /// <param name="appendedtrack"></param>
+      /// <param name="cancel">Operation abbrechen</param>
+      public void TrackEndEdit(Track? appendedtrack, bool cancel) {
+         if (TrackIsInWork) {
+            Track? t = editHelper.TrackInEdit;
+            editHelper.TrackEdit_End(cancel ? null : appendedtrack, cancel);
+            t?.UpdateVisualTrack(map); // "echte" Farbe statt Farbe für editierbare Tracks
+         }
+      }
+
+      #endregion
+
+      /// <summary>
+      /// löscht den Track
+      /// </summary>
+      /// <param name="track"></param>
       public void TrackRemove(Track track) => editHelper.Remove(track);
 
+      /// <summary>
+      /// liefert den Track aus der Trackliste
+      /// </summary>
+      /// <param name="idx"></param>
+      /// <returns></returns>
+      public Track? GetTrack(int idx) => 0 <= idx && idx < TrackCount ? Gpx.TrackList[idx] : null;
 
-      public Marker MarkerInsertCopy(Marker orgmarker, int pos = 0) => editHelper.InsertCopy(orgmarker, pos);
+      /// <summary>
+      /// liefert die Liste der akt. Trackfarben
+      /// <para>
+      /// Wenn ein Track die Farbe <see cref="VisualTrack.EditableColor"/> hat, wird dafür <see cref="System.Drawing.Color.Empty"/>
+      /// (schwarz, volltransparent) geliefert.
+      /// </para>
+      /// </summary>
+      /// <returns></returns>
+      public System.Drawing.Color[] GetTrackColors() {
+         System.Drawing.Color[] trackcolor = new System.Drawing.Color[TrackCount];
+         for (int i = 0; i < TrackCount; i++) {
+            Track t = TrackList[i];
+            // MS: ... For example, Black and FromArgb(0,0,0) are not considered equal, since Black is a named color and FromArgb(0,0,0) is not.
+            //    => ToArgb() ist nötig
+            trackcolor[i] = VisualTrack.EditableColor.ToArgb() == t.LineColor.ToArgb() ?
+                                    System.Drawing.Color.Empty :
+                                    t.LineColor;
+         }
+         return trackcolor;
+      }
 
-      public Marker GetMarker(int idx) => 0 <= idx && idx < MarkerCount ? Gpx.MarkerList[idx] : null;
+      #region Marker bearbeiten
+
+      public void MarkerStartEdit(bool cancellast, Marker? marker) =>
+         editHelper.MarkerEdit_Start(cancellast, marker);
+
+      public void MarkerEndEdit(System.Drawing.Point clientpt, bool cancel) =>
+         editHelper.MarkerEdit_End(clientpt, Dem, cancel);
+
+      #endregion
+
+      public Marker? MarkerInsertCopy(Marker orgmarker, int pos = 0) => editHelper.InsertCopy(orgmarker, pos);
+
+      public Marker? GetMarker(int idx) => 0 <= idx && idx < MarkerCount ? Gpx.MarkerList[idx] : null;
 
       public void MarkerRemove(Marker marker) => editHelper.Remove(marker);
 
-      public void RefreshOnMap(Marker marker) => editHelper.RefreshOnMap(marker);
 
+      #region Infos für geografischen Punkt
 
       /// <summary>
       /// holt Namensvorschläge für die Koordinaten aus einer Garminkarte oder der OSM
@@ -246,22 +406,22 @@ namespace GpxViewer.Common {
       /// <param name="lon"></param>
       /// <param name="lat"></param>
       /// <returns></returns>
-      public string[] GetNamesForGeoPoint(double lon, double lat) {
-         string[] names = null;
+      public async Task<string[]?> GetNamesForGeoPointAsync(double lon, double lat) {
+         string[]? names = null;
 
-         int providx = Map.SpecMapActualMapIdx;
-         if (0 <= providx && providx < Map.SpecMapProviderDefinitions.Count) {
-            names = Map.SpecMapProviderDefinitions[providx].Provider is GarminProvider ?
-                        getNamesForGeoPointFromGarmin(lon, lat) :
-                        getNamesForGeoPointFromOSM(lon, lat);
+         int providx = map.M_ActualMapIdx;
+         if (0 <= providx && providx < map.M_ProviderDefinitions.Count) {
+            names = map.M_ProviderDefinitions[providx].Provider is GarminProvider ?
+                        await getNamesForGeoPointFromGarminAsync(lon, lat) :
+                        await getNamesForGeoPointFromOSMAsync(lon, lat);
          }
 
          return names;
       }
 
-      string[] getNamesForGeoPointFromGarmin(double lon, double lat) {
-         string[] names = null;
-         List<GarminImageCreator.SearchObject> info = Map.SpecMapGetGarminObjectInfos(Map.SpecMapLonLat2Client(lon, lat), 10, 10);
+      async Task<string[]?> getNamesForGeoPointFromGarminAsync(double lon, double lat) {
+         string[]? names = null;
+         List<GarminImageCreator.SearchObject> info = await map.M_GetGarminObjectInfosAsync(map.M_LonLat2Client(lon, lat), 10, 10);
          if (info.Count > 0) {
             names = new string[info.Count];
             for (int i = 0; i < info.Count; i++)
@@ -272,9 +432,9 @@ namespace GpxViewer.Common {
          return names;
       }
 
-      string[] getNamesForGeoPointFromOSM(double lon, double lat) {
-         string[] names = null;
-         GeoCodingReverseResultOsm[] geoCodingReverseResultOsms = GeoCodingReverseResultOsm.Get(lon, lat);
+      static async Task<string[]?> getNamesForGeoPointFromOSMAsync(double lon, double lat) {
+         string[]? names = null;
+         GeoCodingReverseResultOsm[] geoCodingReverseResultOsms = await GeoCodingReverseResultOsm.GetAsync(lon, lat, 10);
          if (geoCodingReverseResultOsms.Length > 0) {
             names = new string[geoCodingReverseResultOsms.Length];
             for (int i = 0; i < geoCodingReverseResultOsms.Length; i++)
@@ -283,20 +443,60 @@ namespace GpxViewer.Common {
          return names;
       }
 
-      public async Task<string[]> GetNamesForGeoPointAsync(double lon, double lat) {
-         string[] names = null;
-         await Task.Run(() => names = GetNamesForGeoPoint(lon, lat));
-         return names;
-      }
+      #endregion
 
+      /// <summary>
+      /// synchron speichern
+      /// </summary>
+      /// <param name="withxmlcolor">wenn true dann XML-Farbe speichern</param>
+      /// <returns></returns>
+      public void Save(bool withxmlcolor = false) {
+         UIHelper.SetBusyStatus(null);
 
-      public void Save() {
-         Gpx.Save(Gpx.GpxFilename, "", true);
+         Gpx.SaveWithLock(InternalFilename,
+                  string.Empty,
+                  true,
+                  GetTrackColors(),
+                  FSofTUtils.Geography.GpxFileGarmin.STDGPXVERSION,
+                  withxmlcolor);
+
+         //for (int i = 0; i < TrackCount; i++)
+         //   TrackList[i].LineColor = trackcolor[i];
+
+         UIHelper.SetBusyStatus(null, false);
          Gpx.GpxDataChanged = false;
+         UnsavedLivetrackPoints = 0;
+         FileDateTime = DateTime.Now;
       }
 
+      /// <summary>
+      /// asynchron speichern
+      /// </summary>
+      /// <param name="withxmlcolor">wenn true dann XML-Farbe speichern</param>
+      /// <returns></returns>
+      public async Task SaveAsync(bool withxmlcolor) {
+         UIHelper.SetBusyStatus(null);
+         await Gpx.SaveAsyncWithLock(
+                     InternalFilename,
+                     string.Empty,
+                     true,
+                     GetTrackColors(),
+                     FSofTUtils.Geography.GpxFileGarmin.STDGPXVERSION,
+                     withxmlcolor);
+         UIHelper.SetBusyStatus(null, false);
+         Gpx.GpxDataChanged = false;
+         UnsavedLivetrackPoints = 0;
+         FileDateTime = DateTime.Now;
+      }
 
-      #region NUR Android
+      /// <summary>
+      /// Marker neu anzeige (UpdateVisualMarker(mapCtrl))
+      /// </summary>
+      /// <param name="marker"></param>
+      public void RefreshOnMap(Marker marker) => editHelper.RefreshOnMap(marker);
+
+#if ANDROID
+      // --- nur in Android verwendet
 
       public void RefreshMarkerWaypoint(Marker marker) {
          int idx = Gpx.MarkerIndex(marker);
@@ -307,244 +507,31 @@ namespace GpxViewer.Common {
          }
       }
 
-      public void RefreshTrackProps(Track track, Track trackchanged) {
-         track.LineColor = trackchanged.LineColor;
-         track.GpxTrack.Name = trackchanged.GpxTrack.Name;
-         track.GpxTrack.Description = trackchanged.GpxTrack.Description;
-         track.GpxTrack.Comment = trackchanged.GpxTrack.Comment;
-         track.GpxTrack.Source = trackchanged.GpxTrack.Source;
-      }
+#else
+      // --- nur in Windows verwendet
 
-      public void StartMarkerMove(Marker marker) {
-         editHelper.MarkerEditStart(marker);
-         Map.SpecMapRefresh(true, false, false);
-      }
-
-      public void MarkerNew(System.Drawing.Point clientpoint) {
-         editHelper.MarkerEditStart();
-         // löst EditMarkerHelper_MarkerShouldInsertEvent() aus:
-         editHelper.MarkerEditSetNewPos(clientpoint, Dem);
-      }
-
-      public void StartTrackDraw(Track track = null) {
-         if (editHelper.TrackInWork)
-            editHelper.TrackEditEndDraw();
-         editHelper.TrackEditStart(track);
-         MarkedTrack = null;
-      }
-
-#if Android
-      /// <summary>
-      /// Abbruch oder falls noch kein Marker "InWork" neuer Marker, sonst neue Position für den Maker "InWork"
-      /// </summary>
-      /// <param name="dest"></param>
-      /// <param name="cancel"></param>
-      public async void EndMarker(System.Drawing.Point dest, bool cancel = false) {
-         if (!cancel) {
-            if (editHelper.MarkerInWork)        // move marked marker
-               editHelper.MarkerEditSetNewPos(dest, Dem);
-            else
-               await mainpage.SetNewMarker(dest);        // set new marker
-         } else {
-            if (editHelper.MarkerInWork)
-               editHelper.MarkerEditEnd();
-         }
-      }
-
-      public void EndTrackSplit(bool cancel = false) {
-         if (editHelper.TrackInWork) {
-            Track t = editHelper.TrackInEdit;
-            if (!cancel) {
-               Track newtrack = editHelper.TrackEndSplit(mainpage.ClientMapCenter);
-               t.UpdateVisualTrack(Map);           // "echte" Farbe statt Farbe für editierbare Tracks
-               if (Gpx.TrackList.Count > 0) {      // letzten Track noch sichtbar machen
-                  newtrack.IsMarked4Edit = false;
-                  mainpage.ShowTrack(newtrack);
-                  newtrack.UpdateVisualTrack(Map);
-               }
-            } else {
-               editHelper.TrackEndSplit(System.Drawing.Point.Empty);
-               t.UpdateVisualTrack(Map);           // "echte" Farbe statt Farbe für editierbare Tracks
-            }
-         }
-         MarkedTrack = null;
-      }
-#endif
-
-      public void EndTrackConcat(bool cancel = false) {
-         if (editHelper.TrackInWork &&
-             MarkedTrack != null) {
-            if (!cancel) {
-               editHelper.TrackEndConcat(MarkedTrack);
-            } else {
-               editHelper.TrackEndConcat(null);
-            }
-         }
-         MarkedTrack = null;
-      }
-
-#if Android
+      #region Tracks
 
       /// <summary>
-      /// Wenn eine Editieraktion läuft, wird gefragt ob diese abgebrochen werden soll.
+      /// Track auf eine andere Listenposition schieben
       /// </summary>
-      /// <returns>true wenn keine Editieraktion mehr aktiv ist</returns>
-      public
-#if Android
-         async Task<bool>
-#else
-         bool
-#endif
-         Cancel() {
-         bool canceled = false;
-         bool inwork = false;
-         if (editHelper.MarkerInWork) {
-            inwork = true;
-            if (
-#if Android
-                await UIHelper.ShowYesNoQuestion_StdIsYes(mainpage,
-#else
-                UIHelper.ShowYesNoQuestion_IsYes(
-#endif
-                   "Abbrechen?", "Marker setzen/bearbeiten")) {
-               editHelper.MarkerEditEnd(true);
-               MarkedTrack = null;
-               canceled = true;
-            }
-         } else if (editHelper.TrackInWork) {
-            inwork = true;
-            if (
-#if Android
-                await UIHelper.ShowYesNoQuestion_StdIsYes(mainpage,
-#else
-
-
-                UIHelper.ShowYesNoQuestion_IsYes(
-#endif
-                   "Abbrechen?", "Track bearbeiten")) {
-               Track t = editHelper.TrackInEdit;
-               switch (mainpage.ProgramState) {
-                  //case ProgState.Edit_TrackMark4Edit:
-                  //case ProgState.Edit_TrackMark4Split:
-                  //case ProgState.Edit_TrackMark4Concat:
-                  //   editHelper.EditEndDraw();
-                  //   break;
-
-                  case MainPage.ProgState.Edit_TrackDraw:
-                     editHelper.TrackEditEndDraw(true);
-                     t.UpdateVisualTrack(Map); // "echte" Farbe statt Farbe für editierbare Tracks
-                     break;
-
-                  case MainPage.ProgState.Edit_TrackSplit:
-                     editHelper.TrackEndSplit(System.Drawing.Point.Empty);
-                     t.UpdateVisualTrack(Map); // "echte" Farbe statt Farbe für editierbare Tracks
-                     break;
-
-                  case MainPage.ProgState.Edit_TrackConcat:
-                     editHelper.TrackEndConcat(null);
-                     t.UpdateVisualTrack(Map); // "echte" Farbe statt Farbe für editierbare Tracks
-                     break;
-               }
-               MarkedTrack = null;
-               canceled = true;
-            }
-         }
-         return !inwork || canceled;
-      }
-
-      ///// <summary>
-      ///// zeichnet die Hilfslinie
-      ///// </summary>
-      ///// <param name="e"></param>
-      //public void MapDrawOnTop(GMapControl.DrawExtendedEventArgs e) {
-      //   switch (mainpage.ProgramState) {
-      //      case MainPage.ProgState.Edit_Marker:
-      //         editHelper.TrackDrawDestinationLine(e.Graphics, mainpage.ClientMapCenter);
-      //         break;
-
-      //      case MainPage.ProgState.Edit_TrackDraw:
-      //         editHelper.TrackDrawDestinationLine(e.Graphics, mainpage.ClientMapCenter);
-      //         break;
-
-      //      case MainPage.ProgState.Edit_TrackSplit:
-      //         editHelper.TrackDrawSplitPoint(e.Graphics, mainpage.ClientMapCenter);
-      //         break;
-
-      //      case MainPage.ProgState.Edit_TrackConcat:
-      //         if (MarkedTrack != null)
-      //            editHelper.TrackDrawConcatLine(e.Graphics, MarkedTrack);
-      //         break;
-
-      //   }
-      //}
-#endif
-
-      /// <summary>
-      /// Dateiinhalt anhängen oder als neuer Inhalt der <see cref="GpxWorkbench"/>
-      /// </summary>
-      /// <param name="page"></param>
-      /// <param name="file"></param>
-      /// <param name="append"></param>
-      /// <param name="linewidth"></param>
-      /// <param name="symbolzoomfactor"></param>
-      /// <returns></returns>
-#if Android
-      public async Task Load(
-                  Page page,
-#else
-      public void Load(
-#endif
-                  string file,
-                  bool append,
-                  double linewidth,
-                  double symbolzoomfactor) {
-#if Android
-         await IOHelper.Load(
-                           page,
-#else
-         IOHelper.Load(
-#endif
-                           Gpx,
-                           file,
-                           append,
-                           linewidth,
-                           symbolzoomfactor);
-      }
-
-      public void VisualRefresh() =>
-         Gpx.VisualRefresh();
-
-
-
-      #endregion
-
-      #region NUR GpxViewer
-
+      /// <param name="oldidx"></param>
+      /// <param name="newidx"></param>
       public void TrackChangePositionInList(int oldidx, int newidx) => editHelper.TrackChangeOrder(oldidx, newidx);
 
-      public bool IsThisTrackInWork(Track track) => editHelper.TrackIsInWork(track);
+      /// <summary>
+      /// Ist dieser Track gerade in Bearbeitung?
+      /// </summary>
+      /// <param name="track"></param>
+      /// <returns></returns>
+      public bool IsThisTrackInWork(Track track) => editHelper.ThisTrackIsInWork(track);
 
-      public bool TrackIsInWork => editHelper.TrackInWork;
-
-      public void TrackStartEdit(Track track = null) => editHelper.TrackEditStart(track);
-
-      public void TrackEndSplit(System.Drawing.Point clientpt) {
-         if (editHelper.TrackInWork)
-            editHelper.TrackEndSplit(clientpt);
-      }
-
-      public void TrackEndConcat(Track appendedtrack, bool cancel = false) {
-         if (editHelper.TrackInWork &&
-             appendedtrack != null) {
-            if (!cancel) {
-               editHelper.TrackEndConcat(appendedtrack);
-            } else {
-               editHelper.TrackEndConcat(null);
-            }
-         }
-         MarkedTrack = null;
-      }
-
+      /// <summary>
+      /// fügt eine Kopie des Tracks in die Trackliste ein
+      /// </summary>
+      /// <param name="orgtrack"></param>
+      /// <param name="pos"></param>
+      /// <returns></returns>
       public Track TrackInsertCopy(Track orgtrack, int pos = 0) => editHelper.InsertCopy(orgtrack, pos, true);
 
       /// <summary>
@@ -552,34 +539,40 @@ namespace GpxViewer.Common {
       /// </summary>
       public void RemoveVisibleTracks() {
          for (int i = TrackCount - 1; 0 <= i; i--) {
-            Track track = GetTrack(i);
-            if (track.IsVisible)
+            Track? track = GetTrack(i);
+            if (track != null && track.IsVisible)
                TrackRemove(track);
          }
       }
 
+      /// <summary>
+      /// setzt die Farbe des Tracks
+      /// </summary>
+      /// <param name="track"></param>
+      /// <param name="newcol"></param>
       public void SetTrackColor(Track track, System.Drawing.Color newcol) {
          track.LineColor = newcol;
          if (0 <= TrackIndex(track))
             DataChanged = true;
       }
 
+      public List<Track> VisibleTracks() {
+         List<Track> lst = [];
+         foreach (var t in Gpx.TrackList)
+            if (t.IsVisible)
+               lst.Add(t);
+         return lst;
+      }
 
+      #endregion
 
-      public void MarkerDrawDestinationLine(Graphics g, System.Drawing.Point clientpt) => editHelper.MarkerEditDrawDestinationLine(g, clientpt);
+      #region Marker
+
+      public void MarkerDrawDestinationLine(Graphics g, System.Drawing.Point clientpt) => editHelper.DrawHelperLine2NewMarkerPosition(g, clientpt);
 
       public void MarkerChangePositionInList(int oldidx, int newidx) => editHelper.MarkerChangeOrder(oldidx, newidx);
 
-      public void MarkerStartEdit(Marker marker = null) => editHelper.MarkerEditStart(marker);
-
-      public bool MarkerIsInWork() => editHelper.MarkerInWork;
-
-      public void MarkerEndEdit() => editHelper.MarkerEditEnd();
-
-      public void MarkerEndEdit(System.Drawing.Point clientpt) {
-         editHelper.MarkerEditSetNewPos(clientpt, Dem);
-         editHelper.MarkerEditEnd();
-      }
+      public void MarkerEndEdit(bool cancel) => editHelper.MarkerEdit_End(cancel);
 
       public bool MarkerReplaceWaypoint(Marker orgmarker, Marker markerwithnewwaypoint) {
          int idx = MarkerIndex(orgmarker);
@@ -597,33 +590,21 @@ namespace GpxViewer.Common {
       /// </summary>
       public void RemoveVisibleMarkers() {
          for (int i = MarkerCount - 1; 0 <= i; i--) {
-            Marker marker = GetMarker(i);
-            if (marker.IsVisible)
+            Marker? marker = GetMarker(i);
+            if (marker != null && marker.IsVisible)
                MarkerRemove(marker);
          }
       }
 
       public List<Marker> VisibleMarkers() {
-         List<Marker> lst = new List<Marker>();
+         List<Marker> lst = [];
          foreach (var t in Gpx.MarkerList)
             if (t.IsVisible)
                lst.Add(t);
          return lst;
       }
 
-      public List<Track> VisibleTracks() {
-         List<Track> lst = new List<Track>();
-         foreach (var t in Gpx.TrackList)
-            if (t.IsVisible)
-               lst.Add(t);
-         return lst;
-      }
-
-
-
-      public void RefreshCursor() => editHelper.RefreshCursor();
-
-      public void InEditRefresh() => editHelper.Refresh();
+      #endregion
 
       /// <summary>
       /// ändert die <see cref="Track.Trackname"/> und <see cref="Marker.Text"/> bei Bedarf, so dass sie eindeutig sind
@@ -632,54 +613,57 @@ namespace GpxViewer.Common {
       /// <param name="changedtracks">Indexliste der geänderten <see cref="Track"/></param>
       /// <returns></returns>
       public bool SetUniqueNames4TracksAndMarkers(out List<int> changedmarker, out List<int> changedtracks) {
-         changedmarker = new List<int>();
-         changedtracks = new List<int>();
-         SortedSet<string> testnames = new SortedSet<string>();
+         changedmarker = [];
+         changedtracks = [];
+         SortedSet<string> testnames = [];
 
          for (int i = 0; i < MarkerCount; i++) {
-            Marker marker = GetMarker(i);
-            string name = marker.Text;
-            int no = 2;
-            while (testnames.Contains(name)) {
-               name = marker.Text + " (" + no++ + ")";
+            Marker? marker = GetMarker(i);
+            if (marker != null) {
+               string name = marker.Text;
+               int no = 2;
+               while (testnames.Contains(name)) {
+                  name = marker.Text + " (" + no++ + ")";
+               }
+               if (marker.Text != name) {
+                  marker.Text = name;
+                  changedmarker.Add(i);
+                  RefreshOnMap(marker);
+                  DataChanged = true;
+               }
+               testnames.Add(name);
             }
-            if (marker.Text != name) {
-               marker.Text = name;
-               changedmarker.Add(i);
-               RefreshOnMap(marker);
-               DataChanged = true;
-            }
-            testnames.Add(name);
          }
 
          testnames.Clear();
          for (int i = 0; i < TrackCount; i++) {
-            Track track = GetTrack(i);
-            string name = track.Trackname;
-            int no = 2;
-            while (testnames.Contains(name)) {
-               name = track.Trackname + " (" + no++ + ")";
+            Track? track = GetTrack(i);
+            if (track != null) {
+               string name = track.Trackname;
+               int no = 2;
+               while (testnames.Contains(name)) {
+                  name = track.Trackname + " (" + no++ + ")";
+               }
+               if (track.Trackname != name) {
+                  track.Trackname = name;
+                  changedtracks.Add(i);
+                  InEditRefresh();
+                  DataChanged = true;
+               }
+               testnames.Add(name);
             }
-            if (track.Trackname != name) {
-               track.Trackname = name;
-               changedtracks.Add(i);
-               InEditRefresh();
-               DataChanged = true;
-            }
-            testnames.Add(name);
          }
 
          return changedmarker.Count + changedtracks.Count > 0;
       }
 
+      public void RefreshCursor() => editHelper.RefreshCursor();
+
+      public void InEditRefresh() => editHelper.Refresh();
+
       public double GetHeight(System.Drawing.Point clientpt) => editHelper.GetHeight(clientpt, Dem);
 
-      public void ChangeHelperLineColor(System.Drawing.Color col) => editHelper.HelperLineColor = col;
-
-      public void ChangeHelperLineWidth(float width) => editHelper.HelperLineWidth = width;
-
-      #endregion
-
+#endif
 
    }
 }

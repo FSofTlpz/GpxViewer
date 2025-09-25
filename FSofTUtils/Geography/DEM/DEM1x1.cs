@@ -97,7 +97,7 @@ namespace FSofTUtils.Geography.DEM {
       /// <summary>
       /// data for hillshading
       /// </summary>
-      protected byte[] hillshade;
+      protected byte[]? hillshade;
 
       /// <summary>
       /// last shading for this value
@@ -118,7 +118,7 @@ namespace FSofTUtils.Geography.DEM {
       public DEM1x1() {
          Left = 0;
          Bottom = 0;
-         data = new short[0];
+         data = Array.Empty<short>();
          hillshade = null;
       }
 
@@ -130,7 +130,7 @@ namespace FSofTUtils.Geography.DEM {
       public DEM1x1(double left, double bottom) {
          Left = left;
          Bottom = bottom;
-         data = new short[0];
+         data = Array.Empty<short>();
       }
 
 
@@ -598,7 +598,7 @@ namespace FSofTUtils.Geography.DEM {
       /// <returns></returns>
       static public string GetStandardBasefilename(int left, int bottom) {
          string name;
-         if (left >= 0)
+         if (bottom >= 0)
             name = string.Format("N{0:d2}", bottom);
          else
             name = string.Format("S{0:d2}", -bottom);
@@ -1004,7 +1004,7 @@ sqrt(1 + psData->square_z * xx_plus_yy);
       /// <param name="row"></param>
       /// <param name="col"></param>
       /// <returns></returns>
-      byte fastgetShadingValue(int row, int col) => hillshade[row * Columns + col];
+      byte fastgetShadingValue(int row, int col) => (byte)(hillshade != null ? hillshade[row * Columns + col] : 0);
 
       /// <summary>
       /// get a value (coordinate origin left-bottom)
@@ -1012,7 +1012,7 @@ sqrt(1 + psData->square_z * xx_plus_yy);
       /// <param name="x"></param>
       /// <param name="y"></param>
       /// <returns></returns>
-      virtual protected byte fastgetShadingValue4XY(int x, int y) => hillshade[(Rows - 1 - y) * Columns + x];
+      virtual protected byte fastgetShadingValue4XY(int x, int y) => (byte)(hillshade != null ? hillshade[(Rows - 1 - y) * Columns + x] : 0);
 
       /// <summary>
       /// get the interpolated value
@@ -1075,19 +1075,21 @@ sqrt(1 + psData->square_z * xx_plus_yy);
                      //int leftbottom, rightbottom, righttop, lefttop;
                      //GetShadingValue4XYSquare(x, y, out leftbottom, out rightbottom, out righttop, out lefttop);  // etwas schneller als die obere Version
 
-                     int idx = (Rows - 1 - y) * Columns; // Anfang der unteren Zeile
-                     idx += x;
-                     int leftbottom = hillshade[idx++];
-                     int rightbottom = hillshade[idx];
-                     idx -= Columns;
-                     int righttop = hillshade[idx--];
-                     int lefttop = hillshade[idx];
-                     h = interpolatedHeightInNormatedRectangle_New(delta_lon / DeltaX,
-                                                                   delta_lat / DeltaY,
-                                                                   lefttop,
-                                                                   righttop,
-                                                                   rightbottom,
-                                                                   leftbottom);
+                     if (hillshade != null) {
+                        int idx = (Rows - 1 - y) * Columns; // Anfang der unteren Zeile
+                        idx += x;
+                        int leftbottom = hillshade[idx++];
+                        int rightbottom = hillshade[idx];
+                        idx -= Columns;
+                        int righttop = hillshade[idx--];
+                        int lefttop = hillshade[idx];
+                        h = interpolatedHeightInNormatedRectangle_New(delta_lon / DeltaX,
+                                                                      delta_lat / DeltaY,
+                                                                      lefttop,
+                                                                      righttop,
+                                                                      rightbottom,
+                                                                      leftbottom);
+                     }
                   }
                }
                break;
@@ -1201,7 +1203,6 @@ sqrt(1 + psData->square_z * xx_plus_yy);
          if (!this._isdisposed) {            // bisher noch kein Dispose erfolgt
             if (notfromfinalizer) {          // nur dann alle managed Ressourcen freigeben
 
-               data = null;
                hillshade = null;
 
             }

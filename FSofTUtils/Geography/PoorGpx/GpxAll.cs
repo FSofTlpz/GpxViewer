@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
-using System.Xml.XPath;
 
 namespace FSofTUtils.Geography.PoorGpx {
 
@@ -9,94 +9,175 @@ namespace FSofTUtils.Geography.PoorGpx {
    /// </summary>
    public class GpxAll : BaseElement {
 
+      /* https://www.topografix.com/GPX/1/1/
+
+         <xsd:complexType name="gpxType">
+            <xsd:sequence>
+               <xsd:element name="metadata" type="metadataType" minOccurs="0"/>
+               <xsd:element name="wpt" type="wptType" minOccurs="0" maxOccurs="unbounded"/>
+               <xsd:element name="rte" type="rteType" minOccurs="0" maxOccurs="unbounded"/>
+               <xsd:element name="trk" type="trkType" minOccurs="0" maxOccurs="unbounded"/>
+               <xsd:element name="extensions" type="extensionsType" minOccurs="0"/>
+            </xsd:sequence>
+            <xsd:attribute name="version" type="xsd:string" use="required" fixed="1.1"/>
+            <xsd:attribute name="creator" type="xsd:string" use="required"/>
+         </xsd:complexType>
+   */
+
       public const string NODENAME = "gpx";
 
-      public GpxMetadata1_1 Metadata;
+      public class LoadEventArgs {
+         public enum LoadReason {
+            InsertWaypoints,
+            InsertTracks,
+            InsertRoutes,
+            InsertWaypoint,
+            InsertTrack,
+            InsertRoute,
+         }
 
-      public List<GpxWaypoint> Waypoints;
 
-      public List<GpxRoute> Routes;
+         public readonly LoadReason Reason;
 
-      public List<GpxTrack> Tracks;
+         public LoadEventArgs(LoadReason reason) => Reason = reason;
+      }
+
+      public event EventHandler<LoadEventArgs>? LoadInfoEvent;
+
+      /// <summary>
+      /// GPX-Version (i.A. "1.1")
+      /// </summary>
+      public string Version = "1.1";
+
+      /// <summary>
+      /// GPX-Erzeuger
+      /// </summary>
+      public string Creator = string.Empty;
+
+      /// <summary>
+      /// Metadaten (Umgrenzung und Zeitpunkt)
+      /// </summary>
+      public GpxMetadata1_1 Metadata = new GpxMetadata1_1();
+
+      /// <summary>
+      /// Liste der Wegpunkte
+      /// </summary>
+      public ListTS<GpxWaypoint> Waypoints = new ListTS<GpxWaypoint>();
+
+      /// <summary>
+      /// Liste der Routen
+      /// </summary>
+      public ListTS<GpxRoute> Routes = new ListTS<GpxRoute>();
+
+      /// <summary>
+      /// Liste der Tracks
+      /// </summary>
+      public ListTS<GpxTrack> Tracks = new ListTS<GpxTrack>();
+
+      /// <summary>
+      /// Attribute des GPX-Tags
+      /// </summary>
+      protected List<(string, string)>? gpxattributes;
+
+      /// <summary>
+      /// Attribute des "&lt;?xml"-Tags
+      /// </summary>
+      protected List<(string, string)>? xmlattributes;
 
 
-      public GpxAll(string xmltext = null, bool removenamespace = false) :
+      public GpxAll(string? xmltext = null, bool removenamespace = false) :
          base(xmltext, removenamespace) { }
-
 
       protected override void Init() {
          Metadata = new GpxMetadata1_1();
-         Waypoints = new List<GpxWaypoint>();
-         Routes = new List<GpxRoute>();
-         Tracks = new List<GpxTrack>();
       }
 
-      /// <summary>
-      /// setzt die Objektdaten aus dem XML-Text
-      /// </summary>
-      /// <param name="xmltxt"></param>
-      /// <param name="removenamespace"></param>
+      #region liest das Objekt aus einem XML-Text ein
+
+      protected const string TAGMETADATA = "<" + GpxMetadata1_1.NODENAME + ">";
+      protected const string TAGTIME1_0 = "<" + GpxTime1_0.NODENAME + ">";      // eigentlich nicht zulässig aber manchmal verwendet
+      protected const string TAGWAYPOINT = "<" + GpxWaypoint.NODENAME + " ";    // mit Attr. !
+      protected const string TAGROUTE = "<" + GpxRoute.NODENAME + ">";
+      protected const string TAGTRACK = "<" + GpxTrack.NODENAME + ">";
+
       public override void FromXml(string xmltxt, bool removenamespace = false) {
          Init();
-         XPathNavigator nav = GetNavigator4XmlText(removenamespace ? RemoveNamespace(xmltxt) : xmltxt);
 
-         string[] tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxMetadata1_1.NODENAME);
-         if (tmp != null)
-            Metadata = new GpxMetadata1_1(tmp[0]);
-         else {
-            Metadata = new GpxMetadata1_1();
+         string? firsttag = getFirstXmlTag(xmltxt);
 
-            tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxBounds.NODENAME);
-            if (tmp != null)
-               Metadata.Bounds = new GpxBounds(tmp[0]);
+         if (firsttag != null) {
+            if (firsttag.StartsWith("<?xml ")) {
+               xmlattributes = getAttributeCollection(firsttag, false);    // Attribute von "<?xml ...>" immer MIT Namespace
+               xmltxt = xmltxt.Substring(firsttag.Length);
+            }
 
-            tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxTime1_0.NODENAME);
-            if (tmp != null) {
-               GpxTime1_0 time = new GpxTime1_0(tmp[0]);
-               Metadata.Time = time.Time;
+            gpxattributes = getAttributeCollection(xmltxt, false);         // Attribute von "<gpx ...>" immer MIT Namespace
+            for (int i = 0; i < gpxattributes.Count; i++) {
+               if (gpxattributes[i].Item1 == "version")
+                  Version = gpxattributes[i].Item2;
+               else if (gpxattributes[i].Item1 == "creator")
+                  Creator = gpxattributes[i].Item2;
+            }
+
+            UnhandledChildXml = getChildCollection(xmltxt, removenamespace);  // alle Childs erstmal als UnhandledChildXml registrieren
+
+            if (UnhandledChildXml != null) {
+
+               for (int i = 0; i < UnhandledChildXml.Count; i++) {
+                  string childtxt = UnhandledChildXml[i];
+                  string? tag = getFirstXmlTag(childtxt);
+
+                  if (tag != null) {
+                     bool getit = false;
+                     if (tag == TAGMETADATA) {
+                        Metadata = new GpxMetadata1_1(childtxt);
+                        getit = true;
+                     } else if (tag.StartsWith(TAGTIME1_0)) {
+                        GpxTime1_0 time = new GpxTime1_0(childtxt);
+                        Metadata.Time = time.Time;
+                        getit = true;
+                     } else if (tag.StartsWith(TAGWAYPOINT)) {
+                        if (Waypoints.Count == 0)
+                           LoadInfoEvent?.Invoke(this, new LoadEventArgs(LoadEventArgs.LoadReason.InsertWaypoints));
+                        Waypoints.Add(new GpxWaypoint(childtxt));
+                        LoadInfoEvent?.Invoke(this, new LoadEventArgs(LoadEventArgs.LoadReason.InsertWaypoint));
+                        getit = true;
+                     } else if (tag == TAGROUTE) {
+                        if (Routes.Count == 0)
+                           LoadInfoEvent?.Invoke(this, new LoadEventArgs(LoadEventArgs.LoadReason.InsertRoutes));
+                        Routes.Add(new GpxRoute(childtxt));
+                        LoadInfoEvent?.Invoke(this, new LoadEventArgs(LoadEventArgs.LoadReason.InsertRoute));
+                        getit = true;
+                     } else if (tag == TAGTRACK) {
+                        if (Tracks.Count == 0)
+                           LoadInfoEvent?.Invoke(this, new LoadEventArgs(LoadEventArgs.LoadReason.InsertTracks));
+                        Tracks.Add(new GpxTrack(childtxt));
+                        LoadInfoEvent?.Invoke(this, new LoadEventArgs(LoadEventArgs.LoadReason.InsertTrack));
+                        getit = true;
+                     }
+                     if (getit) {
+                        UnhandledChildXml.RemoveAt(i);
+                        i--;
+                     }
+                  }
+               }
+
+               if (UnhandledChildXml.Count == 0)
+                  UnhandledChildXml = null;        // wird nicht mehr benötigt
             }
          }
-
-         Waypoints = new List<GpxWaypoint>();
-         tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxWaypoint.NODENAME);
-         if (tmp != null) {
-            for (int w = 0; w < tmp.Length; w++)
-               Waypoints.Add(new GpxWaypoint(tmp[w]));
-         }
-
-         Routes = new List<GpxRoute>();
-         tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxRoute.NODENAME);
-         if (tmp != null) {
-            for (int r = 0; r < tmp.Length; r++)
-               Routes.Add(new GpxRoute(tmp[r]));
-         }
-
-         Tracks = new List<GpxTrack>();
-         tmp = XReadOuterXml(nav, "/" + NODENAME + "/" + GpxTrack.NODENAME);
-         if (tmp != null) {
-            for (int t = 0; t < tmp.Length; t++)
-               Tracks.Add(new GpxTrack(tmp[t]));
-         }
-
-         // registrieren der unbehandelten Childs
-         RegisterUnhandledChild(nav,
-                                "/" + NODENAME + "/*",
-                                new string[] {
-                                   "<" + GpxMetadata1_1.NODENAME + ">",
-                                   "<" + GpxBounds.NODENAME + ">",
-                                   "<" + GpxTime1_0.NODENAME + ">",
-                                   "<" + GpxWaypoint.NODENAME + ">",
-                                   "<" + GpxRoute.NODENAME + ">",
-                                   "<" + GpxTrack.NODENAME + ">",
-                                });
       }
+
+      #endregion
+
+      #region liefert das Objekt als XML
 
       /// <summary>
       /// liefert den vollständigen XML-Text für das Objekt
       /// </summary>
       /// <param name="scale">Umfang der Ausgabe</param>
       /// <returns></returns>
-      public override string AsXml(int scale) {
+      public override string AsXml(int scale = int.MaxValue) {
          StringBuilder sb = new StringBuilder();
 
          // Sequenz: metadata, wpt (mehrfach), rte (mehrfach), trk (mehrfach), extensions
@@ -113,33 +194,98 @@ namespace FSofTUtils.Geography.PoorGpx {
             sb.Append(Tracks[i].AsXml(scale));
 
          if (scale > 1)
-            foreach (KeyValuePair<int, string> item in UnhandledChildXml)
-               if (item.Value.StartsWith("<extensions>"))
-                  sb.Append(item.Value);
+            if (UnhandledChildXml != null)
+               foreach (var item in UnhandledChildXml)
+                  if (item.StartsWith("<extensions>"))
+                     sb.Append(item);
 
-         return XWriteNode(NODENAME, sb.ToString());
+         getGpxAttributes(out List<string> attr, out List<string> values);
+         return xWriteNode(NODENAME,
+                           attr,
+                           values,
+                           sb.ToString());
       }
+
+      /// <summary>
+      /// liefert den vollständigen XML-Text für das Objekt
+      /// </summary>
+      /// <param name="scale">Umfang der Ausgabe</param>
+      /// <returns></returns>
+      public void AsXml(StringBuilder sb, int scale = int.MaxValue) {
+         // Sequenz: metadata, wpt (mehrfach), rte (mehrfach), trk (mehrfach), extensions
+
+         Metadata.AsXml(sb, scale);
+
+         for (int i = 0; i < Waypoints.Count; i++)
+            Waypoints[i].AsXml(sb, scale);
+
+         for (int i = 0; i < Routes.Count; i++)
+            Routes[i].AsXml(sb, scale);
+
+         for (int i = 0; i < Tracks.Count; i++)
+            Tracks[i].AsXml(sb, scale);
+
+         if (scale > 1)
+            if (UnhandledChildXml != null)
+               foreach (var item in UnhandledChildXml)
+                  if (item.StartsWith("<extensions>"))
+                     sb.Append(item);
+
+         getGpxAttributes(out List<string> attr, out List<string> values);
+         xWriteNode(sb,
+                    NODENAME,
+                    attr,
+                    values);
+      }
+
+      void getGpxAttributes(out List<string> attr, out List<string> values) {
+         attr = new List<string>(new string[] { "version", "creator" });
+         values = new List<string>(new string[] { Version, Creator });
+         if (gpxattributes != null)
+            for (int i = 0; i < gpxattributes.Count; i++) {
+               if (gpxattributes[i].Item1 != "version" &&
+                   gpxattributes[i].Item1 != "creator") {
+                  attr.Add(gpxattributes[i].Item1);
+                  values.Add(gpxattributes[i].Item2);
+               }
+            }
+      }
+
+      /// <summary>
+      /// liefert das XML-Tag mit den Originalattributen
+      /// </summary>
+      /// <returns></returns>
+      public string GetXmlTag() {
+         List<string> attr = new List<string>();
+         List<string> values = new List<string>();
+         if (xmlattributes != null)
+            for (int i = 0; i < xmlattributes.Count; i++) {
+               attr.Add(xmlattributes[i].Item1);
+               values.Add(xmlattributes[i].Item2);
+            }
+         return xWriteNode("?xml", attr, values);
+      }
+
+      #endregion
 
       /// <summary>
       /// Bound in den Metadaten neu ermitteln
       /// </summary>
       public void RebuildMetadataBounds() {
          GpxBounds bounds = new GpxBounds();
-         foreach (GpxWaypoint wp in Waypoints) {
-            bounds.Union(wp);
-         }
-         foreach (GpxTrack track in Tracks) {
-            foreach (GpxTrackSegment segment in track.Segments) {
-               foreach (GpxTrackPoint pt in segment.Points) {
-                  bounds.Union(pt);
-               }
-            }
-         }
-         foreach (GpxRoute route in Routes) {
-            foreach (GpxRoutePoint pt in route.Points) {
-               bounds.Union(pt);
-            }
-         }
+
+         for (int i = 0; i < Waypoints.Count; i++)
+            bounds.Union(Waypoints[i]);
+
+         for (int t = 0; t < Tracks.Count; t++)
+            for (int s = 0; s < Tracks[t].Segments.Count; s++)
+               for (int p = 0; p < Tracks[t].Segments[s].Points.Count; p++)
+                  bounds.Union(Tracks[t].Segments[s].Points[p]);
+
+         for (int r = 0; r < Routes.Count; r++)
+            for (int p = 0; p < Routes[r].Points.Count; p++)
+               bounds.Union(Routes[r].Points[p]);
+
          Metadata.Bounds = bounds;
       }
 
@@ -148,36 +294,28 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// </summary>
       /// <param name="w"></param>
       /// <returns></returns>
-      public GpxWaypoint GetWaypoint(int w) {
-         return w < Waypoints.Count ? Waypoints[w] : null;
-      }
+      public GpxWaypoint? GetWaypoint(int w) => w < Waypoints.Count ? Waypoints[w] : null;
 
       /// <summary>
       /// liefert die <see cref="GpxRoute"/> aus der Liste oder null
       /// </summary>
       /// <param name="r"></param>
       /// <returns></returns>
-      public GpxRoute GetRoute(int r) {
-         return r < Routes.Count ? Routes[r] : null;
-      }
+      public GpxRoute? GetRoute(int r) => r < Routes.Count ? Routes[r] : null;
 
       /// <summary>
       /// liefert den <see cref="GpxRoutePoint"/> aus der Liste oder null
       /// </summary>
       /// <param name="r"></param>
       /// <returns></returns>
-      public GpxRoutePoint GetRoutePoint(int r, int p) {
-         return GetRoute(r)?.GetPoint(p);
-      }
+      public GpxRoutePoint? GetRoutePoint(int r, int p) => GetRoute(r)?.GetPoint(p);
 
       /// <summary>
       /// liefert den <see cref="GpxTrack"/> aus der Liste oder null
       /// </summary>
       /// <param name="t"></param>
       /// <returns></returns>
-      public GpxTrack GetTrack(int t) {
-         return t < Tracks.Count ? Tracks[t] : null;
-      }
+      public GpxTrack? GetTrack(int t) => t < Tracks.Count ? Tracks[t] : null;
 
       /// <summary>
       /// liefert das <see cref="GpxTrackSegment"/> aus der Liste oder null
@@ -185,9 +323,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="t"></param>
       /// <param name="s"></param>
       /// <returns></returns>
-      public GpxTrackSegment GetTrackSegment(int t, int s) {
-         return GetTrack(t)?.GetSegment(s);
-      }
+      public GpxTrackSegment? GetTrackSegment(int t, int s) => GetTrack(t)?.GetSegment(s);
 
       /// <summary>
       /// liefert den <see cref="GpxTrackPoint"/> aus der Liste oder null
@@ -195,9 +331,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="t"></param>
       /// <param name="s"></param>
       /// <returns></returns>
-      public GpxTrackPoint GetTrackSegmentPoint(int t, int s, int p) {
-         return GetTrack(t)?.GetSegmentPoint(s, p);
-      }
+      public GpxTrackPoint? GetTrackSegmentPoint(int t, int s, int p) => GetTrack(t)?.GetSegmentPoint(s, p);
 
 
       /// <summary>
@@ -307,9 +441,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="p"></param>
       /// <param name="r">Track</param>
       /// <param name="pos">negative Werte führen zum Anhängen an die Liste</param>
-      public void InsertRoutePoint(GpxRoutePoint p, int r, int pos = -1) {
-         GetRoute(r)?.InsertPoint(p, pos);
-      }
+      public void InsertRoutePoint(GpxRoutePoint p, int r, int pos = -1) => GetRoute(r)?.InsertPoint(p, pos);
 
       /// <summary>
       /// fügt einen <see cref="GpxTrack"/> ein oder an
@@ -329,9 +461,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="s"></param>
       /// <param name="t">Track</param>
       /// <param name="pos">negative Werte führen zum Anhängen an die Liste</param>
-      public void InsertTrackSegment(GpxTrackSegment s, int t, int pos = -1) {
-         GetTrack(t)?.InsertSegment(s, pos);
-      }
+      public void InsertTrackSegment(GpxTrackSegment s, int t, int pos = -1) => GetTrack(t)?.InsertSegment(s, pos);
 
       /// <summary>
       /// fügt einen <see cref="GpxTrackPoint"/> ein oder an
@@ -340,9 +470,7 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="t">Track</param>
       /// <param name="s">Segment</param>
       /// <param name="pos">negative Werte führen zum Anhängen an die Liste</param>
-      public void InsertTrackSegmentPoint(GpxTrackPoint p, int t, int s, int pos = -1) {
-         GetTrackSegment(t, s)?.InsertPoint(p, pos);
-      }
+      public void InsertTrackSegmentPoint(GpxTrackPoint p, int t, int s, int pos = -1) => GetTrackSegment(t, s)?.InsertPoint(p, pos);
 
 
       public override string ToString() {

@@ -85,11 +85,11 @@ namespace FSofTUtils {
       /// <summary>
       /// interner Standard-Navigator
       /// </summary>
-      XPathNavigator navigator;
+      XPathNavigator? navigator;
       /// <summary>
       /// interner NamespaceManager
       /// </summary>
-      XmlNamespaceManager NsMng;
+      XmlNamespaceManager? NsMng;
 
 
       /// <summary>
@@ -111,7 +111,7 @@ namespace FSofTUtils {
       /// utf-32, Unicode (UTF-32);
       /// utf-32BE, Unicode (UTF-32-Big-Endian);
       /// </param>
-      public SimpleXmlDocument2(string sFile = null, string sRoot = null, string sXsdFile = null, string sEncoding = null) {
+      public SimpleXmlDocument2(string? sFile = null, string? sRoot = null, string? sXsdFile = null, string? sEncoding = null) {
          CheckNewFile = false;
          Validating = true;
          NsMng = null;
@@ -123,11 +123,11 @@ namespace FSofTUtils {
          lastwrite = DateTime.MinValue;
       }
 
-      string _sXmlFile;
+      string? _sXmlFile;
       /// <summary>
       /// setzt oder liefert den XML-Dateinamen
       /// </summary>
-      public string XmlFilename {
+      public string? XmlFilename {
          get {
             return _sXmlFile;
          }
@@ -140,13 +140,13 @@ namespace FSofTUtils {
       /// <summary>
       /// setzt oder liefert den XSD-Dateinamen
       /// </summary>
-      public string XsdFilename { get; set; }
+      public string? XsdFilename { get; set; }
 
-      string _sXmlRootName;
+      string? _sXmlRootName;
       /// <summary>
       /// setzt oder liefert den Name des Wurzelknotens
       /// </summary>
-      public string Rootname {
+      public string? Rootname {
          get {
             return _sXmlRootName;
          }
@@ -185,6 +185,7 @@ namespace FSofTUtils {
       /// </summary>
       void ReadNewerFile() {
          if (CheckNewFile &&
+             XmlFilename != null &&
              File.GetLastWriteTime(XmlFilename) > lastwrite)
             LoadData();
       }
@@ -229,7 +230,7 @@ namespace FSofTUtils {
       /// <param name="xmlstream">Stream der XML-Daten (kann null sein)</param>
       /// <param name="xsdstream">Stream der XSD-Daten für die Validierung (kann null sein)</param>
       /// <returns>false, wenn das Dateiedatum nicht neuer als das registrierte Dateidatum ist</returns>
-      public bool LoadData(Stream xmlstream = null, Stream xsdstream = null) {
+      public bool LoadData(Stream? xmlstream = null, Stream? xsdstream = null) {
          if (xmlstream != null)
             xmlstream.Seek(0, SeekOrigin.Begin);
          else {
@@ -248,7 +249,7 @@ namespace FSofTUtils {
 
             if (Validating) {
 
-               XmlReader xsdreader = null;
+               XmlReader? xsdreader = null;
                if (xsdstream != null) {
                   xsdstream.Seek(0, SeekOrigin.Begin);
                   xsdreader = XmlReader.Create(xsdstream);
@@ -258,20 +259,32 @@ namespace FSofTUtils {
                if (xsdreader != null)
                   xml_rset.Schemas.Add(null, xsdreader);
                else
+                  if (XsdFilename != null)
                   xml_rset.Schemas.Add(null, XsdFilename);
                xml_rset.ValidationType = ValidationType.Schema;
                xml_rset.ValidationEventHandler += new ValidationEventHandler(XmlValidationEventHandler);
-               XmlReader xreader = XmlReader.Create(xmlstream, xml_rset);
-               Load(xreader);
-               xreader.Close();
-               Rootname = DocumentElement.Name;
+               if (xmlstream == null) {
+                  if (XmlFilename != null)
+                     using (xmlstream = new FileStream(XmlFilename, FileMode.Open)) {
+                        using (XmlReader xreader = XmlReader.Create(xmlstream, xml_rset)) {
+                           Load(xreader);
+                           xreader.Close();
+                        }
+                     }
+               } else {
+                  using (XmlReader xreader = XmlReader.Create(xmlstream, xml_rset)) {
+                     Load(xreader);
+                     xreader.Close();
+                  }
+               }
+               Rootname = DocumentElement?.Name;
 
             } else {
 
                if (xmlstream != null)
                   Load(xmlstream);
                else
-                  Load(XmlFilename);
+                  if (XmlFilename != null) Load(XmlFilename);
 
             }
             navigator = CreateNavigator();
@@ -294,7 +307,7 @@ namespace FSofTUtils {
       public void RegisterDocumentNamespaces() {
          foreach (XmlNode node in ChildNodes) {
             if (node is XmlElement) {
-               XmlElement elem = node as XmlElement;
+               XmlElement elem = (XmlElement)node;
                if (elem.HasAttributes) {
                   foreach (XmlAttribute attr in elem.Attributes) {
                      int nsnameidx = attr.Name.LastIndexOf(':');
@@ -316,13 +329,15 @@ namespace FSofTUtils {
       /// <returns></returns>
       public List<string> GetNamespaces() {
          if (NsMng == null)
-            NsMng = new System.Xml.XmlNamespaceManager(NameTable);
+            NsMng = new XmlNamespaceManager(NameTable);
 
          List<string> namespaces = new List<string>();
          var enumerator = NsMng.GetEnumerator();
          while (enumerator.MoveNext()) {
             if (enumerator.Current != null) {
+#pragma warning disable CS8604 // Mögliches Nullverweisargument.
                namespaces.Add(enumerator.Current.ToString());
+#pragma warning restore CS8604 // Mögliches Nullverweisargument.
             }
          }
          return namespaces;
@@ -333,42 +348,44 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="sPrefix"></param>
       /// <param name="sUrl">wenn null, dann wird die interne Namespace-URI verwendet</param>
-      public void AddNamespace(string sPrefix, string sUrl = null) {
+      public void AddNamespace(string sPrefix, string? sUrl = null) {
          if (!string.IsNullOrEmpty(sUrl) ||
-             !string.IsNullOrEmpty(DocumentElement.NamespaceURI)) {
+             !string.IsNullOrEmpty(DocumentElement?.NamespaceURI)) {
             if (string.IsNullOrEmpty(sUrl))
-               sUrl = DocumentElement.NamespaceURI;
+               sUrl = DocumentElement?.NamespaceURI;
             if (NsMng == null)
-               NsMng = new System.Xml.XmlNamespaceManager(NameTable);
-            NsMng.AddNamespace(sPrefix, sUrl);
+               NsMng = new XmlNamespaceManager(NameTable);
+            if (sUrl != null)
+               NsMng.AddNamespace(sPrefix, sUrl);
          }
       }
 
       #endregion
 
-      static void XmlValidationEventHandler(object sender, ValidationEventArgs e) {
+      static void XmlValidationEventHandler(object? sender, ValidationEventArgs e) {
          string ext = "";
          if (e.Exception is XmlSchemaValidationException xmle) {
             ext = xmle.Message + ": " + Environment.NewLine;
             if (xmle.SourceObject is XmlAttribute) {
-               XmlAttribute attr = xmle.SourceObject as XmlAttribute;
+               XmlAttribute attr = (XmlAttribute)xmle.SourceObject;
                if (attr.OwnerElement != null)
                   ext += attr.OwnerElement.OuterXml;
-            } else
-               if (xmle.SourceObject is XmlElement) {
-               XmlElement elem = xmle.SourceObject as XmlElement;
+            } else if (xmle.SourceObject is XmlElement) {
+               XmlElement elem = (XmlElement)xmle.SourceObject;
                if (elem.ParentNode != null)
                   ext += elem.ParentNode.OuterXml;
-            } else
-                  if (xmle.SourceObject is XmlNode) {
-               XmlNode n = xmle.SourceObject as XmlNode;
+            } else if (xmle.SourceObject is XmlNode) {
+               XmlNode n = (XmlNode)xmle.SourceObject;
                ext += n.OuterXml;
-            } else
-                     if (xmle.SourceObject != null)
+            } else if (xmle.SourceObject != null)
+#pragma warning disable CS8600 // Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Non-Nullable-Typ konvertiert.
                ext = xmle.SourceObject.ToString();
+#pragma warning restore CS8600 // Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Non-Nullable-Typ konvertiert.
          }
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
          if (ext.Length > 300)
             ext = ext.Substring(0, 300) + " ...";
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
          throw new Exception(ext.Length == 0 ? e.Message : ext);
       }
 
@@ -379,11 +396,16 @@ namespace FSofTUtils {
       /// <param name="formatted">wenn true, wird der Text formatiert ausgegeben, sonst "1-zeilig"</param>
       /// <param name="xmlstream">wenn ungleich null, wird der Stream für die Ausgabe verwendet</param>
       /// <param name="xsdstream">wenn ungleich null, wird der Stream für die Validierung verwendet, sonst <see cref="XsdFilename"/></param>
-      public bool SaveData(string filename = null,
+      /// <param name="newlineonattributes">wenn true, dann neue Zeile je Attribut</param>
+      /// <param name="encoding">Textcodierung (Standard UTF8)</param>
+      /// <returns></returns>
+      public bool SaveData(string? filename = null,
                            bool formatted = true,
-                           Stream xmlstream = null,
-                           Stream xsdstream = null) {
-         XmlReader xsdreader = null;
+                           Stream? xmlstream = null,
+                           Stream? xsdstream = null,
+                           bool newlineonattributes = false,
+                           Encoding? encoding = null) {
+         XmlReader? xsdreader = null;
          if (xsdstream != null) {
             xsdstream.Seek(0, SeekOrigin.Begin);
             xsdreader = XmlReader.Create(xsdstream);
@@ -394,22 +416,29 @@ namespace FSofTUtils {
 
          try {
             XmlWriterSettings xmlWriterSettings = new System.Xml.XmlWriterSettings {
-               Encoding = Encoding.UTF8,
+               Encoding = encoding == null ? Encoding.UTF8 : encoding,
                Indent = formatted,
                IndentChars = " ",
                NewLineChars = "\r\n",
                NewLineHandling = NewLineHandling.Replace,
-               NewLineOnAttributes = false,
+               NewLineOnAttributes = newlineonattributes,
                //xmlWriterSettings.OmitXmlDeclaration = true;
                ConformanceLevel = ConformanceLevel.Document
             };
 
-            using (XmlWriter writer = xmlstream == null ?
-                                          XmlWriter.Create(string.IsNullOrEmpty(filename) ? XmlFilename : filename, xmlWriterSettings) :
-                                          XmlWriter.Create(xmlstream, xmlWriterSettings)) {
-               Save(writer);
-               writer.Flush();
-               writer.Close();
+            if (string.IsNullOrEmpty(filename))
+               filename = XmlFilename;
+
+            using (XmlWriter? writer = xmlstream != null ?
+                                         XmlWriter.Create(xmlstream, xmlWriterSettings) :
+                                         !string.IsNullOrEmpty(filename) ?
+                                             XmlWriter.Create(filename, xmlWriterSettings) :
+                                             null) {
+               if (writer != null) {
+                  Save(writer);
+                  writer.Flush();
+                  writer.Close();
+               }
             }
 
 
@@ -424,7 +453,7 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xsdreader">falls nicht gegen die XSD-Datei getestet werden soll, sonst null</param>
       /// <returns></returns>
-      public bool ValidateInternData(XmlReader xsdreader = null) {
+      public bool ValidateInternData(XmlReader? xsdreader = null) {
          return ValidateInternDataMsg(xsdreader) == "";
       }
 
@@ -433,17 +462,18 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xsdreader">falls nicht gegen die XSD-Datei getestet werden soll, sonst null</param>
       /// <returns>leere Zeichenkette oder Fehlertext</returns>
-      public string ValidateInternDataMsg(XmlReader xsdreader = null) {
+      public string ValidateInternDataMsg(XmlReader? xsdreader = null) {
          if (!Validating)
             return "";
          try {
-            if (this.Schemas.Count == 0)
-               if (xsdreader == null)
-                  this.Schemas.Add(null, this.XsdFilename);
-               else
-                  this.Schemas.Add(null, xsdreader);
+            if (Schemas.Count == 0)
+               if (xsdreader == null) {
+                  if (XsdFilename != null)
+                     Schemas.Add(null, XsdFilename);
+               } else
+                  Schemas.Add(null, xsdreader);
 
-            this.Validate(new ValidationEventHandler(XmlValidationEventHandler));
+            Validate(new ValidationEventHandler(XmlValidationEventHandler));
 
          } catch (Exception exception) {
             return exception.Message;
@@ -456,7 +486,9 @@ namespace FSofTUtils {
       /// </summary>
       /// <returns></returns>
       public bool InternDataExist() {
-         return DocumentElement.LocalName == Rootname && DocumentElement.HasChildNodes;
+         return DocumentElement != null ?
+                     DocumentElement.LocalName == Rootname && DocumentElement.HasChildNodes :
+                     false;
       }
 
       /// <summary>
@@ -464,16 +496,17 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="sXslStylesheet"></param>
       /// <param name="sComment"></param>
-      public void CreateInternData(string sXslStylesheet = null, string sComment = null) {
-         if (this.HasChildNodes) this.RemoveAll();
+      public void CreateInternData(string? sXslStylesheet = null, string? sComment = null) {
+         if (HasChildNodes) RemoveAll();
          AppendChild(Declaration);
-         AppendChild(CreateNode(XmlNodeType.Element, Rootname, null));
-         if (XsdFilename.Length > 0) {
-            string tmp = this.InnerXml;
+         if (Rootname != null)
+            AppendChild(CreateNode(XmlNodeType.Element, Rootname, null));
+         if (XsdFilename?.Length > 0) {
+            string tmp = InnerXml;
             tmp = tmp.Substring(0, tmp.Length - 2) +
                   " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"" + Path.GetFileName(XsdFilename) + "\" />";
-            this.RemoveAll();
-            this.LoadXml(tmp);
+            RemoveAll();
+            LoadXml(tmp);
          }
          navigator = CreateNavigator();
          if (sXslStylesheet != null) {
@@ -482,9 +515,9 @@ namespace FSofTUtils {
             InsertAfter(pi, ChildNodes.Item(0));
          }
          if (sComment != null) {
-            XmlNode comment = CreateNode(XmlNodeType.Comment, null, null);
+            XmlNode comment = CreateNode(XmlNodeType.Comment, "", null);
             comment.Value = sComment;
-            DocumentElement.AppendChild(comment);
+            DocumentElement?.AppendChild(comment);
          }
       }
 
@@ -525,10 +558,10 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      protected XPathNodeIterator NavigatorSelect(string xpath) {
+      protected XPathNodeIterator? NavigatorSelect(string xpath) {
          return NsMng != null ?
-                     navigator.Select(xpath, NsMng) :
-                     navigator.Select(xpath);
+                     navigator?.Select(xpath, NsMng) :
+                     navigator?.Select(xpath);
       }
 
       /// <summary>
@@ -547,7 +580,7 @@ namespace FSofTUtils {
       public bool ExistXPath(string xpath) {
          CheckNavigator();
          try {
-            return NavigatorSelect(xpath).Count > 0;
+            return NavigatorSelect(xpath)?.Count > 0;
          } catch { }
          return false;
       }
@@ -558,7 +591,8 @@ namespace FSofTUtils {
       /// <param name="xpath"></param>
       /// <returns></returns>
       public int NodeCount(string xpath) {
-         return NavigatorSelect(xpath).Count;
+         XPathNodeIterator? iterator = NavigatorSelect(xpath);
+         return iterator != null ? iterator.Count : 0;
       }
 
       /// <summary>
@@ -566,16 +600,16 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      public string[] XReadOuterXml(string xpath) {
-         string[] ret = null;
-         XPathNodeIterator nodes = NsMng != null ?
-                                       navigator.Select(xpath, NsMng) :
-                                       navigator.Select(xpath);
-         if (nodes.Count == 0)
+      public string[]? XReadOuterXml(string xpath) {
+         string[]? ret = null;
+         XPathNodeIterator? nodes = NsMng != null ?
+                                       navigator?.Select(xpath, NsMng) :
+                                       navigator?.Select(xpath);
+         if (nodes == null || nodes.Count == 0)
             return null;
          ret = new string[nodes.Count];
          int i = 0;
-         while (nodes.MoveNext())
+         while (nodes.MoveNext() && nodes.Current != null)
             ret[i++] = nodes.Current.OuterXml;
          return ret;
       }
@@ -585,17 +619,17 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      public object[] ReadValueAsObject(string xpath) {
+      public object[]? ReadValueAsObject(string xpath) {
          ReadNewerFile();
          CheckNavigator();
-         object[] ret = null;
+         object[]? ret = null;
          try {
-            XPathNodeIterator nodes = NavigatorSelect(xpath);
-            if (nodes.Count == 0)
+            XPathNodeIterator? nodes = NavigatorSelect(xpath);
+            if (nodes == null || nodes.Count == 0)
                return null;
             ret = new object[nodes.Count];
             int i = 0;
-            while (nodes.MoveNext())
+            while (nodes.MoveNext() && nodes.Current != null)
                ret[i++] = nodes.Current.TypedValue;
          } catch { }
          return ret;
@@ -608,10 +642,12 @@ namespace FSofTUtils {
       /// <param name="defvalue">vordefinierter Wert</param>
       /// <returns></returns>
       public string ReadValue(string xpath, string defvalue) {
-         object[] o = ReadValueAsObject(xpath);
+         object[]? o = ReadValueAsObject(xpath);
          if (o == null || o.Length != 1)
             return defvalue;
+#pragma warning disable CS8603 // Mögliche Nullverweisrückgabe.
          return o[0].ToString();
+#pragma warning restore CS8603 // Mögliche Nullverweisrückgabe.
       }
       /// <summary>
       /// liefert die Daten entsprechend 'xpath'; es muss genau 1 passender Knoten existieren, sonst wird 'defvalue' geliefert
@@ -621,7 +657,7 @@ namespace FSofTUtils {
       /// <returns></returns>
       public bool ReadValue(string xpath, bool defvalue) {
          bool ret = defvalue;
-         object[] o = ReadValueAsObject(xpath);
+         object[]? o = ReadValueAsObject(xpath);
          if (o == null || o.Length != 1)
             return ret;
          try {
@@ -641,7 +677,7 @@ namespace FSofTUtils {
       /// <returns></returns>
       public int ReadValue(string xpath, int defvalue) {
          int ret = defvalue;
-         object[] o = ReadValueAsObject(xpath);
+         object[]? o = ReadValueAsObject(xpath);
          if (o == null || o.Length != 1)
             return ret;
          try {
@@ -657,7 +693,7 @@ namespace FSofTUtils {
       /// <returns></returns>
       public uint ReadValue(string xpath, uint defvalue) {
          uint ret = defvalue;
-         object[] o = ReadValueAsObject(xpath);
+         object[]? o = ReadValueAsObject(xpath);
          if (o == null || o.Length != 1)
             return ret;
          try {
@@ -673,7 +709,7 @@ namespace FSofTUtils {
       /// <returns></returns>
       public double ReadValue(string xpath, double defvalue) {
          double ret = defvalue;
-         object[] o = ReadValueAsObject(xpath);
+         object[]? o = ReadValueAsObject(xpath);
          if (o == null || o.Length != 1)
             return ret;
          try {
@@ -690,13 +726,16 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath">XPath</param>
       /// <returns></returns>
-      public string[] ReadString(string xpath) {
-         string[] ret = null;
-         object[] o = ReadValueAsObject(xpath);
+      public string[]? ReadString(string xpath) {
+         string[]? ret = null;
+         object[]? o = ReadValueAsObject(xpath);
          if (o != null) {
             ret = new string[o.Length];
             for (int i = 0; i < o.Length; i++)
-               ret[i] = o[i].ToString();
+               if (o[i] != null)
+#pragma warning disable CS8601 // Mögliche Nullverweiszuweisung.
+                  ret[i] = o[i].ToString();
+#pragma warning restore CS8601 // Mögliche Nullverweiszuweisung.
          }
          return ret;
       }
@@ -706,9 +745,9 @@ namespace FSofTUtils {
       /// <param name="xpath">XPath</param>
       /// <param name="defvalue">XPath</param>
       /// <returns></returns>
-      public int[] ReadInt(string xpath, int defvalue) {
-         int[] ret = null;
-         object[] o = ReadValueAsObject(xpath);
+      public int[]? ReadInt(string xpath, int defvalue) {
+         int[]? ret = null;
+         object[]? o = ReadValueAsObject(xpath);
          if (o != null) {
             ret = new int[o.Length];
             for (int i = 0; i < o.Length; i++)
@@ -726,9 +765,9 @@ namespace FSofTUtils {
       /// <param name="xpath">XPath</param>
       /// <param name="defvalue">XPath</param>
       /// <returns></returns>
-      public uint[] ReadUInt(string xpath, uint defvalue) {
-         uint[] ret = null;
-         object[] o = ReadValueAsObject(xpath);
+      public uint[]? ReadUInt(string xpath, uint defvalue) {
+         uint[]? ret = null;
+         object[]? o = ReadValueAsObject(xpath);
          if (o != null) {
             ret = new uint[o.Length];
             for (int i = 0; i < o.Length; i++)
@@ -746,9 +785,9 @@ namespace FSofTUtils {
       /// <param name="xpath">XPath</param>
       /// <param name="defvalue">XPath</param>
       /// <returns></returns>
-      public bool[] ReadBool(string xpath, bool defvalue) {
-         bool[] ret = null;
-         object[] o = ReadValueAsObject(xpath);
+      public bool[]? ReadBool(string xpath, bool defvalue) {
+         bool[]? ret = null;
+         object[]? o = ReadValueAsObject(xpath);
          if (o != null) {
             ret = new bool[o.Length];
             for (int i = 0; i < o.Length; i++)
@@ -766,14 +805,29 @@ namespace FSofTUtils {
       /// <param name="xpath">XPath</param>
       /// <param name="defvalue">XPath</param>
       /// <returns></returns>
-      public double[] ReadDouble(string xpath, double defvalue) {
-         double[] ret = null;
-         object[] o = ReadValueAsObject(xpath);
+      public double[]? ReadDouble(string xpath, double defvalue) {
+         double[]? ret = null;
+         object[]? o = ReadValueAsObject(xpath);
          if (o != null) {
             ret = new double[o.Length];
             for (int i = 0; i < o.Length; i++)
                try {
                   ret[i] = Convert.ToDouble(o[i]);
+               } catch {
+                  ret[i] = defvalue;
+               }
+         }
+         return ret;
+      }
+
+      public T[]? ReadValueArray<T>(string xpath, T defvalue) {
+         T[]? ret = null;
+         object[]? o = ReadValueAsObject(xpath);
+         if (o != null) {
+            ret = new T[o.Length];
+            for (int i = 0; i < o.Length; i++)
+               try {
+                  ret[i] = (T)o[i];
                } catch {
                   ret[i] = defvalue;
                }
@@ -787,21 +841,23 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      public List<Dictionary<string, string>> ReadAttributes(string xpath) {
-         List<Dictionary<string, string>> attr = null;
+      public List<Dictionary<string, string>>? ReadAttributes(string xpath) {
+         List<Dictionary<string, string>>? attr = null;
          ReadNewerFile();
          CheckNavigator();
          try {
-            XPathNodeIterator nodes = NavigatorSelect(xpath);
+            XPathNodeIterator? nodes = NavigatorSelect(xpath);
             if (nodes != null && nodes.Count > 0) {
                attr = new List<Dictionary<string, string>>();
                while (nodes.MoveNext()) {
                   attr.Add(new Dictionary<string, string>());
-                  navigator.MoveTo(nodes.Current);
-                  if (navigator.MoveToFirstAttribute()) {         // es gibt Attribute
-                     attr[attr.Count - 1].Add(navigator.Name, navigator.Value);
-                     while (navigator.MoveToNextAttribute())
+                  if (navigator != null && nodes.Current != null) {
+                     navigator.MoveTo(nodes.Current);
+                     if (navigator.MoveToFirstAttribute()) {         // es gibt Attribute
                         attr[attr.Count - 1].Add(navigator.Name, navigator.Value);
+                        while (navigator.MoveToNextAttribute())
+                           attr[attr.Count - 1].Add(navigator.Name, navigator.Value);
+                     }
                   }
                }
             }
@@ -814,15 +870,18 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      public string GetXmlText(string xpath) {
+      public string? GetXmlText(string xpath) {
          CheckNavigator();
          int count = 0;
-         XPathNodeIterator it = NavigatorSelect(xpath);
-         count = it.Count;
-         if (count == 1) {
-            it.MoveNext();
-            XPathNavigator nav = it.Current;
-            return nav.OuterXml;
+         XPathNodeIterator? it = NavigatorSelect(xpath);
+         if (it != null) {
+            count = it.Count;
+            if (count == 1) {
+               it.MoveNext();
+               XPathNavigator? nav = it.Current;
+               if (nav != null)
+                  return nav.OuterXml;
+            }
          }
          return null;
       }
@@ -833,17 +892,17 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      public XPathResult[] ReadValues(string xpath) {
+      public XPathResult[]? ReadValues(string xpath) {
          ReadNewerFile();
          CheckNavigator();
-         XPathResult[] ret = null;
+         XPathResult[]? ret = null;
          try {
-            XPathNodeIterator nodes = NavigatorSelect(xpath);
-            if (nodes.Count == 0)
+            XPathNodeIterator? nodes = NavigatorSelect(xpath);
+            if (nodes == null || nodes.Count == 0)
                return null;
             ret = new XPathResult[nodes.Count];
             int i = 0;
-            while (nodes.MoveNext())
+            while (nodes.MoveNext() && nodes.Current != null)
                ret[i++] = new XPathResult(nodes.Current.LocalName, nodes.Current.TypedValue);
          } catch { }
          return ret;
@@ -881,24 +940,27 @@ namespace FSofTUtils {
       public int InsertXmlText(string xpath, string xml, InsertPosition pos) {
          CheckNavigator();
          int count = 0;
-         XPathNodeIterator it = NavigatorSelect(xpath);
-         count = it.Count;
-         if (count == 1) {
-            it.MoveNext();
-            XPathNavigator nav = it.Current;
-            switch (pos) {
-               case InsertPosition.Before:
-                  nav.InsertBefore(xml);
-                  break;
-               case InsertPosition.After:
-                  nav.InsertAfter(xml);
-                  break;
-               case InsertPosition.PrependChild:
-                  nav.PrependChild(xml);
-                  break;
-               case InsertPosition.AppendChild:
-                  nav.AppendChild(xml);
-                  break;
+         XPathNodeIterator? it = NavigatorSelect(xpath);
+         if (it != null) {
+            count = it.Count;
+            if (count == 1) {
+               it.MoveNext();
+               XPathNavigator? nav = it.Current;
+               if (nav != null)
+                  switch (pos) {
+                     case InsertPosition.Before:
+                        nav.InsertBefore(xml);
+                        break;
+                     case InsertPosition.After:
+                        nav.InsertAfter(xml);
+                        break;
+                     case InsertPosition.PrependChild:
+                        nav.PrependChild(xml);
+                        break;
+                     case InsertPosition.AppendChild:
+                        nav.AppendChild(xml);
+                        break;
+                  }
             }
          }
          return count;
@@ -1053,37 +1115,48 @@ namespace FSofTUtils {
       /// <param name="attributes">Attribut-Werte-Paare (null-Werte werden als leere Zeichenkette interpretiert)</param>
       /// <param name="unique">wenn true, wird ein ev. schon mit dem Namen existierender Knoten verwendet (also ist der Knotename eindeutig)</param>
       /// <returns>false, wenn nichts angefügt werden konnte (weil z.B. der xpath nicht existiert)</returns>
-      public bool Append(string xpath, string nodename, string nodevalue = null, Dictionary<string, string> attributes = null, bool unique = false) {
+      public bool Append(string xpath,
+                         string? nodename,
+                         string? nodevalue = null,
+                         Dictionary<string, string>? attributes = null,
+                         bool unique = false) {
          CheckNavigator();
-         if (navigator.CanEdit) {
-            XPathNodeIterator nodes = NavigatorSelect(xpath);     // auf xpath positionieren
+         if (navigator != null && navigator.CanEdit) {
+            XPathNodeIterator? nodes = NavigatorSelect(xpath);     // auf xpath positionieren
             if (nodes != null &&
                 nodes.Count == 0)                                 // i.A. sollte es genau 1 Knoten als Ergebnismenge sein
                return false;
-            while (nodes.MoveNext()) {
-               navigator.MoveTo(nodes.Current);                   // auf einen Knoten positionieren, der xpath entspricht
-               if (!string.IsNullOrEmpty(nodename)) {
-                  XPathNavigator testnavi = null;
-                  if (unique)
-                     testnavi = navigator.SelectSingleNode(nodename);
+            if (nodes != null)
+               while (nodes.MoveNext()) {
+                  if (nodes.Current != null) {
+                     navigator.MoveTo(nodes.Current);                   // auf einen Knoten positionieren, der xpath entspricht
+                     if (!string.IsNullOrEmpty(nodename)) {
+                        XPathNavigator? testnavi = null;
+                        if (unique)
+                           testnavi = navigator.SelectSingleNode(nodename);
 
-                  if (testnavi == null) {                         // Knoten wird auf jeden Fall angehängt
-                     navigator.AppendChildElement(navigator.Prefix,
-                                                  nodename,
-                                                  navigator.LookupNamespace(navigator.Prefix),
-                                                  nodevalue);
-                     if (attributes != null) {
-                        navigator.MoveToFirstChild();
-                        while (navigator.MoveToNext(XPathNodeType.Element)) ;    // Simulation: MoveToLastChild()
-                        Appendattribut(attributes);
+                        if (testnavi == null) {                         // Knoten wird auf jeden Fall angehängt
+                           navigator.AppendChildElement(navigator.Prefix,
+                                                        nodename,
+                                                        navigator.LookupNamespace(navigator.Prefix),
+                                                        nodevalue);
+                           if (attributes != null) {
+                              navigator.MoveToFirstChild();
+                              while (navigator.MoveToNext(XPathNodeType.Element)) ;    // Simulation: MoveToLastChild()
+                              Appendattribut(attributes);
+                           }
+                        } else {                                        // alter Knoten ex. und soll verwendet werden
+                           if (nodevalue != null)
+                              testnavi.SetValue(nodevalue);
+                           if (attributes != null)
+                              Appendattribut(attributes, testnavi);
+                        }
+                     } else {
+                        if (attributes != null)
+                           Appendattribut(attributes);                     // nur Attribute am xpath anfügen/ändern
                      }
-                  } else {                                        // alter Knoten ex. und soll verwendet werden
-                     testnavi.SetValue(nodevalue);
-                     Appendattribut(attributes, testnavi);
                   }
-               } else
-                  Appendattribut(attributes);                     // nur Attribute am xpath anfügen/ändern
-            }
+               }
             return true;
          }
          return false;
@@ -1098,31 +1171,38 @@ namespace FSofTUtils {
       /// <param name="attributes">Attribut-Werte-Paare (null-Werte werden als leere Zeichenkette interpretiert)</param>
       /// <param name="afterxpath">bei true wird der neue Knoten danach eingefügt, sonst davor</param>
       /// <returns></returns>
-      public bool InsertNode(string xpath4node, string nodename, string nodevalue = null, Dictionary<string, string> attributes = null, bool afterxpath = true) {
+      public bool InsertNode(string xpath4node,
+                             string nodename,
+                             string? nodevalue = null,
+                             Dictionary<string, string>? attributes = null,
+                             bool afterxpath = true) {
          CheckNavigator();
-         if (navigator.CanEdit) {
-            XPathNodeIterator it = NavigatorSelect(xpath4node);     // auf xpath positionieren
+         if (navigator != null && navigator.CanEdit) {
+            XPathNodeIterator? it = NavigatorSelect(xpath4node);     // auf xpath positionieren
             if (it != null &&
                 it.Count == 0)                                 // i.A. sollte es genau 1 Knoten als Ergebnismenge sein
                return false;
-            while (it.MoveNext()) {
-               navigator.MoveTo(it.Current);                   // auf einen Knoten positionieren, der xpath entspricht
+            if (it != null)
+               while (it.MoveNext()) {
+                  if (it.Current != null) {
+                     navigator.MoveTo(it.Current);                   // auf einen Knoten positionieren, der xpath entspricht
 
-               if (afterxpath) {
-                  navigator.InsertElementAfter(navigator.Prefix,
-                                               nodename,
-                                               navigator.LookupNamespace(navigator.Prefix),
-                                               nodevalue);
-                  navigator.MoveToNext();
-               } else {
-                  navigator.InsertElementBefore(navigator.Prefix,
-                                                nodename,
-                                                navigator.LookupNamespace(navigator.Prefix),
-                                                nodevalue);
-                  navigator.MoveToPrevious();
+                     if (afterxpath) {
+                        navigator.InsertElementAfter(navigator.Prefix,
+                                                     nodename,
+                                                     navigator.LookupNamespace(navigator.Prefix),
+                                                     nodevalue);
+                        navigator.MoveToNext();
+                     } else {
+                        navigator.InsertElementBefore(navigator.Prefix,
+                                                      nodename,
+                                                      navigator.LookupNamespace(navigator.Prefix),
+                                                      nodevalue);
+                        navigator.MoveToPrevious();
+                     }
+                     Appendattribut(attributes);
+                  }
                }
-               Appendattribut(attributes);
-            }
             return true;
          }
          return false;
@@ -1138,26 +1218,33 @@ namespace FSofTUtils {
       public bool InsertNode(string xpath, XmlNode node, InsertPosition pos) {
          CheckNavigator();
          int count = 0;
-         XPathNodeIterator it = NavigatorSelect(xpath);
-         count = it.Count;
-         if (count == 1) {
-            it.MoveNext();
-            XPathNavigator nav = it.Current;
-            switch (pos) {
-               case InsertPosition.Before:
-                  nav.InsertBefore(node.CreateNavigator());
-                  break;
-               case InsertPosition.After:
-                  nav.InsertAfter(node.CreateNavigator());
-                  break;
-               case InsertPosition.PrependChild:
-                  nav.PrependChild(node.CreateNavigator());
-                  break;
-               case InsertPosition.AppendChild:
-                  nav.AppendChild(node.CreateNavigator());
-                  break;
+         XPathNodeIterator? it = NavigatorSelect(xpath);
+         if (it != null) {
+            count = it.Count;
+            if (count == 1) {
+               it.MoveNext();
+               if (it.Current != null) {
+                  XPathNavigator nav = it.Current;
+                  XPathNavigator? nav2 = node.CreateNavigator();
+                  if (nav2 != null) {
+                     switch (pos) {
+                        case InsertPosition.Before:
+                           nav.InsertBefore(nav2);
+                           break;
+                        case InsertPosition.After:
+                           nav.InsertAfter(nav2);
+                           break;
+                        case InsertPosition.PrependChild:
+                           nav.PrependChild(nav2);
+                           break;
+                        case InsertPosition.AppendChild:
+                           nav.AppendChild(nav2);
+                           break;
+                     }
+                     return true;
+                  }
+               }
             }
-            return true;
          }
          return false;
       }
@@ -1167,22 +1254,24 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="attributes">Attribut-Werte-Paare (null-Werte werden als leere Zeichenkette interpretiert)</param>
       /// <param name="parentnavi">Navigator, an dem die Attribute eingefügt werden sollen oder null für den internen Standardnavigator</param>
-      void Appendattribut(Dictionary<string, string> attributes, XPathNavigator parentnavi = null) {
+      void Appendattribut(Dictionary<string, string>? attributes, XPathNavigator? parentnavi = null) {
          if (attributes != null) {
             if (parentnavi == null)
                parentnavi = navigator;
-            string prefix = parentnavi.Prefix;
-            string ns = parentnavi.LookupNamespace(prefix);
-            foreach (var item in attributes) {
-               if (!string.IsNullOrEmpty(item.Key)) {
-                  XPathNavigator testnavi = parentnavi.SelectSingleNode("@" + item.Key);
-                  if (testnavi == null)     // Attr. ex. noch nicht
-                     parentnavi.CreateAttribute(prefix,
-                                               item.Key,
-                                               ns,
-                                               !string.IsNullOrEmpty(item.Value) ? item.Value : "");
-                  else
-                     testnavi.SetValue(!string.IsNullOrEmpty(item.Value) ? item.Value : "");
+            if (parentnavi != null) {
+               string prefix = parentnavi.Prefix;
+               string? ns = parentnavi.LookupNamespace(prefix);
+               foreach (var item in attributes) {
+                  if (!string.IsNullOrEmpty(item.Key)) {
+                     XPathNavigator? testnavi = parentnavi.SelectSingleNode("@" + item.Key);
+                     if (testnavi == null)     // Attr. ex. noch nicht
+                        parentnavi.CreateAttribute(prefix,
+                                                  item.Key,
+                                                  ns,
+                                                  !string.IsNullOrEmpty(item.Value) ? item.Value : "");
+                     else
+                        testnavi.SetValue(!string.IsNullOrEmpty(item.Value) ? item.Value : "");
+                  }
                }
             }
          }
@@ -1195,9 +1284,9 @@ namespace FSofTUtils {
       /// <returns>false, wenn nichts gelöscht wurde</returns>
       public bool Remove(string xpath) {
          CheckNavigator();
-         if (navigator.CanEdit) {
-            XPathNodeIterator it = NavigatorSelect(xpath);
-            if (it.Count == 0)
+         if (navigator != null && navigator.CanEdit) {
+            XPathNodeIterator? it = NavigatorSelect(xpath);
+            if (it == null || it.Count == 0)
                return false;
             XmlNode[] node2del = new XmlNode[it.Count];
             XmlNode[] nodeparent2del = new XmlNode[it.Count];
@@ -1219,11 +1308,11 @@ namespace FSofTUtils {
             // jetzt löschen
             for (int i = 0; i < node2del.Length; i++)
                if (node2del[i] != null) {
-                  if (node2del[i].NodeType == XmlNodeType.Attribute)
-                     nodeparent2del[i].Attributes.Remove((XmlAttribute)(node2del[i]));
-                  else {
+                  if (node2del[i].NodeType == XmlNodeType.Attribute) {
+                     nodeparent2del[i].Attributes?.Remove((XmlAttribute)(node2del[i]));
+                  } else {
                      if (node2del[i].ParentNode != null)                // kann nur bei der Root sein
-                        node2del[i].ParentNode.RemoveChild(node2del[i]);
+                        node2del[i].ParentNode?.RemoveChild(node2del[i]);
                   }
                }
             return true;
@@ -1236,20 +1325,24 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="xpath"></param>
       /// <returns></returns>
-      public XmlNode UnlinkUniqueNode(string xpath) {
+      public XmlNode? UnlinkUniqueNode(string xpath) {
          CheckNavigator();
          int count = 0;
-         XPathNodeIterator it = NavigatorSelect(xpath);
-         count = it.Count;
-         if (count == 1) {
-            it.MoveNext();
-            XmlNode parent = ((IHasXmlNode)it.Current).GetNode();
-            if (parent.ParentNode != null) {
-               return parent.ParentNode.RemoveChild(parent);
-            } else {
-               it.Current.MoveToParent();
-               parent = ((IHasXmlNode)it).GetNode();
-               return parent.ParentNode.RemoveChild(parent);
+         XPathNodeIterator? it = NavigatorSelect(xpath);
+         if (it != null) {
+            count = it.Count;
+            if (count == 1) {
+               it.MoveNext();
+               if (it.Current != null) {
+                  XmlNode parent = ((IHasXmlNode)it.Current).GetNode();
+                  if (parent.ParentNode != null) {
+                     return parent.ParentNode.RemoveChild(parent);
+                  } else {
+                     it.Current.MoveToParent();
+                     parent = ((IHasXmlNode)it).GetNode();
+                     return parent.ParentNode?.RemoveChild(parent);
+                  }
+               }
             }
          }
          return null;
@@ -1263,16 +1356,20 @@ namespace FSofTUtils {
       /// <returns>true, wenn der Wert geändert wurde</returns>
       public bool Change(string xpath, string value) {
          CheckNavigator();
-         if (navigator.CanEdit) {
-            XPathNodeIterator nodes = NavigatorSelect(xpath);
+         if (navigator != null && navigator.CanEdit) {
+            XPathNodeIterator? nodes = NavigatorSelect(xpath);
             if (nodes != null &&
                 nodes.Count == 0)
                return false;
-            while (nodes.MoveNext()) {
-               navigator.MoveTo(nodes.Current);
-               navigator.SetValue(value);
+            if (nodes != null) {
+               while (nodes.MoveNext()) {
+                  if (nodes.Current != null) {
+                     navigator.MoveTo(nodes.Current);
+                     navigator.SetValue(value);
+                  }
+               }
+               return true;
             }
-            return true;
          }
          return false;
       }
@@ -1328,13 +1425,17 @@ namespace FSofTUtils {
       /// <param name="attribut">Attribute</param>
       /// <param name="avalue">Attributwerte</param>
       /// <returns></returns>
-      public XmlElement CreateNodeElement(string nodename, string nodevalue = null, string[] attribut = null, string[] avalue = null) {
+      public XmlElement CreateNodeElement(string nodename,
+                                          string? nodevalue = null,
+                                          string[]? attribut = null,
+                                          string[]? avalue = null) {
          XmlElement newElem = CreateElement(nodename, NamespaceURI);
          if (nodevalue != null)
             newElem.InnerText = nodevalue;
          if (attribut != null) {
             for (int i = 0; i < attribut.Length; i++)
                if (!string.IsNullOrEmpty(attribut[i]) &&
+                   avalue != null &&
                    avalue[i] != null)
                   newElem.SetAttribute(attribut[i], avalue[i]);
          }
@@ -1352,58 +1453,59 @@ namespace FSofTUtils {
       /// <param name="create">true, wenn der Knoten auch erzeugt werden soll</param>
       /// <param name="no">Nummer des Knotens mit der Beschreibung (es kann mehrere passende Knoten geben!; 1 für den 1.)</param>
       /// <returns></returns>
-      public XmlElement CreateOrTestAbsolutePath(XmlElement[] nodepath, int depth = -1, bool create = true, int no = 1) {
-         XmlNode node = DocumentElement;
-         XmlElement childnode = null;
+      public XmlElement? CreateOrTestAbsolutePath(XmlElement[] nodepath, int depth = -1, bool create = true, int no = 1) {
+         XmlNode? node = DocumentElement;
+         XmlElement? childnode = null;
          if (depth < 0)
             depth = nodepath.Length;
-         for (int d = 0; d < depth; d++) {
-            bool found = false;
-            foreach (XmlNode testnode in node) {               // alle Childs testen
-               if (testnode.NodeType == XmlNodeType.Element)
-                  if (testnode.Name == nodepath[d].Name) {                                   // Stimmt der Knotenname überein?
-                     if (d < depth - 1 ||                                                    // Knotenwert nur beim letzten Knoten interessant
-                         nodepath[d].InnerText.Length == 0 ||                                // kein Knotenwert vorgegeben
-                         nodepath[d].InnerText == testnode.InnerText) {                      // Knotenwert gleich
-                        found = true;
-                        // alle Knotenattribute vergleichen
-                        foreach (XmlAttribute a in nodepath[d].Attributes) {
-                           if (!(((XmlElement)testnode).HasAttribute(a.Name) &&              // nicht existierendes 
-                                 ((XmlElement)testnode).GetAttribute(a.Name) == a.Value)) {  // oder nicht übereinstimmendes Attribut gefunden
+         if (node != null)
+            for (int d = 0; d < depth; d++) {
+               bool found = false;
+               foreach (XmlNode testnode in node) {               // alle Childs testen
+                  if (testnode.NodeType == XmlNodeType.Element)
+                     if (testnode.Name == nodepath[d].Name) {                                   // Stimmt der Knotenname überein?
+                        if (d < depth - 1 ||                                                    // Knotenwert nur beim letzten Knoten interessant
+                            nodepath[d].InnerText.Length == 0 ||                                // kein Knotenwert vorgegeben
+                            nodepath[d].InnerText == testnode.InnerText) {                      // Knotenwert gleich
+                           found = true;
+                           // alle Knotenattribute vergleichen
+                           foreach (XmlAttribute a in nodepath[d].Attributes) {
+                              if (!(((XmlElement)testnode).HasAttribute(a.Name) &&              // nicht existierendes 
+                                    ((XmlElement)testnode).GetAttribute(a.Name) == a.Value)) {  // oder nicht übereinstimmendes Attribut gefunden
+                                 found = false;
+                                 break;
+                              }
+                           }
+                           if (found) {
+                              if (--no <= 0) {
+                                 node = testnode;
+                                 childnode = (XmlElement)node;
+                                 break;
+                              }
                               found = false;
-                              break;
                            }
-                        }
-                        if (found) {
-                           if (--no <= 0) {
-                              node = testnode;
-                              childnode = (XmlElement)node;
-                              break;
-                           }
-                           found = false;
                         }
                      }
-                  }
-            }
-            if (!found) {                          // nicht vorhanden, also ev. erzeugen
-               if (!create) {
+               }
+               if (!found) {                          // nicht vorhanden, also ev. erzeugen
+                  if (!create) {
 #if DEBUG && !NO_DEBUGOUTPUT
                   Console.WriteLine("CreateOrTestAbsolutePath: NICHT gefunden und NICHT erzeugt");
 #endif
-                  return null;           // dann nur zum Test
-               }
-               XmlNode newnode = nodepath[d].CloneNode(true);
-               node.AppendChild(newnode);
-               node = newnode;
+                     return null;           // dann nur zum Test
+                  }
+                  XmlNode newnode = nodepath[d].CloneNode(true);
+                  node.AppendChild(newnode);
+                  node = newnode;
 #if DEBUG && !NO_DEBUGOUTPUT
                Console.WriteLine("CreateOrTestAbsolutePath: NICHT gefunden aber erzeugt");
 #endif
+               }
             }
-         }
 #if DEBUG && !NO_DEBUGOUTPUT
          Console.WriteLine("CreateOrTestAbsolutePath: " + GetXmlElement4Debug((XmlElement)node));
 #endif
-         return (XmlElement)node;                  // tiefstes Element zurückliefern
+         return (XmlElement?)node;                  // tiefstes Element zurückliefern
       }
 
       /// <summary>
@@ -1411,7 +1513,7 @@ namespace FSofTUtils {
       /// </summary>
       /// <param name="nodepath">Beschreibung der Knoten (unterhalb (!) der Root); wird intern geklont; ein leerer Value bleibt unberücksichtigt</param>
       /// <param name="depth">Anzahl der gültigen Elemente in nodepath (darf kleiner sein als die Arraylänge)</param>
-      public XmlElement ExistAbsolutePath(XmlElement[] nodepath, int depth = -1) {
+      public XmlElement? ExistAbsolutePath(XmlElement[] nodepath, int depth = -1) {
          return CreateOrTestAbsolutePath(nodepath, depth >= 0 ? depth : nodepath.Length, false);
       }
 
@@ -1449,17 +1551,19 @@ namespace FSofTUtils {
          return txt;
       }
       /// <summary>
-      /// zur vereinfachten Darstellugn beim Debugging
+      /// zur vereinfachten Darstellung beim Debugging
       /// </summary>
       /// <param name="elem"></param>
       /// <returns></returns>
-      protected string GetXmlElementWithPath4Debug(XmlElement elem) {
+      protected string GetXmlElementWithPath4Debug(XmlElement? elem) {
          string txt = "";
          if (elem != null) {
             txt = GetXmlElement4Debug(elem);
-            elem = (XmlElement)elem.ParentNode;
-            while (elem != null)
-               txt = GetXmlElement4Debug(elem) + "/" + txt;
+            if (elem.ParentNode != null) {
+               elem = (XmlElement)elem.ParentNode;
+               while (elem != null)
+                  txt = GetXmlElement4Debug(elem) + "/" + txt;
+            }
          }
          return txt;
       }
@@ -1493,7 +1597,8 @@ namespace FSofTUtils {
       public SimpleXmlDocument2 CloneSimpleXmlDocument() {
          SimpleXmlDocument2 doc = new SimpleXmlDocument2(XmlFilename, Rootname);
          doc.CreateInternData();
-         doc.DocumentElement.InnerXml = DocumentElement.InnerXml;
+         if (doc.DocumentElement != null && DocumentElement != null)
+            doc.DocumentElement.InnerXml = DocumentElement.InnerXml;
          return doc;
       }
 

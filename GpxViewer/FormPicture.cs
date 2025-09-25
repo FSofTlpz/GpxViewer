@@ -1,15 +1,11 @@
-﻿using System;
-using System.ComponentModel;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
+﻿using System.ComponentModel;
 
 namespace GpxViewer {
    public partial class FormPicture : Form {
 
-      public string PictureFilename { get; private set; }
+      public string PictureFilename { get; private set; } = string.Empty;
 
-      public string Info { get; private set; }
+      public string Info { get; private set; } = string.Empty;
 
 
       public FormPicture() {

@@ -39,7 +39,7 @@ namespace GarminCore.Files.Typ {
    /// nur zur Verwaltung der reinen Pixeldaten eines Bitmaps
    /// </summary>
    public class PixData {
-      
+
       /// <summary>
       /// Bildbreite
       /// </summary>
@@ -68,7 +68,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="height">Bildhöhe</param>
       /// <param name="iBpp">Bits je Pixel</param>
       /// <param name="br">Stream</param>
-      public PixData(uint width, uint height, uint bpp, BinaryReaderWriter br = null) {
+      public PixData(uint width, uint height, uint bpp, BinaryReaderWriter? br = null) {
          Width = width;
          Height = height;
          BpP = bpp;
@@ -76,7 +76,7 @@ namespace GarminCore.Files.Typ {
          if (br != null)
             Read(br);
       }
-      
+
       /// <summary>
       /// erzeugt eine Kopie
       /// </summary>
@@ -85,14 +85,14 @@ namespace GarminCore.Files.Typ {
          this(pix.Width, pix.Height, pix.BpP) {
          pix.rawimgdata.CopyTo(rawimgdata, 0);
       }
-      
+
       /// <summary>
       /// erzeugt den entsprechenden Datenpuffer aus dem Bitmap
       /// </summary>
       /// <param name="bm">Bitmap</param>
       /// <param name="iBpp">Bits je Pixel</param>
       /// <param name="Col">Farbtabelle als Dictionary (Farbe, Index)</param>
-      public PixData(Bitmap bm, uint iBpp, Dictionary<Color, int> Col = null) :
+      public PixData(Bitmap bm, uint iBpp, Dictionary<Color, int>? Col = null) :
          this((uint)bm.Width, (uint)bm.Height, iBpp) {
          rawimgdata = Convert2Data(bm, iBpp, Col);
       }
@@ -122,7 +122,7 @@ namespace GarminCore.Files.Typ {
       public Bitmap AsBitmap(Color[] Col, Color colDummy) {
          return Convert2Bitmap(Width, Height, BpP, rawimgdata, Col, colDummy);
       }
- 
+
       /// <summary>
       /// liefert ein Bitmap, falls die Daten die Farben direkt enthalten
       /// </summary>
@@ -169,7 +169,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="Col">Farbtabelle</param>
       /// <param name="colDummy">Dummyfarbe, i.A. Transparent</param>
       /// <returns></returns>
-      protected static Bitmap Convert2Bitmap(uint iWidth, uint iHeight, uint iBpp, byte[] data, Color[] Col, Color colDummy) {
+      protected static Bitmap Convert2Bitmap(uint iWidth, uint iHeight, uint iBpp, byte[] data, Color[]? Col, Color colDummy) {
          Bitmap bm = new Bitmap((int)iWidth, (int)iHeight);
 
          // Daten in Bitmap umwandeln
@@ -288,7 +288,7 @@ namespace GarminCore.Files.Typ {
       /// <param name="bm">Bitmap</param>
       /// <param name="Col">Farbtabelle als Dictionary (Farbe, Index)</param>
       /// <returns></returns>
-      protected static byte[] Convert2Data(Bitmap bm, uint iBpp, Dictionary<Color, int> Col) {
+      protected static byte[] Convert2Data(Bitmap bm, uint iBpp, Dictionary<Color, int>? Col) {
          uint pixel4byte = 8 / iBpp;
          int bytes4line = (int)Bytes4BitmapLine((uint)bm.Width, iBpp);
          byte[] data = new byte[bytes4line * bm.Height];

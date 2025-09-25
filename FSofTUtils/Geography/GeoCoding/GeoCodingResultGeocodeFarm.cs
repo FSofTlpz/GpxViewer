@@ -1,5 +1,6 @@
 ﻿//#define TESTDATA
 
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
 
@@ -100,25 +101,29 @@ namespace FSofTUtils.Geography.GeoCoding {
          BoundingBottom = boundbottom;
       }
 
-      public static new GeoCodingResultGeocodeFarm[] Get(string name) {
-         GeoCodingResultGeocodeFarm[] result = new GeoCodingResultGeocodeFarm[0];
+      public static new async Task<GeoCodingResultGeocodeFarm[]> GetAsync(string name, double timeout = 0) {
+         GeoCodingResultGeocodeFarm[] result = System.Array.Empty<GeoCodingResultGeocodeFarm>();
 
          if (!string.IsNullOrEmpty(name)) {
             string param = System.Net.WebUtility.UrlEncode(name.Trim());
 
 #if TESTDATA
+            System.Net.HttpStatusCode? status2 = System.Net.HttpStatusCode.OK;
             string httpResult = testxml;
 #else
-            string httpResult = httpGet(string.Format(urlformat, param));
+            (System.Net.HttpStatusCode? status, string httpResult) = await HttpHelper.GetStringAsync(string.Format(urlformat, param),
+                                                                                                     timeout);
 #endif
-            if (httpResult != null) {
+            if (status != null &&
+             status == System.Net.HttpStatusCode.OK &&
+             !string.IsNullOrEmpty(httpResult)) {
                XmlDocument xmldata = new XmlDocument();
                xmldata.LoadXml(httpResult);
 
-               XmlNamespaceManager NsMng = null;
+               XmlNamespaceManager? NsMng = null;
                NsMng = new XmlNamespaceManager(xmldata.NameTable);
 
-               XPathNavigator navigator = xmldata.CreateNavigator();
+               XPathNavigator? navigator = xmldata.CreateNavigator();
                if (navigator != null && NsMng != null) {
                   if (getXmlValue("/geocoding_results/STATUS/status", navigator, NsMng) == "SUCCESS") {
                      int count = getXmlValueAsInt("/geocoding_results/STATUS/result_count", navigator, NsMng);
@@ -126,16 +131,18 @@ namespace FSofTUtils.Geography.GeoCoding {
 
                      for (int i = 1; i <= count; i++) {
                         string mainpath = "/geocoding_results/RESULTS/result/result_number[\"" + i + "\"]";
-                        
+
                         // ACHTUNG: Top und Bottom sind vertauscht!
-                        result[i - 1] = new GeoCodingResultGeocodeFarm(
-                                                         getXmlValue(mainpath + "/../formatted_address", navigator, NsMng),
-                                                         getXmlValueAsDouble(mainpath + "/../COORDINATES/longitude", navigator, NsMng),
-                                                         getXmlValueAsDouble(mainpath + "/../COORDINATES/latitude", navigator, NsMng),
-                                                         getXmlValueAsDouble(mainpath + "/../BOUNDARIES/northeast_longitude", navigator, NsMng),
-                                                         getXmlValueAsDouble(mainpath + "/../BOUNDARIES/southwest_longitude", navigator, NsMng),
-                                                         getXmlValueAsDouble(mainpath + "/../BOUNDARIES/northeast_latitude", navigator, NsMng),
-                                                         getXmlValueAsDouble(mainpath + "/../BOUNDARIES/southwest_latitude", navigator, NsMng));
+                        string? adr = getXmlValue(mainpath + "/../formatted_address", navigator, NsMng);
+                        if (adr != null)
+                           result[i - 1] = new GeoCodingResultGeocodeFarm(
+                                                            adr,
+                                                            getXmlValueAsDouble(mainpath + "/../COORDINATES/longitude", navigator, NsMng),
+                                                            getXmlValueAsDouble(mainpath + "/../COORDINATES/latitude", navigator, NsMng),
+                                                            getXmlValueAsDouble(mainpath + "/../BOUNDARIES/northeast_longitude", navigator, NsMng),
+                                                            getXmlValueAsDouble(mainpath + "/../BOUNDARIES/southwest_longitude", navigator, NsMng),
+                                                            getXmlValueAsDouble(mainpath + "/../BOUNDARIES/northeast_latitude", navigator, NsMng),
+                                                            getXmlValueAsDouble(mainpath + "/../BOUNDARIES/southwest_latitude", navigator, NsMng));
                      }
                   }
                }

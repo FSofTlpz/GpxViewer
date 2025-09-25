@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml.XPath;
 
 namespace FSofTUtils.Geography.PoorGpx {
 
@@ -10,20 +9,56 @@ namespace FSofTUtils.Geography.PoorGpx {
    /// </summary>
    public class GpxWaypoint : GpxPointBase {
 
+      /*
+       https://www.topografix.com/GPX/1/1/#wptType 
+       
+         <xsd:complexType name="wptType">
+            <xsd:sequence>
+               <-- elements must appear in this order -->
+               <-- Position info -->
+               <xsd:element name="ele" type="xsd:decimal" minOccurs="0"/>
+               <xsd:element name="time" type="xsd:dateTime" minOccurs="0"/>
+               <xsd:element name="magvar" type="degreesType" minOccurs="0"/>
+               <xsd:element name="geoidheight" type="xsd:decimal" minOccurs="0"/>
+               <-- Description info -->
+               <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+               <xsd:element name="cmt" type="xsd:string" minOccurs="0"/>
+               <xsd:element name="desc" type="xsd:string" minOccurs="0"/>
+               <xsd:element name="src" type="xsd:string" minOccurs="0"/>
+               <xsd:element name="link" type="linkType" minOccurs="0" maxOccurs="unbounded"/>
+               <xsd:element name="sym" type="xsd:string" minOccurs="0"/>
+               <xsd:element name="type" type="xsd:string" minOccurs="0"/>
+               <-- Accuracy info -->
+               <xsd:element name="fix" type="fixType" minOccurs="0"/>
+               <xsd:element name="sat" type="xsd:nonNegativeInteger" minOccurs="0"/>
+               <xsd:element name="hdop" type="xsd:decimal" minOccurs="0"/>
+               <xsd:element name="vdop" type="xsd:decimal" minOccurs="0"/>
+               <xsd:element name="pdop" type="xsd:decimal" minOccurs="0"/>
+               <xsd:element name="ageofdgpsdata" type="xsd:decimal" minOccurs="0"/>
+               <xsd:element name="dgpsid" type="dgpsStationType" minOccurs="0"/>
+               <xsd:element name="extensions" type="extensionsType" minOccurs="0"/>
+            </xsd:sequence>
+            <xsd:attribute name="lat" type="latitudeType" use="required"/>
+            <xsd:attribute name="lon" type="longitudeType" use="required"/>
+         </xsd:complexType>
+
+       */
+
       public const string NODENAME = "wpt";
 
-      public string Name;
+      // häufig verwendet
 
-      public string Comment;
+      public string Name = string.Empty;
 
-      public string Description;
+      public string Comment = string.Empty;
 
-      public string Symbol;
+      public string Description = string.Empty;
+
+      public string Symbol = string.Empty;
 
 
-      public GpxWaypoint(string xmltext = null, bool removenamespace = false) :
-         base(NODENAME, xmltext, removenamespace) { }
-
+      public GpxWaypoint(string? xmltext = null, bool removenamespace = false) :
+         base(xmltext, removenamespace) { }
 
       public GpxWaypoint(GpxWaypoint p) : base(NODENAME) {
          Lat = p.Lat;
@@ -50,9 +85,11 @@ namespace FSofTUtils.Geography.PoorGpx {
       }
 
       protected override void Init() {
-         BaseInit();
-         Name = Comment = Description = Symbol = null;
+         baseInit();
+         Name = Comment = Description = Symbol = string.Empty;
       }
+
+      #region liest das Objekt aus einem XML-Text ein
 
       /// <summary>
       /// setzt die Objektdaten aus dem XML-Text
@@ -61,88 +98,55 @@ namespace FSofTUtils.Geography.PoorGpx {
       /// <param name="removenamespace"></param>
       public override void FromXml(string xmltxt, bool removenamespace = false) {
          Init();
-         XPathNavigator nav = BaseFromXml(xmltxt, false);
-
-         string prefix = "/" + NODENAME + "/";
-         Name = XReadString(nav, prefix + "name");
-         Comment = XReadString(nav, prefix + "cmt");
-         Description = XReadString(nav, prefix + "desc");
-         Symbol = XReadString(nav, prefix + "sym");
-
-         // registrieren der unbehandelten Childs
-         RegisterUnhandledChild(nav,
-                                "/" + NODENAME + "/*",
-                                new string[] {
-                                   "<ele>",     // in GpxPointBase
-                                   "<time>",    //       "
-                                   "<name>",
-                                   "<cmt>",
-                                   "<desc>",
-                                   "<sym>",
-                                });
+         readDataFromXml(xmltxt, false, PointType.Waypoint);
       }
+
+      protected override bool checkExtChilds(string childtxt) {
+         bool getit = false;
+         string? tmp;
+         if (getString4ChildXml(childtxt, "<name>", out tmp)) {
+            Name = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<cmt>", out tmp)) {
+            Comment = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<desc>", out tmp)) {
+            Description = tmp != null ? tmp : string.Empty;
+            getit = true;
+         } else if (getString4ChildXml(childtxt, "<sym>", out tmp)) {
+            Symbol = tmp != null ? tmp : string.Empty;
+            getit = true;
+         }
+         return getit;
+      }
+
+      protected override int getExtChildCount() => 4;
+
+      #endregion
+
+      #region liefert das Objekt als XML
 
       /// <summary>
-      /// liefert den vollständigen XML-Text für das Objekt
+      /// liefert alle Childtexte für die Properties
       /// </summary>
-      /// <param name="scale">Umfang der Ausgabe</param>
+      /// <param name="scale"></param>
       /// <returns></returns>
-      public override string AsXml(int scale) {
-         List<string> attrname;
-         List<string> attrvalue;
-
-         StringBuilder sb = new StringBuilder(GetXmlNodeData(out attrname, out attrvalue));
-
-         // Sequenz: ele, time, magvar, geoidheight, name, cmt, desc, src, link (mehrfach), sym, type, fix, sat, hdop, vdop, pdop, ageofdgpsdata, dgpsid, extensions
-         int handled = 0; // für die Reihenfolge der handled Childs
-         int lastidx = -1;
-         string txt;
-
-         while ((txt = HandledAsXml(handled++, scale)) != null) // noch alle behandelten Childs ausgegeben
-            sb.Append(txt);
-
-         foreach (KeyValuePair<int, string> item in UnhandledChildXml) {
-            while (item.Key - 1 != lastidx) { // Lücke in der Folge der Childs, d.h. davor liegt min. 1 behandeltes Child
-               txt = HandledAsXml(handled++, scale);
-               if (txt != null)
-                  sb.Append(txt);
-               lastidx++;
-            }
-            if (scale > 1)
-               sb.Append(item.Value);
-            lastidx = item.Key;
-         }
-
-         return XWriteNode(NODENAME, attrname, attrvalue, sb.ToString());
+      protected override List<string> getChildTxt4Props(int scale) {
+         List<string> childtxt = new List<string>();
+         if (!string.IsNullOrEmpty(Name))
+            childtxt.Add(xWriteNode("name", XmlEncode(Name)));
+         if (!string.IsNullOrEmpty(Comment) && scale > 0)
+            childtxt.Add(xWriteNode("cmt", XmlEncode(Comment)));
+         if (!string.IsNullOrEmpty(Description) && scale > 0)
+            childtxt.Add(xWriteNode("desc", XmlEncode(Description)));
+         if (!string.IsNullOrEmpty(Symbol) && scale > 0)
+            childtxt.Add(xWriteNode("sym", XmlEncode(Symbol)));
+         return childtxt;
       }
 
-      protected string HandledAsXml(int handled, int scale) {
-         switch (handled) {
-            case 0:
-               if (!string.IsNullOrEmpty(Name))
-                  return XWriteNode("name", XmlClean(Name));
-               break;
+      protected override string getNodename() => NODENAME;
 
-            case 1:
-               if (!string.IsNullOrEmpty(Comment) && scale > 0)
-                  return XWriteNode("cmt", XmlClean(Comment));
-               break;
-
-            case 2:
-               if (!string.IsNullOrEmpty(Description) && scale > 0)
-                  return XWriteNode("desc", XmlClean(Description));
-               break;
-
-            case 3:
-               if (!string.IsNullOrEmpty(Symbol) && scale > 0)
-                  return XWriteNode("sym", XmlClean(Symbol));
-               break;
-
-            default:
-               return null; // keine behandelten Childs mehr
-         }
-         return "";
-      }
+      #endregion
 
       public override string ToString() {
          StringBuilder sb = new StringBuilder(base.ToString());

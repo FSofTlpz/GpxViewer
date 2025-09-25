@@ -23,279 +23,265 @@
       /// the contents of this method with the code editor.
       /// </summary>
       private void InitializeComponent() {
-         this.label1 = new System.Windows.Forms.Label();
-         this.dateTimePickerDT = new System.Windows.Forms.DateTimePicker();
-         this.numericUpDownHeight = new System.Windows.Forms.NumericUpDown();
-         this.label2 = new System.Windows.Forms.Label();
-         this.button_Cancel = new System.Windows.Forms.Button();
-         this.button_Save = new System.Windows.Forms.Button();
-         this.checkBox_Height = new System.Windows.Forms.CheckBox();
-         this.label3 = new System.Windows.Forms.Label();
-         this.numericUpDownLat = new System.Windows.Forms.NumericUpDown();
-         this.numericUpDownLon = new System.Windows.Forms.NumericUpDown();
-         this.label4 = new System.Windows.Forms.Label();
-         this.label5 = new System.Windows.Forms.Label();
-         this.textBoxDescription = new System.Windows.Forms.TextBox();
-         this.textBoxComment = new System.Windows.Forms.TextBox();
-         this.label6 = new System.Windows.Forms.Label();
-         this.label7 = new System.Windows.Forms.Label();
-         this.comboBox_Name = new System.Windows.Forms.ComboBox();
-         this.button_Marker = new System.Windows.Forms.Button();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownHeight)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLat)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLon)).BeginInit();
-         this.SuspendLayout();
+         label1 = new Label();
+         dateTimePickerDT = new DateTimePicker();
+         numericUpDownHeight = new NumericUpDown();
+         label2 = new Label();
+         button_Cancel = new Button();
+         button_Save = new Button();
+         checkBox_Height = new CheckBox();
+         label3 = new Label();
+         numericUpDownLat = new NumericUpDown();
+         numericUpDownLon = new NumericUpDown();
+         label4 = new Label();
+         label5 = new Label();
+         textBoxDescription = new TextBox();
+         textBoxComment = new TextBox();
+         label6 = new Label();
+         label7 = new Label();
+         comboBox_Name = new ComboBox();
+         button_Marker = new Button();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownLat).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownLon).BeginInit();
+         SuspendLayout();
          // 
          // label1
          // 
-         this.label1.AutoSize = true;
-         this.label1.Location = new System.Drawing.Point(12, 9);
-         this.label1.Name = "label1";
-         this.label1.Size = new System.Drawing.Size(38, 13);
-         this.label1.TabIndex = 0;
-         this.label1.Text = "Name:";
+         label1.AutoSize = true;
+         label1.Location = new Point(14, 10);
+         label1.Margin = new Padding(4, 0, 4, 0);
+         label1.Name = "label1";
+         label1.Size = new Size(42, 15);
+         label1.TabIndex = 0;
+         label1.Text = "Name:";
          // 
          // dateTimePickerDT
          // 
-         this.dateTimePickerDT.CustomFormat = "MMMM, d.M.yyyy, H:mm:ss";
-         this.dateTimePickerDT.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-         this.dateTimePickerDT.Location = new System.Drawing.Point(109, 84);
-         this.dateTimePickerDT.Name = "dateTimePickerDT";
-         this.dateTimePickerDT.ShowCheckBox = true;
-         this.dateTimePickerDT.Size = new System.Drawing.Size(258, 20);
-         this.dateTimePickerDT.TabIndex = 7;
+         dateTimePickerDT.CustomFormat = "MMMM, d.M.yyyy, H:mm:ss";
+         dateTimePickerDT.Format = DateTimePickerFormat.Custom;
+         dateTimePickerDT.Location = new Point(127, 97);
+         dateTimePickerDT.Margin = new Padding(4, 3, 4, 3);
+         dateTimePickerDT.Name = "dateTimePickerDT";
+         dateTimePickerDT.ShowCheckBox = true;
+         dateTimePickerDT.Size = new Size(300, 23);
+         dateTimePickerDT.TabIndex = 7;
          // 
          // numericUpDownHeight
          // 
-         this.numericUpDownHeight.Location = new System.Drawing.Point(109, 110);
-         this.numericUpDownHeight.Maximum = new decimal(new int[] {
-            10000,
-            0,
-            0,
-            0});
-         this.numericUpDownHeight.Minimum = new decimal(new int[] {
-            10000,
-            0,
-            0,
-            -2147483648});
-         this.numericUpDownHeight.Name = "numericUpDownHeight";
-         this.numericUpDownHeight.Size = new System.Drawing.Size(91, 20);
-         this.numericUpDownHeight.TabIndex = 9;
+         numericUpDownHeight.Location = new Point(127, 127);
+         numericUpDownHeight.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownHeight.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+         numericUpDownHeight.Minimum = new decimal(new int[] { 10000, 0, 0, int.MinValue });
+         numericUpDownHeight.Name = "numericUpDownHeight";
+         numericUpDownHeight.Size = new Size(106, 23);
+         numericUpDownHeight.TabIndex = 9;
          // 
          // label2
          // 
-         this.label2.AutoSize = true;
-         this.label2.Location = new System.Drawing.Point(218, 112);
-         this.label2.Name = "label2";
-         this.label2.Size = new System.Drawing.Size(74, 13);
-         this.label2.TabIndex = 10;
-         this.label2.Text = "Höhe in Meter";
+         label2.AutoSize = true;
+         label2.Location = new Point(254, 129);
+         label2.Margin = new Padding(4, 0, 4, 0);
+         label2.Name = "label2";
+         label2.Size = new Size(83, 15);
+         label2.TabIndex = 10;
+         label2.Text = "Höhe in Meter";
          // 
          // button_Cancel
          // 
-         this.button_Cancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.button_Cancel.Image = global::GpxViewer.Properties.Resources.cancel;
-         this.button_Cancel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-         this.button_Cancel.Location = new System.Drawing.Point(238, 187);
-         this.button_Cancel.Name = "button_Cancel";
-         this.button_Cancel.Size = new System.Drawing.Size(101, 31);
-         this.button_Cancel.TabIndex = 15;
-         this.button_Cancel.Text = "zurück";
-         this.button_Cancel.UseVisualStyleBackColor = true;
-         this.button_Cancel.Click += new System.EventHandler(this.button_Cancel_Click);
+         button_Cancel.DialogResult = DialogResult.Cancel;
+         button_Cancel.Image = Properties.Resources.cancel;
+         button_Cancel.ImageAlign = ContentAlignment.MiddleLeft;
+         button_Cancel.Location = new Point(278, 216);
+         button_Cancel.Margin = new Padding(4, 3, 4, 3);
+         button_Cancel.Name = "button_Cancel";
+         button_Cancel.Size = new Size(118, 36);
+         button_Cancel.TabIndex = 15;
+         button_Cancel.Text = "zurück";
+         button_Cancel.UseVisualStyleBackColor = true;
+         button_Cancel.Click += button_Cancel_Click;
          // 
          // button_Save
          // 
-         this.button_Save.DialogResult = System.Windows.Forms.DialogResult.OK;
-         this.button_Save.Image = global::GpxViewer.Properties.Resources.ok;
-         this.button_Save.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-         this.button_Save.Location = new System.Drawing.Point(356, 187);
-         this.button_Save.Name = "button_Save";
-         this.button_Save.Size = new System.Drawing.Size(101, 31);
-         this.button_Save.TabIndex = 16;
-         this.button_Save.Text = "speichern";
-         this.button_Save.UseVisualStyleBackColor = true;
-         this.button_Save.Click += new System.EventHandler(this.button_Save_Click);
+         button_Save.DialogResult = DialogResult.OK;
+         button_Save.Image = Properties.Resources.ok;
+         button_Save.ImageAlign = ContentAlignment.MiddleLeft;
+         button_Save.Location = new Point(415, 216);
+         button_Save.Margin = new Padding(4, 3, 4, 3);
+         button_Save.Name = "button_Save";
+         button_Save.Size = new Size(118, 36);
+         button_Save.TabIndex = 16;
+         button_Save.Text = "speichern";
+         button_Save.UseVisualStyleBackColor = true;
+         button_Save.Click += button_Save_Click;
          // 
          // checkBox_Height
          // 
-         this.checkBox_Height.AutoSize = true;
-         this.checkBox_Height.Location = new System.Drawing.Point(15, 116);
-         this.checkBox_Height.Name = "checkBox_Height";
-         this.checkBox_Height.Size = new System.Drawing.Size(15, 14);
-         this.checkBox_Height.TabIndex = 8;
-         this.checkBox_Height.UseVisualStyleBackColor = true;
-         this.checkBox_Height.CheckedChanged += new System.EventHandler(this.checkBox_Height_CheckedChanged);
+         checkBox_Height.AutoSize = true;
+         checkBox_Height.Location = new Point(18, 134);
+         checkBox_Height.Margin = new Padding(4, 3, 4, 3);
+         checkBox_Height.Name = "checkBox_Height";
+         checkBox_Height.Size = new Size(15, 14);
+         checkBox_Height.TabIndex = 8;
+         checkBox_Height.UseVisualStyleBackColor = true;
+         checkBox_Height.CheckedChanged += checkBox_Height_CheckedChanged;
          // 
          // label3
          // 
-         this.label3.AutoSize = true;
-         this.label3.Location = new System.Drawing.Point(12, 90);
-         this.label3.Name = "label3";
-         this.label3.Size = new System.Drawing.Size(29, 13);
-         this.label3.TabIndex = 6;
-         this.label3.Text = "UTC";
+         label3.AutoSize = true;
+         label3.Location = new Point(14, 104);
+         label3.Margin = new Padding(4, 0, 4, 0);
+         label3.Name = "label3";
+         label3.Size = new Size(28, 15);
+         label3.TabIndex = 6;
+         label3.Text = "UTC";
          // 
          // numericUpDownLat
          // 
-         this.numericUpDownLat.DecimalPlaces = 8;
-         this.numericUpDownLat.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-         this.numericUpDownLat.Location = new System.Drawing.Point(221, 136);
-         this.numericUpDownLat.Maximum = new decimal(new int[] {
-            90,
-            0,
-            0,
-            0});
-         this.numericUpDownLat.Minimum = new decimal(new int[] {
-            90,
-            0,
-            0,
-            -2147483648});
-         this.numericUpDownLat.Name = "numericUpDownLat";
-         this.numericUpDownLat.Size = new System.Drawing.Size(109, 20);
-         this.numericUpDownLat.TabIndex = 13;
+         numericUpDownLat.DecimalPlaces = 8;
+         numericUpDownLat.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+         numericUpDownLat.Location = new Point(258, 157);
+         numericUpDownLat.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownLat.Maximum = new decimal(new int[] { 90, 0, 0, 0 });
+         numericUpDownLat.Minimum = new decimal(new int[] { 90, 0, 0, int.MinValue });
+         numericUpDownLat.Name = "numericUpDownLat";
+         numericUpDownLat.Size = new Size(127, 23);
+         numericUpDownLat.TabIndex = 13;
          // 
          // numericUpDownLon
          // 
-         this.numericUpDownLon.DecimalPlaces = 8;
-         this.numericUpDownLon.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-         this.numericUpDownLon.Location = new System.Drawing.Point(15, 136);
-         this.numericUpDownLon.Maximum = new decimal(new int[] {
-            180,
-            0,
-            0,
-            0});
-         this.numericUpDownLon.Minimum = new decimal(new int[] {
-            180,
-            0,
-            0,
-            -2147483648});
-         this.numericUpDownLon.Name = "numericUpDownLon";
-         this.numericUpDownLon.Size = new System.Drawing.Size(109, 20);
-         this.numericUpDownLon.TabIndex = 11;
+         numericUpDownLon.DecimalPlaces = 8;
+         numericUpDownLon.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+         numericUpDownLon.Location = new Point(18, 157);
+         numericUpDownLon.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownLon.Maximum = new decimal(new int[] { 180, 0, 0, 0 });
+         numericUpDownLon.Minimum = new decimal(new int[] { 180, 0, 0, int.MinValue });
+         numericUpDownLon.Name = "numericUpDownLon";
+         numericUpDownLon.Size = new Size(127, 23);
+         numericUpDownLon.TabIndex = 11;
          // 
          // label4
          // 
-         this.label4.AutoSize = true;
-         this.label4.Location = new System.Drawing.Point(130, 138);
-         this.label4.Name = "label4";
-         this.label4.Size = new System.Drawing.Size(61, 13);
-         this.label4.TabIndex = 12;
-         this.label4.Text = "° Longitude";
+         label4.AutoSize = true;
+         label4.Location = new Point(152, 159);
+         label4.Margin = new Padding(4, 0, 4, 0);
+         label4.Name = "label4";
+         label4.Size = new Size(69, 15);
+         label4.TabIndex = 12;
+         label4.Text = "° Longitude";
          // 
          // label5
          // 
-         this.label5.AutoSize = true;
-         this.label5.Location = new System.Drawing.Point(336, 138);
-         this.label5.Name = "label5";
-         this.label5.Size = new System.Drawing.Size(52, 13);
-         this.label5.TabIndex = 14;
-         this.label5.Text = "° Latitude";
+         label5.AutoSize = true;
+         label5.Location = new Point(392, 159);
+         label5.Margin = new Padding(4, 0, 4, 0);
+         label5.Name = "label5";
+         label5.Size = new Size(58, 15);
+         label5.TabIndex = 14;
+         label5.Text = "° Latitude";
          // 
          // textBoxDescription
          // 
-         this.textBoxDescription.Location = new System.Drawing.Point(109, 32);
-         this.textBoxDescription.Name = "textBoxDescription";
-         this.textBoxDescription.Size = new System.Drawing.Size(279, 20);
-         this.textBoxDescription.TabIndex = 3;
+         textBoxDescription.Location = new Point(127, 37);
+         textBoxDescription.Margin = new Padding(4, 3, 4, 3);
+         textBoxDescription.Name = "textBoxDescription";
+         textBoxDescription.Size = new Size(325, 23);
+         textBoxDescription.TabIndex = 3;
          // 
          // textBoxComment
          // 
-         this.textBoxComment.Location = new System.Drawing.Point(109, 58);
-         this.textBoxComment.Name = "textBoxComment";
-         this.textBoxComment.Size = new System.Drawing.Size(279, 20);
-         this.textBoxComment.TabIndex = 5;
+         textBoxComment.Location = new Point(127, 67);
+         textBoxComment.Margin = new Padding(4, 3, 4, 3);
+         textBoxComment.Name = "textBoxComment";
+         textBoxComment.Size = new Size(325, 23);
+         textBoxComment.TabIndex = 5;
          // 
          // label6
          // 
-         this.label6.AutoSize = true;
-         this.label6.Location = new System.Drawing.Point(12, 35);
-         this.label6.Name = "label6";
-         this.label6.Size = new System.Drawing.Size(75, 13);
-         this.label6.TabIndex = 2;
-         this.label6.Text = "Beschreibung:";
+         label6.AutoSize = true;
+         label6.Location = new Point(14, 40);
+         label6.Margin = new Padding(4, 0, 4, 0);
+         label6.Name = "label6";
+         label6.Size = new Size(82, 15);
+         label6.TabIndex = 2;
+         label6.Text = "Beschreibung:";
          // 
          // label7
          // 
-         this.label7.AutoSize = true;
-         this.label7.Location = new System.Drawing.Point(12, 61);
-         this.label7.Name = "label7";
-         this.label7.Size = new System.Drawing.Size(63, 13);
-         this.label7.TabIndex = 4;
-         this.label7.Text = "Kommentar:";
+         label7.AutoSize = true;
+         label7.Location = new Point(14, 70);
+         label7.Margin = new Padding(4, 0, 4, 0);
+         label7.Name = "label7";
+         label7.Size = new Size(73, 15);
+         label7.TabIndex = 4;
+         label7.Text = "Kommentar:";
          // 
          // comboBox_Name
          // 
-         this.comboBox_Name.FormattingEnabled = true;
-         this.comboBox_Name.Location = new System.Drawing.Point(109, 6);
-         this.comboBox_Name.Name = "comboBox_Name";
-         this.comboBox_Name.Size = new System.Drawing.Size(279, 21);
-         this.comboBox_Name.TabIndex = 1;
+         comboBox_Name.FormattingEnabled = true;
+         comboBox_Name.Location = new Point(127, 7);
+         comboBox_Name.Margin = new Padding(4, 3, 4, 3);
+         comboBox_Name.Name = "comboBox_Name";
+         comboBox_Name.Size = new Size(325, 23);
+         comboBox_Name.TabIndex = 1;
          // 
          // button_Marker
          // 
-         this.button_Marker.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-         this.button_Marker.Location = new System.Drawing.Point(394, 6);
-         this.button_Marker.Name = "button_Marker";
-         this.button_Marker.Size = new System.Drawing.Size(63, 39);
-         this.button_Marker.TabIndex = 17;
-         this.button_Marker.Text = "Typ";
-         this.button_Marker.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-         this.button_Marker.UseVisualStyleBackColor = true;
-         this.button_Marker.Click += new System.EventHandler(this.button_Marker_Click);
+         button_Marker.ImageAlign = ContentAlignment.MiddleLeft;
+         button_Marker.Location = new Point(460, 7);
+         button_Marker.Margin = new Padding(4, 3, 4, 3);
+         button_Marker.Name = "button_Marker";
+         button_Marker.Size = new Size(74, 45);
+         button_Marker.TabIndex = 17;
+         button_Marker.Text = "Typ";
+         button_Marker.TextAlign = ContentAlignment.MiddleRight;
+         button_Marker.UseVisualStyleBackColor = true;
+         button_Marker.Click += button_Marker_Click;
          // 
          // FormMarkerEditing
          // 
-         this.AcceptButton = this.button_Save;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.CancelButton = this.button_Cancel;
-         this.ClientSize = new System.Drawing.Size(469, 230);
-         this.Controls.Add(this.button_Marker);
-         this.Controls.Add(this.comboBox_Name);
-         this.Controls.Add(this.label7);
-         this.Controls.Add(this.label6);
-         this.Controls.Add(this.textBoxComment);
-         this.Controls.Add(this.textBoxDescription);
-         this.Controls.Add(this.label5);
-         this.Controls.Add(this.label4);
-         this.Controls.Add(this.numericUpDownLon);
-         this.Controls.Add(this.numericUpDownLat);
-         this.Controls.Add(this.label3);
-         this.Controls.Add(this.checkBox_Height);
-         this.Controls.Add(this.button_Save);
-         this.Controls.Add(this.button_Cancel);
-         this.Controls.Add(this.label2);
-         this.Controls.Add(this.numericUpDownHeight);
-         this.Controls.Add(this.dateTimePickerDT);
-         this.Controls.Add(this.label1);
-         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-         this.MaximizeBox = false;
-         this.MinimizeBox = false;
-         this.Name = "FormMarkerEditing";
-         this.ShowIcon = false;
-         this.ShowInTaskbar = false;
-         this.Text = "Marker bearbeiten";
-         this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormExtMarkerEditing_FormClosing);
-         this.Load += new System.EventHandler(this.FormExtMarkerEditing_Load);
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownHeight)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLat)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLon)).EndInit();
-         this.ResumeLayout(false);
-         this.PerformLayout();
-
+         AcceptButton = button_Save;
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         CancelButton = button_Cancel;
+         ClientSize = new Size(547, 268);
+         Controls.Add(button_Marker);
+         Controls.Add(comboBox_Name);
+         Controls.Add(label7);
+         Controls.Add(label6);
+         Controls.Add(textBoxComment);
+         Controls.Add(textBoxDescription);
+         Controls.Add(label5);
+         Controls.Add(label4);
+         Controls.Add(numericUpDownLon);
+         Controls.Add(numericUpDownLat);
+         Controls.Add(label3);
+         Controls.Add(checkBox_Height);
+         Controls.Add(button_Save);
+         Controls.Add(button_Cancel);
+         Controls.Add(label2);
+         Controls.Add(numericUpDownHeight);
+         Controls.Add(dateTimePickerDT);
+         Controls.Add(label1);
+         FormBorderStyle = FormBorderStyle.FixedDialog;
+         Margin = new Padding(4, 3, 4, 3);
+         MaximizeBox = false;
+         MinimizeBox = false;
+         Name = "FormMarkerEditing";
+         ShowIcon = false;
+         ShowInTaskbar = false;
+         Text = "Marker bearbeiten";
+         FormClosing += FormMarkerEditing_FormClosing;
+         Load += FormMarkerEditing_Load;
+         ((System.ComponentModel.ISupportInitialize)numericUpDownHeight).EndInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownLat).EndInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownLon).EndInit();
+         ResumeLayout(false);
+         PerformLayout();
       }
 
-        #endregion
-        private System.Windows.Forms.Label label1;
+      #endregion
+      private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DateTimePicker dateTimePickerDT;
         private System.Windows.Forms.NumericUpDown numericUpDownHeight;
         private System.Windows.Forms.Label label2;

@@ -1,7 +1,4 @@
-﻿using System.IO;
-using System.Windows.Forms;
-
-namespace GpxViewer {
+﻿namespace GpxViewer {
 
    /// <summary>
    /// verschiedene Cursors für die Karte
@@ -34,6 +31,11 @@ namespace GpxViewer {
       public Cursor Split { get; }
 
       /// <summary>
+      /// Cursor für eine Remove-Auswahl
+      /// </summary>
+      public Cursor Remove { get; }
+
+      /// <summary>
       /// Cursor für eine Concat-Auswahl
       /// </summary>
       public Cursor Concat { get; }
@@ -46,10 +48,14 @@ namespace GpxViewer {
 
       public Cursors4Map(Cursor standard) {
          Std = standard;
+
+         //SetMarker = new Cursor(GetType(), "Images.CursorMarker.cur");
+
          SetMarker = new Cursor(new MemoryStream(Properties.Resources.CursorMarker));
          DrawTrack = new Cursor(new MemoryStream(Properties.Resources.CursorDrawTrack));
          Hand = new Cursor(new MemoryStream(Properties.Resources.CursorHand));
          Split = new Cursor(new MemoryStream(Properties.Resources.CursorSplit));
+         Remove = new Cursor(new MemoryStream(Properties.Resources.CursorRemove));
          Concat = new Cursor(new MemoryStream(Properties.Resources.CursorConcat));
          Foto = new Cursor(new MemoryStream(Properties.Resources.CursorFoto));
       }

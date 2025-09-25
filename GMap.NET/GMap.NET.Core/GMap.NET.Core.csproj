@@ -1,0 +1,79 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>GMap.NET.Core</PackageId>
+    <Product>GMap.NET.Core</Product>
+    <AssemblyTitle>GMap.NET.Core</AssemblyTitle>
+    <RootNamespace>GMap.NET</RootNamespace>
+    <!-- <TargetFrameworks>net46;net461;net462;net47;net471;net472;net48;net481;netstandard2.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1;net5.0;net6.0;net7.0</TargetFrameworks> -->
+    <!-- <TargetFrameworks>net8.0</TargetFrameworks> -->
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <PackageReleaseNotes>
+- New Provider OpenStreetMapGraphHopper
+- Fix OpenStreetMap GetRoute
+- .Net Framework 4.6, 4.7, 4.8 support added
+- .Net Core 3.1, 5.0, 6.0 support added
+
+History Release Notes
+https://github.com/judero01col/GMap.NET/blob/master/README.md#release-notes
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows7.0|AnyCPU'">
+    <DefineConstants>$(DefineConstants);FILECACHE;MONO_disabled;MySQL_disabled;PostgreSQL_disabled</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows7.0|AnyCPU'">
+    <DefineConstants>$(DefineConstants);FILECACHE;MONO_disabled;MySQL_disabled;PostgreSQL_disabled</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);FILECACHE;MONO_disabled;MySQL_disabled;PostgreSQL_disabled;USEHTTPCLIENT</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants);FILECACHE;MONO_disabled;MySQL_disabled;PostgreSQL_disabled;USEHTTPCLIENT</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="CacheProviders\MsSQLCePureImageCache.cs" />
+    <Compile Remove="CacheProviders\MSSQLPureImageCache.cs" />
+    <Compile Remove="CacheProviders\MySQLPureImageCache.cs" />
+    <Compile Remove="CacheProviders\SQLitePureImageCache.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="CacheProviders\SQLitePureImageCache.org" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="GeoAPI.CoordinateSystems" Version="1.7.5" />
+    <PackageReference Include="GeoAPI.Core" Version="1.7.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FSofTUtils\FSofTUtils.csproj" />
+    <ProjectReference Include="..\..\GarminImageCreator\GarminImageCreator.csproj" />
+  </ItemGroup>
+  <!--
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Data.SqlClient">
+      <Version>4.8.5</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Principal.Windows">
+      <Version>5.0.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  -->
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>

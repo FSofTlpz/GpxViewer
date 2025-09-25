@@ -30,8 +30,6 @@ diesem Programm erhalten haben. Falls nicht, siehe
 <http://www.gnu.org/licenses/>. 
 */
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 namespace GarminCore.Files.Typ {

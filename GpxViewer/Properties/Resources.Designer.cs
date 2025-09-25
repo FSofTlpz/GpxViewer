@@ -209,11 +209,21 @@ namespace GpxViewer.Properties {
                 return ((byte[])(obj));
             }
         }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap database_delete {
+
+      /// <summary>
+      ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
+      /// </summary>
+      internal static byte[] CursorRemove {
+         get {
+            object obj = ResourceManager.GetObject("CursorRemove", resourceCulture);
+            return ((byte[])(obj));
+         }
+      }
+
+      /// <summary>
+      ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+      /// </summary>
+      internal static System.Drawing.Bitmap database_delete {
             get {
                 object obj = ResourceManager.GetObject("database_delete", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -499,11 +509,18 @@ namespace GpxViewer.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap reload {
+
+      internal static System.Drawing.Bitmap props {
+         get {
+            object obj = ResourceManager.GetObject("props", resourceCulture);
+            return ((System.Drawing.Bitmap)(obj));
+         }
+      }
+
+      /// <summary>
+      ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+      /// </summary>
+      internal static System.Drawing.Bitmap reload {
             get {
                 object obj = ResourceManager.GetObject("reload", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
@@ -655,6 +672,16 @@ namespace GpxViewer.Properties {
         internal static System.Drawing.Bitmap TrackSimpl {
             get {
                 object obj = ResourceManager.GetObject("TrackSimpl", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap TrackPointRemove {
+            get {
+                object obj = ResourceManager.GetObject("TrackPointRemove", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
 
@@ -412,33 +413,39 @@ https://nominatim.openstreetmap.org/search?q=leipzig+schweizerbogen+18&format=xm
          OsmValue = osmvalue;
       }
 
-      public static new GeoCodingResultOsm[] Get(string name) {
-         GeoCodingResultOsm[] result = new GeoCodingResultOsm[0];
+      public static new async Task<GeoCodingResultOsm[]> GetAsync(string name, double timeout = 0) {
+         GeoCodingResultOsm[] result = Array.Empty<GeoCodingResultOsm>();
 
          if (!string.IsNullOrEmpty(name)) {
             string param = System.Net.WebUtility.UrlEncode(name.Trim());
 
 #if TESTDATA
+            System.Net.HttpStatusCode? status2 = System.Net.HttpStatusCode.OK;
             string httpResult = testxml;
 #else
-            string httpResult = httpGet(string.Format(osmformat, param));
+            (System.Net.HttpStatusCode? status, string httpResult) = await HttpHelper.GetStringAsync(string.Format(osmformat, param),
+                                                                                                     timeout);
 #endif
-            if (httpResult != null) {
+            if (status != null &&
+                status == System.Net.HttpStatusCode.OK &&
+                !string.IsNullOrEmpty(httpResult)) {
                XmlDocument xmldata = new XmlDocument();
                xmldata.LoadXml(httpResult);
 
-               XmlNamespaceManager NsMng = null;
-               XmlAttributeCollection attributeCollection = xmldata.DocumentElement.Attributes;
-               if (attributeCollection.Count > 0) {
-                  NsMng = new XmlNamespaceManager(xmldata.NameTable);
-                  //for (int i = 0; i < attributeCollection.Count; i++) {
-                  //   XmlAttribute attribute = attributeCollection[i];
-                  //   if (NsMng.LookupNamespace(attribute.LocalName) == null)
-                  //      NsMng.AddNamespace(attribute.LocalName, attribute.Value);
-                  //}
+               XmlNamespaceManager? NsMng = null;
+               if (xmldata.DocumentElement != null) {
+                  XmlAttributeCollection attributeCollection = xmldata.DocumentElement.Attributes;
+                  if (attributeCollection.Count > 0) {
+                     NsMng = new XmlNamespaceManager(xmldata.NameTable);
+                     //for (int i = 0; i < attributeCollection.Count; i++) {
+                     //   XmlAttribute attribute = attributeCollection[i];
+                     //   if (NsMng.LookupNamespace(attribute.LocalName) == null)
+                     //      NsMng.AddNamespace(attribute.LocalName, attribute.Value);
+                     //}
+                  }
                }
 
-               XPathNavigator navigator = xmldata.CreateNavigator();
+               XPathNavigator? navigator = xmldata.CreateNavigator();
 
                if (navigator != null && NsMng != null) {
                   /*
@@ -482,7 +489,7 @@ https://nominatim.openstreetmap.org/search?q=leipzig+schweizerbogen+18&format=xm
                   }
 
                }
-            }
+            } else throw new Exception("Error in " + nameof(GetAsync) + ":" + httpResult);
          }
          return result;
       }

@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using SpecialMapCtrl;
+﻿using SpecialMapCtrl;
+#if ANDROID
 using System.Drawing;
+#endif
 using System.Drawing.Drawing2D;
 using Gpx = FSofTUtils.Geography.PoorGpx;
+using MyDrawing = System.Drawing;
+using FSofTUtils.Geography.PoorGpx;
 
-#if Android
+#if ANDROID
 namespace TrackEddi.Common {
 #else
 namespace GpxViewer.Common {
@@ -20,9 +22,9 @@ namespace GpxViewer.Common {
       /// <param name="width"></param>
       /// <param name="height"></param>
       /// <param name="track"></param>
-      /// <param name="selectedidx"></param>
+      /// <param name="selectedidxlst"></param>
       /// <returns></returns>
-      public static Bitmap BuildImage4Track(int width, int height, Track track, IList<int> selectedidxlst) {
+      public static Bitmap BuildImage4Track(int width, int height, Track? track, IList<int> selectedidxlst) {
          Bitmap bm = new Bitmap(width, height);
 
          Dictionary<int, int> selectedidx = new Dictionary<int, int>();
@@ -31,17 +33,18 @@ namespace GpxViewer.Common {
          }
 
          if (track != null &&
+             track.GpxSegment != null &&
              track.GpxSegment.Points.Count > 1) {
             float length = (float)track.StatLength;
             float baseheight = (float)track.StatMinHeigth;
             float deltaheight = (float)(track.StatMaxHeigth - baseheight);
 
             if (deltaheight > 0) {
-               Color colDiagrBack = Color.FromArgb(220, 220, 220);
-               Color colLine = Color.Black;
-               Color colSelected = Color.OrangeRed;
-               Color colRaster = Color.FromArgb(180, 180, 180);
-               Brush brushText = new SolidBrush(Color.Black);
+               MyDrawing.Color colDiagrBack = MyDrawing.Color.FromArgb(220, 220, 220);
+               MyDrawing.Color colLine = MyDrawing.Color.Black;
+               MyDrawing.Color colSelected = MyDrawing.Color.OrangeRed;
+               MyDrawing.Color colRaster = MyDrawing.Color.FromArgb(180, 180, 180);
+               MyDrawing.Brush brushText = new SolidBrush(MyDrawing.Color.Black);
 
                // Diagrammfläche
                RectangleF rectDiagr = new RectangleF(0.1F * width,      // Koordinatenursprung
@@ -52,19 +55,20 @@ namespace GpxViewer.Common {
                Graphics canvas = Graphics.FromImage(bm);
                canvas.SmoothingMode = SmoothingMode.HighQuality;
                canvas.InterpolationMode = InterpolationMode.HighQualityBicubic;
-               canvas.Clear(Color.White);
+               canvas.Clear(MyDrawing.Color.White);
 
                //canvas.FillRectangle(new SolidBrush(colDiagrBack), rectDiagr);
-               canvas.FillRectangle(new LinearGradientBrush(new PointF(rectDiagr.Left, rectDiagr.Top),
-                                                            new PointF(rectDiagr.Left, rectDiagr.Bottom),
-                                                            Color.FromArgb(235, 235, 255),
-                                                            Color.FromArgb(20, 20, 255)),
+               canvas.FillRectangle(new MyDrawing.Drawing2D.LinearGradientBrush(
+                                                   new MyDrawing.PointF(rectDiagr.Left, rectDiagr.Top),
+                                                   new MyDrawing.PointF(rectDiagr.Left, rectDiagr.Bottom),
+                                                   MyDrawing.Color.FromArgb(235, 235, 255),
+                                                   MyDrawing.Color.FromArgb(20, 20, 255)),
                                     rectDiagr);
 
 
 
                // Raster zeichnen
-               Font font = new Font("Arial",
+               MyDrawing.Font font = new MyDrawing.Font("Arial",
                                     0.7F * (height - rectDiagr.Bottom),
                                     FontStyle.Regular,
                                     GraphicsUnit.Pixel);
@@ -95,7 +99,7 @@ namespace GpxViewer.Common {
                   canvas.DrawString(string.Format("{0:F0}m", rasterstart + i * rasterdelta),    // {0:F1}km
                                     font,
                                     brushText,
-                                    new PointF(rectDiagr.Left, y),
+                                    new MyDrawing.PointF(rectDiagr.Left, y),
                                     stringFormaty);
                }
 
@@ -110,7 +114,7 @@ namespace GpxViewer.Common {
                      canvas.DrawString(string.Format("{0}km", i * rasterdelta / 1000),    // {0:F1}km
                                        font,
                                        brushText,
-                                       new PointF(x, rectDiagr.Bottom + 0.1F * (height - rectDiagr.Bottom)),
+                                       new MyDrawing.PointF(x, rectDiagr.Bottom + 0.1F * (height - rectDiagr.Bottom)),
                                        stringFormatx);
                }
 
@@ -119,18 +123,19 @@ namespace GpxViewer.Common {
                // Daten einsammeln
                bool[] validPt = new bool[track.GpxSegment.Points.Count];
                bool[] selectedPt = new bool[track.GpxSegment.Points.Count];
-               List<PointF> ptContour = new List<PointF>();
+               List<MyDrawing.PointF> ptContour = new List<MyDrawing.PointF>();
                float startlength = 0;
                for (int i = 0; i < track.GpxSegment.Points.Count; i++) {
                   float endlength = startlength + (i > 0 ? (float)track.Length(i - 1, i) : 0);
 
                   float x = rectDiagr.Left + endlength / length * rectDiagr.Width;
-                  double h = track.GetGpxPoint(i).Elevation;       // double wegen PoorGpx.BaseElement.NOTVALID_DOUBLE
+                  GpxTrackPoint? tp = track.GetGpxPoint(i);
+                  double h = tp != null ? tp.Elevation : BaseElement.NOTVALID_DOUBLE;       // double wegen PoorGpx.BaseElement.NOTVALID_DOUBLE
                   if (h != Gpx.BaseElement.NOTVALID_DOUBLE) {
                      validPt[i] = true;
-                     ptContour.Add(new PointF(x, rectDiagr.Bottom - ((float)h - baseheight) / deltaheight * rectDiagr.Height));
+                     ptContour.Add(new MyDrawing.PointF(x, rectDiagr.Bottom - ((float)h - baseheight) / deltaheight * rectDiagr.Height));
                   } else
-                     ptContour.Add(new PointF(x, rectDiagr.Bottom));
+                     ptContour.Add(new MyDrawing.PointF(x, rectDiagr.Bottom));
 
                   startlength = endlength;
 
@@ -141,13 +146,14 @@ namespace GpxViewer.Common {
 
                // Contourfläche zeichnen
                if (ptContour.Count > 1) {
-                  ptContour.Add(new PointF(ptContour[ptContour.Count - 1].X, rectDiagr.Bottom));
-                  ptContour.Add(new PointF(ptContour[0].X, rectDiagr.Bottom));
+                  ptContour.Add(new MyDrawing.PointF(ptContour[ptContour.Count - 1].X, rectDiagr.Bottom));
+                  ptContour.Add(new MyDrawing.PointF(ptContour[0].X, rectDiagr.Bottom));
 
-                  LinearGradientBrush brushHeight = new LinearGradientBrush(new PointF(rectDiagr.Left, rectDiagr.Top),
-                                                                            new PointF(rectDiagr.Left, rectDiagr.Bottom),
-                                                                            Color.FromArgb(255, 20, 20),
-                                                                            Color.FromArgb(20, 255, 20));
+                  MyDrawing.Drawing2D.LinearGradientBrush brushHeight = new MyDrawing.Drawing2D.LinearGradientBrush(
+                                                                           new MyDrawing.PointF(rectDiagr.Left, rectDiagr.Top),
+                                                                           new MyDrawing.PointF(rectDiagr.Left, rectDiagr.Bottom),
+                                                                           MyDrawing.Color.FromArgb(255, 20, 20),
+                                                                           MyDrawing.Color.FromArgb(20, 255, 20));
                   canvas.FillPolygon(brushHeight, ptContour.ToArray());
                   brushHeight.Dispose();
 
@@ -157,7 +163,7 @@ namespace GpxViewer.Common {
                // Contour zeichnen
                Pen penstd = new Pen(colLine);
                Pen penselected = new Pen(colSelected);
-               Brush brushSeleted = new SolidBrush(colSelected);
+               MyDrawing.Brush brushSeleted = new MyDrawing.SolidBrush(colSelected);
                for (int i = 0; i < ptContour.Count; i++) {
                   if (i > 0) {
                      pen = selectedidx != null &&
@@ -232,6 +238,6 @@ namespace GpxViewer.Common {
       }
 
       #endregion
- 
+
    }
 }

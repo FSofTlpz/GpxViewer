@@ -18,11 +18,13 @@ namespace GarminCore.DskImg {
          Read(new BinaryReaderWriter(imgfile));
       }
 
-      public new BinaryReaderWriter GetBinaryReaderWriter4File(string filename) {
+      public new BinaryReaderWriter? GetBinaryReaderWriter4File(string filename) {
          int idx = FilenameIdx(filename);
-         if (idx >= 0) {
+         if (idx >= 0 &&
+             binreader != null &&
+             ImgHeader != null) {
             if (binreader.IsFixedLengthMemoryStream) {
-               BinaryReaderWriter br;
+               BinaryReaderWriter? br = null;
                // Test, ob die Datenblöcke alle der Reihe nach nacheinander folgen:
                bool safe = true;
                UInt16[] blocks = Files[idx].PseudoFileBlocks(); // Bockliste dieser Datei
@@ -34,19 +36,23 @@ namespace GarminCore.DskImg {
                }
 
                if (safe) { // KEINE Kopie der Daten nötig -> direkt aus dem Speicher lesen
-                  br = new BinaryReaderWriter(binreader.InMemoryData,
-                                              ImgHeader.FileBlockLength * (preblocks4read + blocks[0]),
-                                              (int)Files[idx].Filesize,
-                                              null,
-                                              false);
+                  if (binreader.InMemoryData != null)
+                     br = new BinaryReaderWriter(binreader.InMemoryData,
+                                                 ImgHeader.FileBlockLength * (preblocks4read + blocks[0]),
+                                                 (int)Files[idx].Filesize,
+                                                 null,
+                                                 false);
                } else { // Kopie der Dateidaten erzeugen
-                  br = new BinaryReaderWriter(getFiledata(Files[idx], binreader),
-                                              0,
-                                              (int)Files[idx].Filesize,
-                                              null,
-                                              false);
+                  byte[]? buff = getFiledata(Files[idx], binreader);
+                  if (buff != null)
+                     br = new BinaryReaderWriter(buff,
+                                                 0,
+                                                 (int)Files[idx].Filesize,
+                                                 null,
+                                                 false);
                }
-               br.XOR = ImgHeader.XOR;
+               if (br != null)
+                  br.XOR = ImgHeader.XOR;
                return br;
             }
          }

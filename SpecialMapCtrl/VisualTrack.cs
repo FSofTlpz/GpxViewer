@@ -3,11 +3,12 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using Gpx = FSofTUtils.Geography.PoorGpx;
 using System;
+using System.Diagnostics;
 #if GMAP4SKIA
-using GMap.NET.Skia;
+//using GMap.NET.Skia;
 using SkiaSharp;
 #else
-using GMap.NET.WindowsForms;
+//using GMap.NET.WindowsForms;
 #endif
 
 namespace SpecialMapCtrl {
@@ -15,7 +16,7 @@ namespace SpecialMapCtrl {
    /// <summary>
    /// Erweiterung der <see cref="GMap.NET.WindowsForms.GMapRoute"/> um Gpx-Daten und grafische Daten
    /// </summary>
-   public class VisualTrack : GMapTrack {
+   public class VisualTrack : MapTrack {
 
       class PenWithDef {
          public readonly float Width;
@@ -73,24 +74,28 @@ namespace SpecialMapCtrl {
          /// </summary>
          Standard5,
          /// <summary>
-         /// markiert
-         /// </summary>
-         Marked,
-         /// <summary>
-         /// editierbar
+         /// z.B. für "editierbarer Track"
          /// </summary>
          Editable,
          /// <summary>
-         /// im Edit-Modus
+         /// z.B. für "markiert/hervorgehoben"
+         /// </summary>
+         Marked,
+         /// <summary>
+         /// z.B. für "markiert für Bearbeitung"
+         /// </summary>
+         Marked4Edit,
+         /// <summary>
+         /// z.B. für "im Edit-Modus" (mit spez. Punktdarstellung)
          /// </summary>
          InEdit,
          /// <summary>
-         /// Teil
+         /// z.B. für "Teil eines Tracks" (mit spez. Punktdarstellung)
          /// </summary>
          SelectedPart,
 
          /// <summary>
-         /// wird gerade aufgezeichnet
+         /// z.B. für "wird gerade aufgezeichnet"
          /// </summary>
          LiveDraw,
 
@@ -117,9 +122,7 @@ namespace SpecialMapCtrl {
       /// Standardfarbe (bei <see cref="VisualStyle.Standard"/>)
       /// </summary>
       public static Color StandardColor {
-         get {
-            return predefPen[VisualStyle.Standard].Color;
-         }
+         get => predefPen[VisualStyle.Standard].Color;
          set {
             VisualStyle vs = VisualStyle.Standard;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -130,9 +133,7 @@ namespace SpecialMapCtrl {
       /// Standardfarbe 2 (bei <see cref="VisualStyle.Standard2"/>)
       /// </summary>
       public static Color StandardColor2 {
-         get {
-            return predefPen[VisualStyle.Standard2].Color;
-         }
+         get => predefPen[VisualStyle.Standard2].Color;
          set {
             VisualStyle vs = VisualStyle.Standard2;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -143,9 +144,7 @@ namespace SpecialMapCtrl {
       /// Standardfarbe 3 (bei <see cref="VisualStyle.Standard3"/>)
       /// </summary>
       public static Color StandardColor3 {
-         get {
-            return predefPen[VisualStyle.Standard3].Color;
-         }
+         get => predefPen[VisualStyle.Standard3].Color;
          set {
             VisualStyle vs = VisualStyle.Standard3;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -156,9 +155,7 @@ namespace SpecialMapCtrl {
       /// Standardfarbe 4 (bei <see cref="VisualStyle.Standard4"/>)
       /// </summary>
       public static Color StandardColor4 {
-         get {
-            return predefPen[VisualStyle.Standard4].Color;
-         }
+         get => predefPen[VisualStyle.Standard4].Color;
          set {
             VisualStyle vs = VisualStyle.Standard4;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -169,9 +166,7 @@ namespace SpecialMapCtrl {
       /// Standardfarbe 5 (bei <see cref="VisualStyle.Standard5"/>)
       /// </summary>
       public static Color StandardColor5 {
-         get {
-            return predefPen[VisualStyle.Standard5].Color;
-         }
+         get => predefPen[VisualStyle.Standard5].Color;
          set {
             VisualStyle vs = VisualStyle.Standard5;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -182,9 +177,7 @@ namespace SpecialMapCtrl {
       /// Standardbreite (bei <see cref="VisualStyle.Standard"/>)
       /// </summary>
       public static float StandardWidth {
-         get {
-            return predefPen[VisualStyle.Standard].Width;
-         }
+         get => predefPen[VisualStyle.Standard].Width;
          set {
             VisualStyle vs = VisualStyle.Standard;
             predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
@@ -195,9 +188,7 @@ namespace SpecialMapCtrl {
       /// Markierungsfarbe (bei <see cref="VisualStyle.Marked"/>)
       /// </summary>
       public static Color MarkedColor {
-         get {
-            return predefPen[VisualStyle.Marked].Color;
-         }
+         get => predefPen[VisualStyle.Marked].Color;
          set {
             VisualStyle vs = VisualStyle.Marked;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -208,9 +199,7 @@ namespace SpecialMapCtrl {
       /// Markierungsbreite (bei <see cref="VisualStyle.Marked"/>)
       /// </summary>
       public static float MarkedWidth {
-         get {
-            return predefPen[VisualStyle.Marked].Width;
-         }
+         get => predefPen[VisualStyle.Marked].Width;
          set {
             VisualStyle vs = VisualStyle.Marked;
             predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
@@ -221,9 +210,7 @@ namespace SpecialMapCtrl {
       /// Editierfarbe (bei <see cref="VisualStyle.Editable"/>)
       /// </summary>
       public static Color EditableColor {
-         get {
-            return predefPen[VisualStyle.Editable].Color;
-         }
+         get => predefPen[VisualStyle.Editable].Color;
          set {
             VisualStyle vs = VisualStyle.Editable;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -234,11 +221,31 @@ namespace SpecialMapCtrl {
       /// Editierbreite (bei <see cref="VisualStyle.Editable"/>)
       /// </summary>
       public static float EditableWidth {
-         get {
-            return predefPen[VisualStyle.Editable].Width;
-         }
+         get => predefPen[VisualStyle.Editable].Width;
          set {
             VisualStyle vs = VisualStyle.Editable;
+            predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
+         }
+      }
+
+      /// <summary>
+      /// Editierfarbe (bei <see cref="VisualStyle.Marked4Edit"/>)
+      /// </summary>
+      public static Color Marked4EditColor {
+         get => predefPen[VisualStyle.Marked4Edit].Color;
+         set {
+            VisualStyle vs = VisualStyle.Marked4Edit;
+            predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
+         }
+      }
+
+      /// <summary>
+      /// Editierbreite (bei <see cref="VisualStyle.Marked4Edit"/>)
+      /// </summary>
+      public static float Marked4EditWidth {
+         get => predefPen[VisualStyle.Marked4Edit].Width;
+         set {
+            VisualStyle vs = VisualStyle.Marked4Edit;
             predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
          }
       }
@@ -247,9 +254,7 @@ namespace SpecialMapCtrl {
       /// Editierfarbe (bei <see cref="VisualStyle.InEdit"/>)
       /// </summary>
       public static Color InEditableColor {
-         get {
-            return predefPen[VisualStyle.InEdit].Color;
-         }
+         get => predefPen[VisualStyle.InEdit].Color;
          set {
             VisualStyle vs = VisualStyle.InEdit;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -260,9 +265,7 @@ namespace SpecialMapCtrl {
       /// Editierbreite (bei <see cref="VisualStyle.InEdit"/>)
       /// </summary>
       public static float InEditableWidth {
-         get {
-            return predefPen[VisualStyle.InEdit].Width;
-         }
+         get => predefPen[VisualStyle.InEdit].Width;
          set {
             VisualStyle vs = VisualStyle.InEdit;
             predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
@@ -273,9 +276,7 @@ namespace SpecialMapCtrl {
       /// Farbe (bei <see cref="VisualStyle.SelectedPart"/>)
       /// </summary>
       public static Color SelectedPartColor {
-         get {
-            return predefPen[VisualStyle.SelectedPart].Color;
-         }
+         get => predefPen[VisualStyle.SelectedPart].Color;
          set {
             VisualStyle vs = VisualStyle.SelectedPart;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -286,9 +287,7 @@ namespace SpecialMapCtrl {
       /// Breite (bei <see cref="VisualStyle.SelectedPart"/>)
       /// </summary>
       public static float SelectedPartWidth {
-         get {
-            return predefPen[VisualStyle.SelectedPart].Width;
-         }
+         get => predefPen[VisualStyle.SelectedPart].Width;
          set {
             VisualStyle vs = VisualStyle.SelectedPart;
             predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
@@ -299,9 +298,7 @@ namespace SpecialMapCtrl {
       /// Farbe für Aufzeichnung (bei <see cref="VisualStyle.LiveDraw"/>)
       /// </summary>
       public static Color LiveDrawColor {
-         get {
-            return predefPen[VisualStyle.LiveDraw].Color;
-         }
+         get => predefPen[VisualStyle.LiveDraw].Color;
          set {
             VisualStyle vs = VisualStyle.LiveDraw;
             predefPen[vs] = new PenWithDef(value, predefPen[vs].Width, predefPen[vs].IsSimple);
@@ -312,9 +309,7 @@ namespace SpecialMapCtrl {
       /// Breite für Aufzeichnung (bei <see cref="VisualStyle.LiveDraw"/>)
       /// </summary>
       public static float LiveDrawWidth {
-         get {
-            return predefPen[VisualStyle.LiveDraw].Width;
-         }
+         get => predefPen[VisualStyle.LiveDraw].Width;
          set {
             VisualStyle vs = VisualStyle.LiveDraw;
             predefPen[vs] = new PenWithDef(predefPen[vs].Color, value, predefPen[vs].IsSimple);
@@ -388,7 +383,7 @@ namespace SpecialMapCtrl {
       /// <summary>
       /// Gpx-Daten
       /// </summary>
-      public Track RealTrack { get; private set; } = null;
+      public Track? RealTrack { get; private set; } = null;
 
       /// <summary>
       /// akt. Darstellung
@@ -447,6 +442,7 @@ namespace SpecialMapCtrl {
             { VisualStyle.Marked,       new PenWithDef(Color.FromArgb(255, Color.Cyan), 3.0F, false) },
             // Standard-Pen für editierbare Tracks
             { VisualStyle.Editable,     new PenWithDef(Color.FromArgb(100, Color.Black), 3.0F, false) },
+            { VisualStyle.Marked4Edit,  new PenWithDef(Color.FromArgb(120, Color.OrangeRed), 4.0F, false) },
             // Standard-Pen für gerade editierten Track
             { VisualStyle.InEdit,       new PenWithDef(Color.FromArgb(120, Color.OrangeRed), 4.0F, false) },
             // Standard-Pen für einen Teil-Track
@@ -479,7 +475,7 @@ namespace SpecialMapCtrl {
       public VisualTrack(Track track,
                          string name,
                          VisualStyle style = VisualStyle.Standard) :
-         base(convertPoints(track.GpxSegment.Points), name) {
+         base(convertPoints(track.GpxSegment != null ? track.GpxSegment.Points : null), name) {
          RealTrack = track;
          init(style);
       }
@@ -497,14 +493,13 @@ namespace SpecialMapCtrl {
                          string name,
                          Color coltrack,
                          double widthtrack,
-                         VisualStyle style = VisualStyle.Standard) :
-         base(convertPoints(track.GpxSegment.Points), name) {
+                         VisualStyle style = VisualStyle.Standard) : this(track, name, style) {
          RealTrack = track;
          init(style);
          // nur falls der Style änderbar ist, werden Farbe und Breite übernommen
-         if (style == VisualStyle.Standard ||
-             style == VisualStyle.Editable)
+         if (IsChangeableStyle(style))
             SetVisualStyle(coltrack, widthtrack);
+         //Debug.WriteLine("### NEW " + ToString() + " " + (Overlay != null ? Overlay.Id : "null"));
       }
 
       void init(VisualStyle style) {
@@ -518,12 +513,25 @@ namespace SpecialMapCtrl {
       }
 
       /// <summary>
+      /// Ist die Farbe/Linienbreite für diesen Stil änderbar?
+      /// </summary>
+      /// <param name="style"></param>
+      /// <returns></returns>
+      public static bool IsChangeableStyle(VisualStyle style) => style == VisualStyle.Standard ||
+                                                                 style == VisualStyle.Standard2 ||
+                                                                 style == VisualStyle.Standard3 ||
+                                                                 style == VisualStyle.Standard4 ||
+                                                                 style == VisualStyle.Standard5 ||
+                                                                 style == VisualStyle.Editable;
+
+      /// <summary>
       /// erzeugt die Liste der Anstiege
       /// </summary>
       void calculateSlope() {
          segmentSlope.Clear();
-         for (int i = 1; i < RealTrack.GpxSegment.Points.Count; i++)
-            segmentSlope.Add((int)Math.Round(getSlope(RealTrack.GpxSegment.Points[i - 1], RealTrack.GpxSegment.Points[i])));
+         if (RealTrack != null && RealTrack.GpxSegment != null)
+            for (int i = 1; i < RealTrack.GpxSegment.Points.Count; i++)
+               segmentSlope.Add((int)Math.Round(getSlope(RealTrack.GpxSegment.Points[i - 1], RealTrack.GpxSegment.Points[i])));
       }
 
       /// <summary>
@@ -569,6 +577,23 @@ namespace SpecialMapCtrl {
       }
 
       /// <summary>
+      /// konvertiert die Daten eines <see cref="Gpx.GpxTrackPoint"/>-Liste in eine <see cref="GMap.NET.PointLatLng"/>-Liste
+      /// </summary>
+      /// <param name="segment"></param>
+      /// <returns></returns>
+      static GMap.NET.PointLatLng[] convertPoints(Gpx.ListTS<Gpx.GpxTrackPoint>? gpxptlst) {
+         if (gpxptlst != null) {
+            GMap.NET.PointLatLng[] gmappt = new GMap.NET.PointLatLng[gpxptlst.Count];
+            for (int i = 0; i < gpxptlst.Count; i++) {
+               gmappt[i].Lat = gpxptlst[i].Lat;
+               gmappt[i].Lng = gpxptlst[i].Lon;
+            }
+            return gmappt;
+         }
+         return new GMap.NET.PointLatLng[0];
+      }
+
+      /// <summary>
       /// Stil setzen
       /// </summary>
       /// <param name="style"></param>
@@ -588,7 +613,7 @@ namespace SpecialMapCtrl {
       /// <param name="width"></param>
       public void SetVisualStyle(Color col, double width) {
          if (width >= 0) {
-            if (Stroke.Color != col ||
+            if (Stroke.Color.ToArgb() != col.ToArgb() ||
                 Stroke.Width != (float)width) {
                if (!actualPenIsPredefined())
                   Stroke.Dispose();
@@ -626,7 +651,7 @@ namespace SpecialMapCtrl {
             float penwidth = 2;
             SlopePens.Clear();
             for (int i = 0; i < cols.Count && i < percent.Count; i++)
-               SlopePens.Add((percent[i], 
+               SlopePens.Add((percent[i],
                               new Pen(cols[i], penwidth) { StartCap = LineCap.Round, EndCap = LineCap.Round }));
          }
       }
@@ -721,7 +746,7 @@ namespace SpecialMapCtrl {
 
       void drawArrow(Graphics graphics,
                      Color fillcolor,
-                     Pen pen,
+                     Pen? pen,
                      float basewidth,
                      float fromX, float fromY,
                      float endX, float endY) {

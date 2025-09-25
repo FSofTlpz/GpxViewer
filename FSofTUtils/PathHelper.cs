@@ -15,7 +15,8 @@ namespace FSofTUtils {
       static public string ReplaceEnvironmentVars(string path) {
          if (path.Contains("%"))
             foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
-               path = path.Replace("%" + de.Key + "%", de.Value.ToString());
+               if (de.Value != null)
+                  path = path.Replace("%" + de.Key + "%", de.Value.ToString());
          return path;
       }
 
@@ -33,20 +34,25 @@ namespace FSofTUtils {
          //    LOCALAPPDATA=C:\Users\puf\AppData\Local
          //    USERPROFILE=C:\Users\puf
          bool unix = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX;
-         string varname = "";
+         string varname = string.Empty;
          int contentlength = 0;
          foreach (DictionaryEntry de in Environment.GetEnvironmentVariables()) {
-            string content = de.Value.ToString();
-            if (pathStartWithText(path, content) &&
+            string? content = de.Value?.ToString();
+            if (content != null &&
+                pathStartWithText(path, content) &&
                 contentlength < content.Length &&
                 ((path.Length == content.Length) ||
                  (path[content.Length] == Path.DirectorySeparatorChar))) {
-               varname = de.Key.ToString();
+#pragma warning disable CS8600 // Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Non-Nullable-Typ konvertiert.
+               varname = Convert.ToString(de.Key);
+#pragma warning restore CS8600 // Das NULL-Literal oder ein möglicher NULL-Wert wird in einen Non-Nullable-Typ konvertiert.
                contentlength = content.Length;
             }
          }
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
          if (varname.Length > 0)
             path = "%" + varname + "%" + path.Substring(contentlength);
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
          return path;
       }
 
@@ -57,7 +63,8 @@ namespace FSofTUtils {
       /// <param name="varname"></param>
       /// <returns></returns>
       static public string UseEnvironmentVar4Path(string path, string varname) {
-         string content = Environment.GetEnvironmentVariable(varname);
+         string? content = Environment.GetEnvironmentVariable(varname);
+#pragma warning disable CS8602 // Dereferenzierung eines möglichen Nullverweises.
          if (!string.IsNullOrEmpty(content) &&
              content.Length <= path.Length &&
              pathStartWithText(path, content) &&
@@ -68,6 +75,7 @@ namespace FSofTUtils {
                 (!unix && path.Substring(0, content.Length).ToLower() == content.ToLower()))
                path = "%" + varname + "%" + path.Substring(content.Length);
          }
+#pragma warning restore CS8602 // Dereferenzierung eines möglichen Nullverweises.
          return path;
       }
 
@@ -105,13 +113,14 @@ namespace FSofTUtils {
       /// <param name="absdirectoryorfile"></param>
       /// <returns></returns>
       static public string GetFullPathAppliedDirectory(string relpath, string absdirectoryorfile) {
+         string? path = File.Exists(absdirectoryorfile) ?
+                              Path.GetDirectoryName(absdirectoryorfile) :
+                              absdirectoryorfile;
          return Path.IsPathRooted(relpath) ||
                 !Path.IsPathRooted(absdirectoryorfile) ?
                      relpath :
-                     Path.GetFullPath(Path.Combine(File.Exists(absdirectoryorfile) ?
-                                                         Path.GetDirectoryName(absdirectoryorfile) :
-                                                         absdirectoryorfile,
-                                                   relpath));
+                     path != null ? Path.GetFullPath(Path.Combine(path, relpath)) :
+                     relpath;
       }
 
       /// <summary>
@@ -125,8 +134,9 @@ namespace FSofTUtils {
          bool bCaseSensitive = System.Environment.OSVersion.Platform == PlatformID.Unix;
          string sPath = Path.IsPathRooted(sAbsOrRelPath) ? sAbsOrRelPath : Path.GetFullPath(sAbsOrRelPath);
          string sFile = Path.IsPathRooted(sAbsOrRelFile) ? sAbsOrRelFile : Path.GetFullPath(sAbsOrRelFile);
-         string sDestRoot = Path.GetPathRoot(sPath);
-         if (string.Compare(Path.GetPathRoot(sFile), sDestRoot, !bCaseSensitive) == 0) {        // Ist die Root gleich?
+         string? sDestRoot = Path.GetPathRoot(sPath);
+         if (sDestRoot != null &&
+             string.Compare(Path.GetPathRoot(sFile), sDestRoot, !bCaseSensitive) == 0) {        // Ist die Root gleich?
             string[] sDestElements = sPath.Substring(sDestRoot.Length).Split(Path.DirectorySeparatorChar);
             string[] sFileElements = sFile.Substring(sDestRoot.Length).Split(Path.DirectorySeparatorChar);
             // Beginnend mit der obersten Verzeichnisebene werden alle Ebenen auf Gleichheit verglichen.

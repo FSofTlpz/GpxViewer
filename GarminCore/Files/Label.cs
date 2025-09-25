@@ -63,7 +63,7 @@ namespace GarminCore.Files {
       public static Label NULL_LABEL = new Label("");
       public static Label NULL_OUT_LABEL = new Label(new char[0]);
 
-      public string Text { get; private set; }
+      public string? Text { get; private set; }
 
       public int Offset { get; set; }
 
@@ -74,7 +74,7 @@ namespace GarminCore.Files {
          }
       }
 
-      public static String stripGarminCodes(String s) {
+      public static string? stripGarminCodes(String s) {
          if (s == null)
             return null;
          s = SHIELDS.Replace(s, "");         // remove
@@ -84,7 +84,7 @@ namespace GarminCore.Files {
          return s.Trim();
       }
 
-      public static String squashSpaces(String s) {
+      public static string? squashSpaces(String s) {
          if (string.IsNullOrEmpty(s))
             return null;
          return SQUASH_SPACES.Replace(s, " "); // replace with single space
@@ -93,7 +93,7 @@ namespace GarminCore.Files {
       /// <summary>
       /// Unicode-Text
       /// </summary>
-      char[] encText;
+      char[]? encText;
 
       // highway shields and "thin" separators
       static Regex SHIELDS = new Regex("[\u0001-\u0006\u001b-\u001c]");

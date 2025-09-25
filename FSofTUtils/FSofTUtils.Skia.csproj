@@ -1,13 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;GMAP4SKIA</DefineConstants>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="Properties\**" />
     <Compile Remove="Resource\**" />
@@ -16,9 +14,29 @@
     <None Remove="Properties\**" />
     <None Remove="Resource\**" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.660" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.6" />
+    <PackageReference Include="ProjNET4GeoAPI" Version="1.4.1" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.6" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Win2Skia\Win2Skia.csproj" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Folder Include="Threading\" />
+  </ItemGroup>
 </Project>

@@ -7,7 +7,7 @@ namespace GarminCore {
       /// <summary>
       /// Koordinaten der Punkte
       /// </summary>
-      public PointF[] Points { get; protected set; }
+      public PointF[]? Points { get; protected set; }
 
       public Bound Bound { get; protected set; }
 
@@ -15,23 +15,23 @@ namespace GarminCore {
 
 
       public GeoPoly(int type,
-                     string txt,
-                     IList<PointF> pt,
+                     string? txt,
+                     IList<PointF>? pt,
                      double boundleft,
                      double boundright,
                      double boundbottom,
                      double boundtop,
                      bool directionindicator,
                      bool ptcopy = false) : base(type, txt) {
-         Points = new PointF[pt.Count];
+         Points = new PointF[pt != null ? pt.Count : 0];
          if (ptcopy) {
-            for (int i = 0; i < pt.Count; i++) {
-               Points[i] = new PointF(pt[i].X, pt[i].Y);
-            }
+            if (pt != null)
+               for (int i = 0; i < pt.Count; i++)
+                  Points[i] = new PointF(pt[i].X, pt[i].Y);
          } else {
-            for (int i = 0; i < pt.Count; i++) {
-               Points[i] = pt[i];
-            }
+            if (pt != null)
+               for (int i = 0; i < pt.Count; i++)
+                  Points[i] = pt[i];
          }
          Bound = new Bound(boundleft, boundright, boundbottom, boundtop);
 
@@ -46,7 +46,7 @@ namespace GarminCore {
       }
 
       public override string ToString() {
-         return string.Format("{0}, points {1}", base.ToString(), Points.Length);
+         return string.Format("{0}, points {1}", base.ToString(), Points != null ? Points.Length : 0);
       }
 
       bool _isdisposed = false;

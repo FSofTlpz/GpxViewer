@@ -23,603 +23,765 @@
       /// the contents of this method with the code editor.
       /// </summary>
       private void InitializeComponent() {
-         this.label1 = new System.Windows.Forms.Label();
-         this.label2 = new System.Windows.Forms.Label();
-         this.label3 = new System.Windows.Forms.Label();
-         this.numericUpDownMinZoom = new System.Windows.Forms.NumericUpDown();
-         this.numericUpDownMaxZoom = new System.Windows.Forms.NumericUpDown();
-         this.label4 = new System.Windows.Forms.Label();
-         this.textBoxMapName = new System.Windows.Forms.TextBox();
-         this.numericUpDownZoom4Display = new System.Windows.Forms.NumericUpDown();
-         this.label5 = new System.Windows.Forms.Label();
-         this.comboBoxProvider = new System.Windows.Forms.ComboBox();
-         this.label6 = new System.Windows.Forms.Label();
-         this.textBoxKmzFile = new System.Windows.Forms.TextBox();
-         this.buttonOpenKmzFile = new System.Windows.Forms.Button();
-         this.groupBoxGarminKMZ = new System.Windows.Forms.GroupBox();
-         this.groupBoxGarmin = new System.Windows.Forms.GroupBox();
-         this.numericUpDownLineFactor = new System.Windows.Forms.NumericUpDown();
-         this.label11 = new System.Windows.Forms.Label();
-         this.numericUpDownSymbolFactor = new System.Windows.Forms.NumericUpDown();
-         this.label10 = new System.Windows.Forms.Label();
-         this.numericUpDownTextFactor = new System.Windows.Forms.NumericUpDown();
-         this.label9 = new System.Windows.Forms.Label();
-         this.label8 = new System.Windows.Forms.Label();
-         this.buttonOpenTypFile = new System.Windows.Forms.Button();
-         this.textBoxTypFile = new System.Windows.Forms.TextBox();
-         this.label7 = new System.Windows.Forms.Label();
-         this.buttonOpenTdbFile = new System.Windows.Forms.Button();
-         this.textBoxTdbFile = new System.Windows.Forms.TextBox();
-         this.groupBoxWMS = new System.Windows.Forms.GroupBox();
-         this.comboBoxPictureFormat = new System.Windows.Forms.ComboBox();
-         this.label17 = new System.Windows.Forms.Label();
-         this.textBoxExtendedParams = new System.Windows.Forms.TextBox();
-         this.label15 = new System.Windows.Forms.Label();
-         this.textBoxLayer = new System.Windows.Forms.TextBox();
-         this.label14 = new System.Windows.Forms.Label();
-         this.label13 = new System.Windows.Forms.Label();
-         this.textBoxSRS = new System.Windows.Forms.TextBox();
-         this.label12 = new System.Windows.Forms.Label();
-         this.textBoxVersion = new System.Windows.Forms.TextBox();
-         this.label16 = new System.Windows.Forms.Label();
-         this.textBoxUrl = new System.Windows.Forms.TextBox();
-         this.buttonSave = new System.Windows.Forms.Button();
-         this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
-         this.label18 = new System.Windows.Forms.Label();
-         this.checkBoxHillShading = new System.Windows.Forms.CheckBox();
-         this.label19 = new System.Windows.Forms.Label();
-         this.numericUpDownHillShadingAlpha = new System.Windows.Forms.NumericUpDown();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMinZoom)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxZoom)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZoom4Display)).BeginInit();
-         this.groupBoxGarminKMZ.SuspendLayout();
-         this.groupBoxGarmin.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLineFactor)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSymbolFactor)).BeginInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTextFactor)).BeginInit();
-         this.groupBoxWMS.SuspendLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownHillShadingAlpha)).BeginInit();
-         this.SuspendLayout();
+         label1 = new Label();
+         label2 = new Label();
+         numericUpDownMinZoom = new NumericUpDown();
+         numericUpDownMaxZoom = new NumericUpDown();
+         label4 = new Label();
+         textBoxMapName = new TextBox();
+         label5 = new Label();
+         comboBoxProvider = new ComboBox();
+         label6 = new Label();
+         textBoxKmzFile = new TextBox();
+         buttonOpenKmzFile = new Button();
+         groupBoxGarminKMZ = new GroupBox();
+         groupBoxGarmin = new GroupBox();
+         numericUpDownLineFactor = new NumericUpDown();
+         label11 = new Label();
+         numericUpDownSymbolFactor = new NumericUpDown();
+         label10 = new Label();
+         numericUpDownTextFactor = new NumericUpDown();
+         label9 = new Label();
+         label8 = new Label();
+         buttonOpenTypFile = new Button();
+         textBoxTypFile = new TextBox();
+         label7 = new Label();
+         buttonOpenTdbFile = new Button();
+         textBoxTdbFile = new TextBox();
+         groupBoxWMS = new GroupBox();
+         comboBoxPictureFormat = new ComboBox();
+         label17 = new Label();
+         textBoxExtendedParams = new TextBox();
+         label15 = new Label();
+         textBoxLayer = new TextBox();
+         label14 = new Label();
+         label13 = new Label();
+         textBoxSRS = new TextBox();
+         label12 = new Label();
+         textBoxVersion = new TextBox();
+         label16 = new Label();
+         textBoxUrl = new TextBox();
+         buttonSave = new Button();
+         openFileDialog1 = new OpenFileDialog();
+         label18 = new Label();
+         checkBoxHillShading = new CheckBox();
+         label19 = new Label();
+         numericUpDownHillShadingAlpha = new NumericUpDown();
+         groupBoxMulti = new GroupBox();
+         buttonMultiMapAdd = new Button();
+         buttonMultiMapDelete = new Button();
+         buttonMultiMapDown = new Button();
+         buttonMultiMapUp = new Button();
+         listBoxMaps = new ListBox();
+         groupBox1 = new GroupBox();
+         tabControlExtended = new TabControl();
+         tabPageKmz = new TabPage();
+         tabPageGarmin = new TabPage();
+         tabPageWMS = new TabPage();
+         tabPageMulti = new TabPage();
+         tabPageEmpty = new TabPage();
+         buttonCancel = new Button();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownMinZoom).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownMaxZoom).BeginInit();
+         groupBoxGarminKMZ.SuspendLayout();
+         groupBoxGarmin.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownLineFactor).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownSymbolFactor).BeginInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownTextFactor).BeginInit();
+         groupBoxWMS.SuspendLayout();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownHillShadingAlpha).BeginInit();
+         groupBoxMulti.SuspendLayout();
+         groupBox1.SuspendLayout();
+         tabControlExtended.SuspendLayout();
+         tabPageKmz.SuspendLayout();
+         tabPageGarmin.SuspendLayout();
+         tabPageWMS.SuspendLayout();
+         tabPageMulti.SuspendLayout();
+         SuspendLayout();
          // 
          // label1
          // 
-         this.label1.AutoSize = true;
-         this.label1.Location = new System.Drawing.Point(12, 36);
-         this.label1.Name = "label1";
-         this.label1.Size = new System.Drawing.Size(67, 13);
-         this.label1.TabIndex = 2;
-         this.label1.Text = "Kartenname:";
+         label1.AutoSize = true;
+         label1.Location = new Point(7, 51);
+         label1.Margin = new Padding(4, 0, 4, 0);
+         label1.Name = "label1";
+         label1.Size = new Size(74, 15);
+         label1.TabIndex = 2;
+         label1.Text = "Kartenname:";
          // 
          // label2
          // 
-         this.label2.AutoSize = true;
-         this.label2.Location = new System.Drawing.Point(11, 61);
-         this.label2.Name = "label2";
-         this.label2.Size = new System.Drawing.Size(92, 13);
-         this.label2.TabIndex = 4;
-         this.label2.Text = "Zoom von .. bis ..:";
-         // 
-         // label3
-         // 
-         this.label3.AutoSize = true;
-         this.label3.Location = new System.Drawing.Point(12, 87);
-         this.label3.Name = "label3";
-         this.label3.Size = new System.Drawing.Size(109, 13);
-         this.label3.TabIndex = 8;
-         this.label3.Text = "Zoom für das Display:";
+         label2.AutoSize = true;
+         label2.Location = new Point(6, 79);
+         label2.Margin = new Padding(4, 0, 4, 0);
+         label2.Name = "label2";
+         label2.Size = new Size(104, 15);
+         label2.TabIndex = 4;
+         label2.Text = "Zoom von .. bis .. :";
          // 
          // numericUpDownMinZoom
          // 
-         this.numericUpDownMinZoom.Location = new System.Drawing.Point(173, 59);
-         this.numericUpDownMinZoom.Maximum = new decimal(new int[] {
-            24,
-            0,
-            0,
-            0});
-         this.numericUpDownMinZoom.Name = "numericUpDownMinZoom";
-         this.numericUpDownMinZoom.Size = new System.Drawing.Size(55, 20);
-         this.numericUpDownMinZoom.TabIndex = 5;
+         numericUpDownMinZoom.Location = new Point(195, 77);
+         numericUpDownMinZoom.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownMinZoom.Maximum = new decimal(new int[] { 24, 0, 0, 0 });
+         numericUpDownMinZoom.Name = "numericUpDownMinZoom";
+         numericUpDownMinZoom.Size = new Size(64, 23);
+         numericUpDownMinZoom.TabIndex = 5;
          // 
          // numericUpDownMaxZoom
          // 
-         this.numericUpDownMaxZoom.Location = new System.Drawing.Point(275, 59);
-         this.numericUpDownMaxZoom.Maximum = new decimal(new int[] {
-            24,
-            0,
-            0,
-            0});
-         this.numericUpDownMaxZoom.Name = "numericUpDownMaxZoom";
-         this.numericUpDownMaxZoom.Size = new System.Drawing.Size(55, 20);
-         this.numericUpDownMaxZoom.TabIndex = 7;
+         numericUpDownMaxZoom.Location = new Point(314, 77);
+         numericUpDownMaxZoom.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownMaxZoom.Maximum = new decimal(new int[] { 24, 0, 0, 0 });
+         numericUpDownMaxZoom.Name = "numericUpDownMaxZoom";
+         numericUpDownMaxZoom.Size = new Size(64, 23);
+         numericUpDownMaxZoom.TabIndex = 7;
          // 
          // label4
          // 
-         this.label4.AutoSize = true;
-         this.label4.Location = new System.Drawing.Point(245, 61);
-         this.label4.Name = "label4";
-         this.label4.Size = new System.Drawing.Size(13, 13);
-         this.label4.TabIndex = 6;
-         this.label4.Text = "..";
+         label4.AutoSize = true;
+         label4.Location = new Point(279, 79);
+         label4.Margin = new Padding(4, 0, 4, 0);
+         label4.Name = "label4";
+         label4.Size = new Size(13, 15);
+         label4.TabIndex = 6;
+         label4.Text = "..";
          // 
          // textBoxMapName
          // 
-         this.textBoxMapName.Location = new System.Drawing.Point(173, 33);
-         this.textBoxMapName.Name = "textBoxMapName";
-         this.textBoxMapName.ReadOnly = true;
-         this.textBoxMapName.Size = new System.Drawing.Size(352, 20);
-         this.textBoxMapName.TabIndex = 3;
-         // 
-         // numericUpDownZoom4Display
-         // 
-         this.numericUpDownZoom4Display.DecimalPlaces = 2;
-         this.numericUpDownZoom4Display.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-         this.numericUpDownZoom4Display.Location = new System.Drawing.Point(173, 85);
-         this.numericUpDownZoom4Display.Maximum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-         this.numericUpDownZoom4Display.Name = "numericUpDownZoom4Display";
-         this.numericUpDownZoom4Display.Size = new System.Drawing.Size(55, 20);
-         this.numericUpDownZoom4Display.TabIndex = 9;
+         textBoxMapName.Location = new Point(195, 47);
+         textBoxMapName.Margin = new Padding(4, 3, 4, 3);
+         textBoxMapName.Name = "textBoxMapName";
+         textBoxMapName.Size = new Size(410, 23);
+         textBoxMapName.TabIndex = 3;
          // 
          // label5
          // 
-         this.label5.AutoSize = true;
-         this.label5.Location = new System.Drawing.Point(12, 9);
-         this.label5.Name = "label5";
-         this.label5.Size = new System.Drawing.Size(49, 13);
-         this.label5.TabIndex = 0;
-         this.label5.Text = "Provider:";
+         label5.AutoSize = true;
+         label5.Location = new Point(7, 19);
+         label5.Margin = new Padding(4, 0, 4, 0);
+         label5.Name = "label5";
+         label5.Size = new Size(54, 15);
+         label5.TabIndex = 0;
+         label5.Text = "Provider:";
          // 
          // comboBoxProvider
          // 
-         this.comboBoxProvider.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-         this.comboBoxProvider.Enabled = false;
-         this.comboBoxProvider.FormattingEnabled = true;
-         this.comboBoxProvider.Location = new System.Drawing.Point(173, 6);
-         this.comboBoxProvider.Name = "comboBoxProvider";
-         this.comboBoxProvider.Size = new System.Drawing.Size(171, 21);
-         this.comboBoxProvider.TabIndex = 1;
-         this.comboBoxProvider.SelectedIndexChanged += new System.EventHandler(this.comboBoxProvider_SelectedIndexChanged);
+         comboBoxProvider.DropDownStyle = ComboBoxStyle.DropDownList;
+         comboBoxProvider.Enabled = false;
+         comboBoxProvider.FormattingEnabled = true;
+         comboBoxProvider.Location = new Point(195, 16);
+         comboBoxProvider.Margin = new Padding(4, 3, 4, 3);
+         comboBoxProvider.Name = "comboBoxProvider";
+         comboBoxProvider.Size = new Size(199, 23);
+         comboBoxProvider.TabIndex = 1;
+         comboBoxProvider.SelectedIndexChanged += comboBoxProvider_SelectedIndexChanged;
          // 
          // label6
          // 
-         this.label6.AutoSize = true;
-         this.label6.Location = new System.Drawing.Point(10, 27);
-         this.label6.Name = "label6";
-         this.label6.Size = new System.Drawing.Size(61, 13);
-         this.label6.TabIndex = 0;
-         this.label6.Text = "KMZ-Datei:";
+         label6.AutoSize = true;
+         label6.Location = new Point(12, 31);
+         label6.Margin = new Padding(4, 0, 4, 0);
+         label6.Name = "label6";
+         label6.Size = new Size(67, 15);
+         label6.TabIndex = 0;
+         label6.Text = "KMZ-Datei:";
          // 
          // textBoxKmzFile
          // 
-         this.textBoxKmzFile.Location = new System.Drawing.Point(159, 24);
-         this.textBoxKmzFile.Name = "textBoxKmzFile";
-         this.textBoxKmzFile.ReadOnly = true;
-         this.textBoxKmzFile.Size = new System.Drawing.Size(307, 20);
-         this.textBoxKmzFile.TabIndex = 1;
+         textBoxKmzFile.Location = new Point(186, 28);
+         textBoxKmzFile.Margin = new Padding(4, 3, 4, 3);
+         textBoxKmzFile.Name = "textBoxKmzFile";
+         textBoxKmzFile.ReadOnly = true;
+         textBoxKmzFile.Size = new Size(358, 23);
+         textBoxKmzFile.TabIndex = 1;
          // 
          // buttonOpenKmzFile
          // 
-         this.buttonOpenKmzFile.Image = global::GpxViewer.Properties.Resources.Open;
-         this.buttonOpenKmzFile.Location = new System.Drawing.Point(472, 22);
-         this.buttonOpenKmzFile.Name = "buttonOpenKmzFile";
-         this.buttonOpenKmzFile.Size = new System.Drawing.Size(33, 23);
-         this.buttonOpenKmzFile.TabIndex = 2;
-         this.buttonOpenKmzFile.UseVisualStyleBackColor = true;
-         this.buttonOpenKmzFile.Click += new System.EventHandler(this.buttonOpenKmzFile_Click);
+         buttonOpenKmzFile.Image = Properties.Resources.Open;
+         buttonOpenKmzFile.Location = new Point(551, 25);
+         buttonOpenKmzFile.Margin = new Padding(4, 3, 4, 3);
+         buttonOpenKmzFile.Name = "buttonOpenKmzFile";
+         buttonOpenKmzFile.Size = new Size(38, 27);
+         buttonOpenKmzFile.TabIndex = 2;
+         buttonOpenKmzFile.UseVisualStyleBackColor = true;
+         buttonOpenKmzFile.Click += buttonOpenKmzFile_Click;
          // 
          // groupBoxGarminKMZ
          // 
-         this.groupBoxGarminKMZ.Controls.Add(this.label6);
-         this.groupBoxGarminKMZ.Controls.Add(this.buttonOpenKmzFile);
-         this.groupBoxGarminKMZ.Controls.Add(this.textBoxKmzFile);
-         this.groupBoxGarminKMZ.Enabled = false;
-         this.groupBoxGarminKMZ.Location = new System.Drawing.Point(12, 169);
-         this.groupBoxGarminKMZ.Name = "groupBoxGarminKMZ";
-         this.groupBoxGarminKMZ.Size = new System.Drawing.Size(511, 67);
-         this.groupBoxGarminKMZ.TabIndex = 14;
-         this.groupBoxGarminKMZ.TabStop = false;
-         this.groupBoxGarminKMZ.Text = "Garmin-KMZ";
+         groupBoxGarminKMZ.Controls.Add(label6);
+         groupBoxGarminKMZ.Controls.Add(buttonOpenKmzFile);
+         groupBoxGarminKMZ.Controls.Add(textBoxKmzFile);
+         groupBoxGarminKMZ.Location = new Point(5, 6);
+         groupBoxGarminKMZ.Margin = new Padding(4, 3, 4, 3);
+         groupBoxGarminKMZ.Name = "groupBoxGarminKMZ";
+         groupBoxGarminKMZ.Padding = new Padding(4, 3, 4, 3);
+         groupBoxGarminKMZ.Size = new Size(598, 77);
+         groupBoxGarminKMZ.TabIndex = 14;
+         groupBoxGarminKMZ.TabStop = false;
+         groupBoxGarminKMZ.Text = "Garmin-KMZ";
          // 
          // groupBoxGarmin
          // 
-         this.groupBoxGarmin.Controls.Add(this.numericUpDownLineFactor);
-         this.groupBoxGarmin.Controls.Add(this.label11);
-         this.groupBoxGarmin.Controls.Add(this.numericUpDownSymbolFactor);
-         this.groupBoxGarmin.Controls.Add(this.label10);
-         this.groupBoxGarmin.Controls.Add(this.numericUpDownTextFactor);
-         this.groupBoxGarmin.Controls.Add(this.label9);
-         this.groupBoxGarmin.Controls.Add(this.label8);
-         this.groupBoxGarmin.Controls.Add(this.buttonOpenTypFile);
-         this.groupBoxGarmin.Controls.Add(this.textBoxTypFile);
-         this.groupBoxGarmin.Controls.Add(this.label7);
-         this.groupBoxGarmin.Controls.Add(this.buttonOpenTdbFile);
-         this.groupBoxGarmin.Controls.Add(this.textBoxTdbFile);
-         this.groupBoxGarmin.Enabled = false;
-         this.groupBoxGarmin.Location = new System.Drawing.Point(12, 253);
-         this.groupBoxGarmin.Name = "groupBoxGarmin";
-         this.groupBoxGarmin.Size = new System.Drawing.Size(511, 166);
-         this.groupBoxGarmin.TabIndex = 15;
-         this.groupBoxGarmin.TabStop = false;
-         this.groupBoxGarmin.Text = "Garmin";
+         groupBoxGarmin.Controls.Add(numericUpDownLineFactor);
+         groupBoxGarmin.Controls.Add(label11);
+         groupBoxGarmin.Controls.Add(numericUpDownSymbolFactor);
+         groupBoxGarmin.Controls.Add(label10);
+         groupBoxGarmin.Controls.Add(numericUpDownTextFactor);
+         groupBoxGarmin.Controls.Add(label9);
+         groupBoxGarmin.Controls.Add(label8);
+         groupBoxGarmin.Controls.Add(buttonOpenTypFile);
+         groupBoxGarmin.Controls.Add(textBoxTypFile);
+         groupBoxGarmin.Controls.Add(label7);
+         groupBoxGarmin.Controls.Add(buttonOpenTdbFile);
+         groupBoxGarmin.Controls.Add(textBoxTdbFile);
+         groupBoxGarmin.Location = new Point(5, 6);
+         groupBoxGarmin.Margin = new Padding(4, 3, 4, 3);
+         groupBoxGarmin.Name = "groupBoxGarmin";
+         groupBoxGarmin.Padding = new Padding(4, 3, 4, 3);
+         groupBoxGarmin.Size = new Size(598, 192);
+         groupBoxGarmin.TabIndex = 15;
+         groupBoxGarmin.TabStop = false;
+         groupBoxGarmin.Text = "Garmin";
          // 
          // numericUpDownLineFactor
          // 
-         this.numericUpDownLineFactor.DecimalPlaces = 2;
-         this.numericUpDownLineFactor.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-         this.numericUpDownLineFactor.Location = new System.Drawing.Point(158, 128);
-         this.numericUpDownLineFactor.Maximum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-         this.numericUpDownLineFactor.Name = "numericUpDownLineFactor";
-         this.numericUpDownLineFactor.Size = new System.Drawing.Size(55, 20);
-         this.numericUpDownLineFactor.TabIndex = 11;
+         numericUpDownLineFactor.DecimalPlaces = 2;
+         numericUpDownLineFactor.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+         numericUpDownLineFactor.Location = new Point(184, 148);
+         numericUpDownLineFactor.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownLineFactor.Maximum = new decimal(new int[] { 4, 0, 0, 0 });
+         numericUpDownLineFactor.Name = "numericUpDownLineFactor";
+         numericUpDownLineFactor.Size = new Size(64, 23);
+         numericUpDownLineFactor.TabIndex = 11;
          // 
          // label11
          // 
-         this.label11.AutoSize = true;
-         this.label11.Location = new System.Drawing.Point(10, 130);
-         this.label11.Name = "label11";
-         this.label11.Size = new System.Drawing.Size(112, 13);
-         this.label11.TabIndex = 10;
-         this.label11.Text = "Faktor für Liniendicke:";
+         label11.AutoSize = true;
+         label11.Location = new Point(12, 150);
+         label11.Margin = new Padding(4, 0, 4, 0);
+         label11.Name = "label11";
+         label11.Size = new Size(124, 15);
+         label11.TabIndex = 10;
+         label11.Text = "Faktor für Liniendicke:";
          // 
          // numericUpDownSymbolFactor
          // 
-         this.numericUpDownSymbolFactor.DecimalPlaces = 2;
-         this.numericUpDownSymbolFactor.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-         this.numericUpDownSymbolFactor.Location = new System.Drawing.Point(158, 102);
-         this.numericUpDownSymbolFactor.Maximum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-         this.numericUpDownSymbolFactor.Name = "numericUpDownSymbolFactor";
-         this.numericUpDownSymbolFactor.Size = new System.Drawing.Size(55, 20);
-         this.numericUpDownSymbolFactor.TabIndex = 9;
+         numericUpDownSymbolFactor.DecimalPlaces = 2;
+         numericUpDownSymbolFactor.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+         numericUpDownSymbolFactor.Location = new Point(184, 118);
+         numericUpDownSymbolFactor.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownSymbolFactor.Maximum = new decimal(new int[] { 4, 0, 0, 0 });
+         numericUpDownSymbolFactor.Name = "numericUpDownSymbolFactor";
+         numericUpDownSymbolFactor.Size = new Size(64, 23);
+         numericUpDownSymbolFactor.TabIndex = 9;
          // 
          // label10
          // 
-         this.label10.AutoSize = true;
-         this.label10.Location = new System.Drawing.Point(10, 104);
-         this.label10.Name = "label10";
-         this.label10.Size = new System.Drawing.Size(118, 13);
-         this.label10.TabIndex = 8;
-         this.label10.Text = "Faktor für Markergröße:";
+         label10.AutoSize = true;
+         label10.Location = new Point(12, 120);
+         label10.Margin = new Padding(4, 0, 4, 0);
+         label10.Name = "label10";
+         label10.Size = new Size(132, 15);
+         label10.TabIndex = 8;
+         label10.Text = "Faktor für Markergröße:";
          // 
          // numericUpDownTextFactor
          // 
-         this.numericUpDownTextFactor.DecimalPlaces = 2;
-         this.numericUpDownTextFactor.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-         this.numericUpDownTextFactor.Location = new System.Drawing.Point(158, 76);
-         this.numericUpDownTextFactor.Maximum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-         this.numericUpDownTextFactor.Name = "numericUpDownTextFactor";
-         this.numericUpDownTextFactor.Size = new System.Drawing.Size(55, 20);
-         this.numericUpDownTextFactor.TabIndex = 7;
+         numericUpDownTextFactor.DecimalPlaces = 2;
+         numericUpDownTextFactor.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
+         numericUpDownTextFactor.Location = new Point(184, 88);
+         numericUpDownTextFactor.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownTextFactor.Maximum = new decimal(new int[] { 4, 0, 0, 0 });
+         numericUpDownTextFactor.Name = "numericUpDownTextFactor";
+         numericUpDownTextFactor.Size = new Size(64, 23);
+         numericUpDownTextFactor.TabIndex = 7;
          // 
          // label9
          // 
-         this.label9.AutoSize = true;
-         this.label9.Location = new System.Drawing.Point(10, 78);
-         this.label9.Name = "label9";
-         this.label9.Size = new System.Drawing.Size(106, 13);
-         this.label9.TabIndex = 6;
-         this.label9.Text = "Faktor für Textgröße:";
+         label9.AutoSize = true;
+         label9.Location = new Point(12, 90);
+         label9.Margin = new Padding(4, 0, 4, 0);
+         label9.Name = "label9";
+         label9.Size = new Size(116, 15);
+         label9.TabIndex = 6;
+         label9.Text = "Faktor für Textgröße:";
          // 
          // label8
          // 
-         this.label8.AutoSize = true;
-         this.label8.Location = new System.Drawing.Point(10, 53);
-         this.label8.Name = "label8";
-         this.label8.Size = new System.Drawing.Size(59, 13);
-         this.label8.TabIndex = 3;
-         this.label8.Text = "TYP-Datei:";
+         label8.AutoSize = true;
+         label8.Location = new Point(12, 61);
+         label8.Margin = new Padding(4, 0, 4, 0);
+         label8.Name = "label8";
+         label8.Size = new Size(63, 15);
+         label8.TabIndex = 3;
+         label8.Text = "TYP-Datei:";
          // 
          // buttonOpenTypFile
          // 
-         this.buttonOpenTypFile.Image = global::GpxViewer.Properties.Resources.Open;
-         this.buttonOpenTypFile.Location = new System.Drawing.Point(472, 48);
-         this.buttonOpenTypFile.Name = "buttonOpenTypFile";
-         this.buttonOpenTypFile.Size = new System.Drawing.Size(33, 23);
-         this.buttonOpenTypFile.TabIndex = 5;
-         this.buttonOpenTypFile.UseVisualStyleBackColor = true;
-         this.buttonOpenTypFile.Click += new System.EventHandler(this.buttonOpenTypFile_Click);
+         buttonOpenTypFile.Image = Properties.Resources.Open;
+         buttonOpenTypFile.Location = new Point(551, 55);
+         buttonOpenTypFile.Margin = new Padding(4, 3, 4, 3);
+         buttonOpenTypFile.Name = "buttonOpenTypFile";
+         buttonOpenTypFile.Size = new Size(38, 27);
+         buttonOpenTypFile.TabIndex = 5;
+         buttonOpenTypFile.UseVisualStyleBackColor = true;
+         buttonOpenTypFile.Click += buttonOpenTypFile_Click;
          // 
          // textBoxTypFile
          // 
-         this.textBoxTypFile.Location = new System.Drawing.Point(158, 50);
-         this.textBoxTypFile.Name = "textBoxTypFile";
-         this.textBoxTypFile.ReadOnly = true;
-         this.textBoxTypFile.Size = new System.Drawing.Size(307, 20);
-         this.textBoxTypFile.TabIndex = 4;
+         textBoxTypFile.Location = new Point(184, 58);
+         textBoxTypFile.Margin = new Padding(4, 3, 4, 3);
+         textBoxTypFile.Name = "textBoxTypFile";
+         textBoxTypFile.ReadOnly = true;
+         textBoxTypFile.Size = new Size(358, 23);
+         textBoxTypFile.TabIndex = 4;
          // 
          // label7
          // 
-         this.label7.AutoSize = true;
-         this.label7.Location = new System.Drawing.Point(10, 27);
-         this.label7.Name = "label7";
-         this.label7.Size = new System.Drawing.Size(60, 13);
-         this.label7.TabIndex = 0;
-         this.label7.Text = "TDB-Datei:";
+         label7.AutoSize = true;
+         label7.Location = new Point(12, 31);
+         label7.Margin = new Padding(4, 0, 4, 0);
+         label7.Name = "label7";
+         label7.Size = new Size(64, 15);
+         label7.TabIndex = 0;
+         label7.Text = "TDB-Datei:";
          // 
          // buttonOpenTdbFile
          // 
-         this.buttonOpenTdbFile.Image = global::GpxViewer.Properties.Resources.Open;
-         this.buttonOpenTdbFile.Location = new System.Drawing.Point(472, 22);
-         this.buttonOpenTdbFile.Name = "buttonOpenTdbFile";
-         this.buttonOpenTdbFile.Size = new System.Drawing.Size(33, 23);
-         this.buttonOpenTdbFile.TabIndex = 2;
-         this.buttonOpenTdbFile.UseVisualStyleBackColor = true;
-         this.buttonOpenTdbFile.Click += new System.EventHandler(this.buttonOpenTdbFile_Click);
+         buttonOpenTdbFile.Image = Properties.Resources.Open;
+         buttonOpenTdbFile.Location = new Point(551, 25);
+         buttonOpenTdbFile.Margin = new Padding(4, 3, 4, 3);
+         buttonOpenTdbFile.Name = "buttonOpenTdbFile";
+         buttonOpenTdbFile.Size = new Size(38, 27);
+         buttonOpenTdbFile.TabIndex = 2;
+         buttonOpenTdbFile.UseVisualStyleBackColor = true;
+         buttonOpenTdbFile.Click += buttonOpenTdbFile_Click;
          // 
          // textBoxTdbFile
          // 
-         this.textBoxTdbFile.Location = new System.Drawing.Point(159, 24);
-         this.textBoxTdbFile.Name = "textBoxTdbFile";
-         this.textBoxTdbFile.ReadOnly = true;
-         this.textBoxTdbFile.Size = new System.Drawing.Size(307, 20);
-         this.textBoxTdbFile.TabIndex = 1;
+         textBoxTdbFile.Location = new Point(186, 28);
+         textBoxTdbFile.Margin = new Padding(4, 3, 4, 3);
+         textBoxTdbFile.Name = "textBoxTdbFile";
+         textBoxTdbFile.ReadOnly = true;
+         textBoxTdbFile.Size = new Size(358, 23);
+         textBoxTdbFile.TabIndex = 1;
          // 
          // groupBoxWMS
          // 
-         this.groupBoxWMS.Controls.Add(this.comboBoxPictureFormat);
-         this.groupBoxWMS.Controls.Add(this.label17);
-         this.groupBoxWMS.Controls.Add(this.textBoxExtendedParams);
-         this.groupBoxWMS.Controls.Add(this.label15);
-         this.groupBoxWMS.Controls.Add(this.textBoxLayer);
-         this.groupBoxWMS.Controls.Add(this.label14);
-         this.groupBoxWMS.Controls.Add(this.label13);
-         this.groupBoxWMS.Controls.Add(this.textBoxSRS);
-         this.groupBoxWMS.Controls.Add(this.label12);
-         this.groupBoxWMS.Controls.Add(this.textBoxVersion);
-         this.groupBoxWMS.Controls.Add(this.label16);
-         this.groupBoxWMS.Controls.Add(this.textBoxUrl);
-         this.groupBoxWMS.Enabled = false;
-         this.groupBoxWMS.Location = new System.Drawing.Point(12, 441);
-         this.groupBoxWMS.Name = "groupBoxWMS";
-         this.groupBoxWMS.Size = new System.Drawing.Size(511, 191);
-         this.groupBoxWMS.TabIndex = 16;
-         this.groupBoxWMS.TabStop = false;
-         this.groupBoxWMS.Text = "WMS (Web Map Service)";
+         groupBoxWMS.Controls.Add(comboBoxPictureFormat);
+         groupBoxWMS.Controls.Add(label17);
+         groupBoxWMS.Controls.Add(textBoxExtendedParams);
+         groupBoxWMS.Controls.Add(label15);
+         groupBoxWMS.Controls.Add(textBoxLayer);
+         groupBoxWMS.Controls.Add(label14);
+         groupBoxWMS.Controls.Add(label13);
+         groupBoxWMS.Controls.Add(textBoxSRS);
+         groupBoxWMS.Controls.Add(label12);
+         groupBoxWMS.Controls.Add(textBoxVersion);
+         groupBoxWMS.Controls.Add(label16);
+         groupBoxWMS.Controls.Add(textBoxUrl);
+         groupBoxWMS.Location = new Point(5, 6);
+         groupBoxWMS.Margin = new Padding(4, 3, 4, 3);
+         groupBoxWMS.Name = "groupBoxWMS";
+         groupBoxWMS.Padding = new Padding(4, 3, 4, 3);
+         groupBoxWMS.Size = new Size(598, 220);
+         groupBoxWMS.TabIndex = 16;
+         groupBoxWMS.TabStop = false;
+         groupBoxWMS.Text = "WMS (Web Map Service)";
          // 
          // comboBoxPictureFormat
          // 
-         this.comboBoxPictureFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-         this.comboBoxPictureFormat.Enabled = false;
-         this.comboBoxPictureFormat.FormattingEnabled = true;
-         this.comboBoxPictureFormat.Items.AddRange(new object[] {
-            "PNG",
-            "JPG"});
-         this.comboBoxPictureFormat.Location = new System.Drawing.Point(159, 102);
-         this.comboBoxPictureFormat.Name = "comboBoxPictureFormat";
-         this.comboBoxPictureFormat.Size = new System.Drawing.Size(109, 21);
-         this.comboBoxPictureFormat.TabIndex = 7;
+         comboBoxPictureFormat.DropDownStyle = ComboBoxStyle.DropDownList;
+         comboBoxPictureFormat.Enabled = false;
+         comboBoxPictureFormat.FormattingEnabled = true;
+         comboBoxPictureFormat.Items.AddRange(new object[] { "PNG", "JPG" });
+         comboBoxPictureFormat.Location = new Point(186, 118);
+         comboBoxPictureFormat.Margin = new Padding(4, 3, 4, 3);
+         comboBoxPictureFormat.Name = "comboBoxPictureFormat";
+         comboBoxPictureFormat.Size = new Size(126, 23);
+         comboBoxPictureFormat.TabIndex = 7;
          // 
          // label17
          // 
-         this.label17.AutoSize = true;
-         this.label17.Location = new System.Drawing.Point(9, 157);
-         this.label17.Name = "label17";
-         this.label17.Size = new System.Drawing.Size(95, 13);
-         this.label17.TabIndex = 10;
-         this.label17.Text = "weitere Parameter:";
+         label17.AutoSize = true;
+         label17.Location = new Point(10, 181);
+         label17.Margin = new Padding(4, 0, 4, 0);
+         label17.Name = "label17";
+         label17.Size = new Size(105, 15);
+         label17.TabIndex = 10;
+         label17.Text = "weitere Parameter:";
          // 
          // textBoxExtendedParams
          // 
-         this.textBoxExtendedParams.Location = new System.Drawing.Point(158, 154);
-         this.textBoxExtendedParams.Name = "textBoxExtendedParams";
-         this.textBoxExtendedParams.ReadOnly = true;
-         this.textBoxExtendedParams.Size = new System.Drawing.Size(346, 20);
-         this.textBoxExtendedParams.TabIndex = 11;
+         textBoxExtendedParams.Location = new Point(184, 178);
+         textBoxExtendedParams.Margin = new Padding(4, 3, 4, 3);
+         textBoxExtendedParams.Name = "textBoxExtendedParams";
+         textBoxExtendedParams.ReadOnly = true;
+         textBoxExtendedParams.Size = new Size(403, 23);
+         textBoxExtendedParams.TabIndex = 11;
          // 
          // label15
          // 
-         this.label15.AutoSize = true;
-         this.label15.Location = new System.Drawing.Point(9, 131);
-         this.label15.Name = "label15";
-         this.label15.Size = new System.Drawing.Size(36, 13);
-         this.label15.TabIndex = 8;
-         this.label15.Text = "Layer:";
+         label15.AutoSize = true;
+         label15.Location = new Point(10, 151);
+         label15.Margin = new Padding(4, 0, 4, 0);
+         label15.Name = "label15";
+         label15.Size = new Size(38, 15);
+         label15.TabIndex = 8;
+         label15.Text = "Layer:";
          // 
          // textBoxLayer
          // 
-         this.textBoxLayer.Location = new System.Drawing.Point(158, 128);
-         this.textBoxLayer.Name = "textBoxLayer";
-         this.textBoxLayer.ReadOnly = true;
-         this.textBoxLayer.Size = new System.Drawing.Size(346, 20);
-         this.textBoxLayer.TabIndex = 9;
+         textBoxLayer.Location = new Point(184, 148);
+         textBoxLayer.Margin = new Padding(4, 3, 4, 3);
+         textBoxLayer.Name = "textBoxLayer";
+         textBoxLayer.ReadOnly = true;
+         textBoxLayer.Size = new Size(403, 23);
+         textBoxLayer.TabIndex = 9;
          // 
          // label14
          // 
-         this.label14.AutoSize = true;
-         this.label14.Location = new System.Drawing.Point(9, 105);
-         this.label14.Name = "label14";
-         this.label14.Size = new System.Drawing.Size(56, 13);
-         this.label14.TabIndex = 6;
-         this.label14.Text = "Bildformat:";
+         label14.AutoSize = true;
+         label14.Location = new Point(10, 121);
+         label14.Margin = new Padding(4, 0, 4, 0);
+         label14.Name = "label14";
+         label14.Size = new Size(66, 15);
+         label14.TabIndex = 6;
+         label14.Text = "Bildformat:";
          // 
          // label13
          // 
-         this.label13.AutoSize = true;
-         this.label13.Location = new System.Drawing.Point(9, 79);
-         this.label13.Name = "label13";
-         this.label13.Size = new System.Drawing.Size(32, 13);
-         this.label13.TabIndex = 4;
-         this.label13.Text = "SRS:";
+         label13.AutoSize = true;
+         label13.Location = new Point(10, 91);
+         label13.Margin = new Padding(4, 0, 4, 0);
+         label13.Name = "label13";
+         label13.Size = new Size(29, 15);
+         label13.TabIndex = 4;
+         label13.Text = "SRS:";
          // 
          // textBoxSRS
          // 
-         this.textBoxSRS.Location = new System.Drawing.Point(158, 76);
-         this.textBoxSRS.Name = "textBoxSRS";
-         this.textBoxSRS.ReadOnly = true;
-         this.textBoxSRS.Size = new System.Drawing.Size(110, 20);
-         this.textBoxSRS.TabIndex = 5;
+         textBoxSRS.Location = new Point(184, 88);
+         textBoxSRS.Margin = new Padding(4, 3, 4, 3);
+         textBoxSRS.Name = "textBoxSRS";
+         textBoxSRS.ReadOnly = true;
+         textBoxSRS.Size = new Size(128, 23);
+         textBoxSRS.TabIndex = 5;
          // 
          // label12
          // 
-         this.label12.AutoSize = true;
-         this.label12.Location = new System.Drawing.Point(9, 53);
-         this.label12.Name = "label12";
-         this.label12.Size = new System.Drawing.Size(45, 13);
-         this.label12.TabIndex = 2;
-         this.label12.Text = "Version:";
+         label12.AutoSize = true;
+         label12.Location = new Point(10, 61);
+         label12.Margin = new Padding(4, 0, 4, 0);
+         label12.Name = "label12";
+         label12.Size = new Size(48, 15);
+         label12.TabIndex = 2;
+         label12.Text = "Version:";
          // 
          // textBoxVersion
          // 
-         this.textBoxVersion.Location = new System.Drawing.Point(158, 50);
-         this.textBoxVersion.Name = "textBoxVersion";
-         this.textBoxVersion.ReadOnly = true;
-         this.textBoxVersion.Size = new System.Drawing.Size(110, 20);
-         this.textBoxVersion.TabIndex = 3;
+         textBoxVersion.Location = new Point(184, 58);
+         textBoxVersion.Margin = new Padding(4, 3, 4, 3);
+         textBoxVersion.Name = "textBoxVersion";
+         textBoxVersion.ReadOnly = true;
+         textBoxVersion.Size = new Size(128, 23);
+         textBoxVersion.TabIndex = 3;
          // 
          // label16
          // 
-         this.label16.AutoSize = true;
-         this.label16.Location = new System.Drawing.Point(10, 27);
-         this.label16.Name = "label16";
-         this.label16.Size = new System.Drawing.Size(32, 13);
-         this.label16.TabIndex = 0;
-         this.label16.Text = "URL:";
+         label16.AutoSize = true;
+         label16.Location = new Point(12, 31);
+         label16.Margin = new Padding(4, 0, 4, 0);
+         label16.Name = "label16";
+         label16.Size = new Size(31, 15);
+         label16.TabIndex = 0;
+         label16.Text = "URL:";
          // 
          // textBoxUrl
          // 
-         this.textBoxUrl.Location = new System.Drawing.Point(159, 24);
-         this.textBoxUrl.Name = "textBoxUrl";
-         this.textBoxUrl.ReadOnly = true;
-         this.textBoxUrl.Size = new System.Drawing.Size(346, 20);
-         this.textBoxUrl.TabIndex = 1;
+         textBoxUrl.Location = new Point(184, 28);
+         textBoxUrl.Margin = new Padding(4, 3, 4, 3);
+         textBoxUrl.Name = "textBoxUrl";
+         textBoxUrl.ReadOnly = true;
+         textBoxUrl.Size = new Size(405, 23);
+         textBoxUrl.TabIndex = 1;
          // 
          // buttonSave
          // 
-         this.buttonSave.DialogResult = System.Windows.Forms.DialogResult.OK;
-         this.buttonSave.Location = new System.Drawing.Point(209, 651);
-         this.buttonSave.Name = "buttonSave";
-         this.buttonSave.Size = new System.Drawing.Size(106, 23);
-         this.buttonSave.TabIndex = 13;
-         this.buttonSave.Text = "speichern";
-         this.buttonSave.UseVisualStyleBackColor = true;
-         this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
+         buttonSave.DialogResult = DialogResult.OK;
+         buttonSave.Image = Properties.Resources.speichern;
+         buttonSave.ImageAlign = ContentAlignment.MiddleLeft;
+         buttonSave.Location = new Point(208, 504);
+         buttonSave.Margin = new Padding(4, 3, 4, 3);
+         buttonSave.Name = "buttonSave";
+         buttonSave.Size = new Size(96, 27);
+         buttonSave.TabIndex = 2;
+         buttonSave.Text = "speichern";
+         buttonSave.TextAlign = ContentAlignment.MiddleRight;
+         buttonSave.UseVisualStyleBackColor = true;
+         buttonSave.Click += buttonSave_Click;
          // 
          // openFileDialog1
          // 
-         this.openFileDialog1.FileName = "openFileDialog1";
+         openFileDialog1.FileName = "openFileDialog1";
          // 
          // label18
          // 
-         this.label18.AutoSize = true;
-         this.label18.Location = new System.Drawing.Point(11, 111);
-         this.label18.Name = "label18";
-         this.label18.Size = new System.Drawing.Size(61, 13);
-         this.label18.TabIndex = 10;
-         this.label18.Text = "Hillshading:";
+         label18.AutoSize = true;
+         label18.Location = new Point(7, 119);
+         label18.Margin = new Padding(4, 0, 4, 0);
+         label18.Name = "label18";
+         label18.Size = new Size(70, 15);
+         label18.TabIndex = 10;
+         label18.Text = "Hillshading:";
          // 
          // checkBoxHillShading
          // 
-         this.checkBoxHillShading.AutoSize = true;
-         this.checkBoxHillShading.Location = new System.Drawing.Point(173, 111);
-         this.checkBoxHillShading.Name = "checkBoxHillShading";
-         this.checkBoxHillShading.Size = new System.Drawing.Size(15, 14);
-         this.checkBoxHillShading.TabIndex = 11;
-         this.checkBoxHillShading.UseVisualStyleBackColor = true;
+         checkBoxHillShading.AutoSize = true;
+         checkBoxHillShading.Location = new Point(196, 119);
+         checkBoxHillShading.Margin = new Padding(4, 3, 4, 3);
+         checkBoxHillShading.Name = "checkBoxHillShading";
+         checkBoxHillShading.Size = new Size(15, 14);
+         checkBoxHillShading.TabIndex = 11;
+         checkBoxHillShading.UseVisualStyleBackColor = true;
          // 
          // label19
          // 
-         this.label19.AutoSize = true;
-         this.label19.Location = new System.Drawing.Point(12, 133);
-         this.label19.Name = "label19";
-         this.label19.Size = new System.Drawing.Size(87, 13);
-         this.label19.TabIndex = 12;
-         this.label19.Text = "Hillshadingalpha:";
+         label19.AutoSize = true;
+         label19.Location = new Point(8, 144);
+         label19.Margin = new Padding(4, 0, 4, 0);
+         label19.Name = "label19";
+         label19.Size = new Size(99, 15);
+         label19.TabIndex = 12;
+         label19.Text = "Hillshadingalpha:";
          // 
          // numericUpDownHillShadingAlpha
          // 
-         this.numericUpDownHillShadingAlpha.Location = new System.Drawing.Point(172, 131);
-         this.numericUpDownHillShadingAlpha.Maximum = new decimal(new int[] {
-            255,
-            0,
-            0,
-            0});
-         this.numericUpDownHillShadingAlpha.Name = "numericUpDownHillShadingAlpha";
-         this.numericUpDownHillShadingAlpha.Size = new System.Drawing.Size(55, 20);
-         this.numericUpDownHillShadingAlpha.TabIndex = 13;
-         this.numericUpDownHillShadingAlpha.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            0});
+         numericUpDownHillShadingAlpha.Location = new Point(195, 142);
+         numericUpDownHillShadingAlpha.Margin = new Padding(4, 3, 4, 3);
+         numericUpDownHillShadingAlpha.Maximum = new decimal(new int[] { 255, 0, 0, 0 });
+         numericUpDownHillShadingAlpha.Name = "numericUpDownHillShadingAlpha";
+         numericUpDownHillShadingAlpha.Size = new Size(64, 23);
+         numericUpDownHillShadingAlpha.TabIndex = 13;
+         numericUpDownHillShadingAlpha.Value = new decimal(new int[] { 100, 0, 0, 0 });
+         // 
+         // groupBoxMulti
+         // 
+         groupBoxMulti.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+         groupBoxMulti.Controls.Add(buttonMultiMapAdd);
+         groupBoxMulti.Controls.Add(buttonMultiMapDelete);
+         groupBoxMulti.Controls.Add(buttonMultiMapDown);
+         groupBoxMulti.Controls.Add(buttonMultiMapUp);
+         groupBoxMulti.Controls.Add(listBoxMaps);
+         groupBoxMulti.Location = new Point(5, 6);
+         groupBoxMulti.Name = "groupBoxMulti";
+         groupBoxMulti.Size = new Size(598, 150);
+         groupBoxMulti.TabIndex = 0;
+         groupBoxMulti.TabStop = false;
+         groupBoxMulti.Text = "Multilayer";
+         // 
+         // buttonMultiMapAdd
+         // 
+         buttonMultiMapAdd.Image = Properties.Resources.kopie;
+         buttonMultiMapAdd.ImageAlign = ContentAlignment.MiddleLeft;
+         buttonMultiMapAdd.Location = new Point(128, 109);
+         buttonMultiMapAdd.Margin = new Padding(4, 3, 4, 3);
+         buttonMultiMapAdd.Name = "buttonMultiMapAdd";
+         buttonMultiMapAdd.Size = new Size(124, 27);
+         buttonMultiMapAdd.TabIndex = 3;
+         buttonMultiMapAdd.Text = "Ebene anhängen";
+         buttonMultiMapAdd.TextAlign = ContentAlignment.MiddleRight;
+         buttonMultiMapAdd.UseVisualStyleBackColor = true;
+         buttonMultiMapAdd.Click += buttonMultiMapAdd_Click;
+         // 
+         // buttonMultiMapDelete
+         // 
+         buttonMultiMapDelete.Image = Properties.Resources.delete;
+         buttonMultiMapDelete.ImageAlign = ContentAlignment.MiddleLeft;
+         buttonMultiMapDelete.Location = new Point(341, 109);
+         buttonMultiMapDelete.Margin = new Padding(4, 3, 4, 3);
+         buttonMultiMapDelete.Name = "buttonMultiMapDelete";
+         buttonMultiMapDelete.Size = new Size(124, 27);
+         buttonMultiMapDelete.TabIndex = 4;
+         buttonMultiMapDelete.Text = "Ebene löschen";
+         buttonMultiMapDelete.TextAlign = ContentAlignment.MiddleRight;
+         buttonMultiMapDelete.UseVisualStyleBackColor = true;
+         buttonMultiMapDelete.Click += buttonMultiMapDelete_Click;
+         // 
+         // buttonMultiMapDown
+         // 
+         buttonMultiMapDown.Image = Properties.Resources.arrow_down;
+         buttonMultiMapDown.Location = new Point(548, 65);
+         buttonMultiMapDown.Name = "buttonMultiMapDown";
+         buttonMultiMapDown.Size = new Size(44, 27);
+         buttonMultiMapDown.TabIndex = 2;
+         buttonMultiMapDown.UseVisualStyleBackColor = true;
+         buttonMultiMapDown.Click += buttonMultiMapDown_Click;
+         // 
+         // buttonMultiMapUp
+         // 
+         buttonMultiMapUp.Image = Properties.Resources.arrow_up;
+         buttonMultiMapUp.Location = new Point(548, 22);
+         buttonMultiMapUp.Name = "buttonMultiMapUp";
+         buttonMultiMapUp.Size = new Size(44, 27);
+         buttonMultiMapUp.TabIndex = 1;
+         buttonMultiMapUp.UseVisualStyleBackColor = true;
+         buttonMultiMapUp.Click += buttonMultiMapUp_Click;
+         // 
+         // listBoxMaps
+         // 
+         listBoxMaps.FormattingEnabled = true;
+         listBoxMaps.IntegralHeight = false;
+         listBoxMaps.Location = new Point(10, 22);
+         listBoxMaps.Name = "listBoxMaps";
+         listBoxMaps.Size = new Size(532, 70);
+         listBoxMaps.TabIndex = 0;
+         listBoxMaps.SelectedIndexChanged += listBoxMaps_SelectedIndexChanged;
+         listBoxMaps.DoubleClick += listBoxMaps_DoubleClick;
+         // 
+         // groupBox1
+         // 
+         groupBox1.Controls.Add(label5);
+         groupBox1.Controls.Add(label1);
+         groupBox1.Controls.Add(numericUpDownHillShadingAlpha);
+         groupBox1.Controls.Add(label2);
+         groupBox1.Controls.Add(label19);
+         groupBox1.Controls.Add(checkBoxHillShading);
+         groupBox1.Controls.Add(numericUpDownMinZoom);
+         groupBox1.Controls.Add(numericUpDownMaxZoom);
+         groupBox1.Controls.Add(label18);
+         groupBox1.Controls.Add(label4);
+         groupBox1.Controls.Add(comboBoxProvider);
+         groupBox1.Controls.Add(textBoxMapName);
+         groupBox1.Location = new Point(5, 12);
+         groupBox1.Name = "groupBox1";
+         groupBox1.Size = new Size(617, 180);
+         groupBox1.TabIndex = 0;
+         groupBox1.TabStop = false;
+         groupBox1.Text = "allgemein";
+         // 
+         // tabControlExtended
+         // 
+         tabControlExtended.Controls.Add(tabPageKmz);
+         tabControlExtended.Controls.Add(tabPageGarmin);
+         tabControlExtended.Controls.Add(tabPageWMS);
+         tabControlExtended.Controls.Add(tabPageMulti);
+         tabControlExtended.Controls.Add(tabPageEmpty);
+         tabControlExtended.Location = new Point(5, 198);
+         tabControlExtended.Name = "tabControlExtended";
+         tabControlExtended.SelectedIndex = 0;
+         tabControlExtended.Size = new Size(617, 288);
+         tabControlExtended.TabIndex = 1;
+         tabControlExtended.Selecting += tabControlExtended_Selecting;
+         // 
+         // tabPageKmz
+         // 
+         tabPageKmz.Controls.Add(groupBoxGarminKMZ);
+         tabPageKmz.Location = new Point(4, 24);
+         tabPageKmz.Name = "tabPageKmz";
+         tabPageKmz.Padding = new Padding(3);
+         tabPageKmz.Size = new Size(609, 260);
+         tabPageKmz.TabIndex = 0;
+         tabPageKmz.Text = "KMZ";
+         tabPageKmz.UseVisualStyleBackColor = true;
+         // 
+         // tabPageGarmin
+         // 
+         tabPageGarmin.Controls.Add(groupBoxGarmin);
+         tabPageGarmin.Location = new Point(4, 24);
+         tabPageGarmin.Name = "tabPageGarmin";
+         tabPageGarmin.Padding = new Padding(3);
+         tabPageGarmin.Size = new Size(609, 233);
+         tabPageGarmin.TabIndex = 1;
+         tabPageGarmin.Text = "Garmin";
+         tabPageGarmin.UseVisualStyleBackColor = true;
+         // 
+         // tabPageWMS
+         // 
+         tabPageWMS.Controls.Add(groupBoxWMS);
+         tabPageWMS.Location = new Point(4, 24);
+         tabPageWMS.Name = "tabPageWMS";
+         tabPageWMS.Size = new Size(609, 233);
+         tabPageWMS.TabIndex = 2;
+         tabPageWMS.Text = "WMS";
+         tabPageWMS.UseVisualStyleBackColor = true;
+         // 
+         // tabPageMulti
+         // 
+         tabPageMulti.Controls.Add(groupBoxMulti);
+         tabPageMulti.Location = new Point(4, 24);
+         tabPageMulti.Name = "tabPageMulti";
+         tabPageMulti.Size = new Size(609, 233);
+         tabPageMulti.TabIndex = 3;
+         tabPageMulti.Text = "Multimap";
+         tabPageMulti.UseVisualStyleBackColor = true;
+         // 
+         // tabPageEmpty
+         // 
+         tabPageEmpty.Location = new Point(4, 24);
+         tabPageEmpty.Name = "tabPageEmpty";
+         tabPageEmpty.Size = new Size(609, 233);
+         tabPageEmpty.TabIndex = 4;
+         tabPageEmpty.Text = "-";
+         tabPageEmpty.UseVisualStyleBackColor = true;
+         // 
+         // buttonCancel
+         // 
+         buttonCancel.DialogResult = DialogResult.Cancel;
+         buttonCancel.Image = Properties.Resources.cancel;
+         buttonCancel.ImageAlign = ContentAlignment.MiddleLeft;
+         buttonCancel.Location = new Point(329, 504);
+         buttonCancel.Name = "buttonCancel";
+         buttonCancel.Size = new Size(97, 27);
+         buttonCancel.TabIndex = 3;
+         buttonCancel.Text = "abbrechen";
+         buttonCancel.TextAlign = ContentAlignment.MiddleRight;
+         buttonCancel.UseVisualStyleBackColor = true;
          // 
          // FormMapProviderDefinitionEdit
          // 
-         this.AcceptButton = this.buttonSave;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(538, 698);
-         this.Controls.Add(this.numericUpDownHillShadingAlpha);
-         this.Controls.Add(this.label19);
-         this.Controls.Add(this.checkBoxHillShading);
-         this.Controls.Add(this.buttonSave);
-         this.Controls.Add(this.label18);
-         this.Controls.Add(this.groupBoxWMS);
-         this.Controls.Add(this.groupBoxGarmin);
-         this.Controls.Add(this.groupBoxGarminKMZ);
-         this.Controls.Add(this.comboBoxProvider);
-         this.Controls.Add(this.label5);
-         this.Controls.Add(this.numericUpDownZoom4Display);
-         this.Controls.Add(this.textBoxMapName);
-         this.Controls.Add(this.label4);
-         this.Controls.Add(this.numericUpDownMaxZoom);
-         this.Controls.Add(this.numericUpDownMinZoom);
-         this.Controls.Add(this.label3);
-         this.Controls.Add(this.label2);
-         this.Controls.Add(this.label1);
-         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-         this.MaximizeBox = false;
-         this.MinimizeBox = false;
-         this.Name = "FormMapProviderDefinitionEdit";
-         this.ShowIcon = false;
-         this.ShowInTaskbar = false;
-         this.Text = "FormMapProviderEdit";
-         this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormMapProviderDefinitionEdit_FormClosing);
-         this.Load += new System.EventHandler(this.FormMapProviderDefinitionEdit_Load);
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMinZoom)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxZoom)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownZoom4Display)).EndInit();
-         this.groupBoxGarminKMZ.ResumeLayout(false);
-         this.groupBoxGarminKMZ.PerformLayout();
-         this.groupBoxGarmin.ResumeLayout(false);
-         this.groupBoxGarmin.PerformLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLineFactor)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSymbolFactor)).EndInit();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTextFactor)).EndInit();
-         this.groupBoxWMS.ResumeLayout(false);
-         this.groupBoxWMS.PerformLayout();
-         ((System.ComponentModel.ISupportInitialize)(this.numericUpDownHillShadingAlpha)).EndInit();
-         this.ResumeLayout(false);
-         this.PerformLayout();
+         AcceptButton = buttonSave;
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         CancelButton = buttonCancel;
+         ClientSize = new Size(630, 543);
+         ControlBox = false;
+         Controls.Add(buttonCancel);
+         Controls.Add(tabControlExtended);
+         Controls.Add(groupBox1);
+         Controls.Add(buttonSave);
+         FormBorderStyle = FormBorderStyle.FixedDialog;
+         Margin = new Padding(4, 3, 4, 3);
+         MaximizeBox = false;
+         MinimizeBox = false;
+         Name = "FormMapProviderDefinitionEdit";
+         ShowIcon = false;
+         ShowInTaskbar = false;
+         Text = "Kartendefinition";
+         FormClosing += FormMapProviderDefinitionEdit_FormClosing;
+         Load += FormMapProviderDefinitionEdit_Load;
+         ((System.ComponentModel.ISupportInitialize)numericUpDownMinZoom).EndInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownMaxZoom).EndInit();
+         groupBoxGarminKMZ.ResumeLayout(false);
+         groupBoxGarminKMZ.PerformLayout();
+         groupBoxGarmin.ResumeLayout(false);
+         groupBoxGarmin.PerformLayout();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownLineFactor).EndInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownSymbolFactor).EndInit();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownTextFactor).EndInit();
+         groupBoxWMS.ResumeLayout(false);
+         groupBoxWMS.PerformLayout();
+         ((System.ComponentModel.ISupportInitialize)numericUpDownHillShadingAlpha).EndInit();
+         groupBoxMulti.ResumeLayout(false);
+         groupBox1.ResumeLayout(false);
+         groupBox1.PerformLayout();
+         tabControlExtended.ResumeLayout(false);
+         tabPageKmz.ResumeLayout(false);
+         tabPageGarmin.ResumeLayout(false);
+         tabPageWMS.ResumeLayout(false);
+         tabPageMulti.ResumeLayout(false);
+         ResumeLayout(false);
 
       }
 
@@ -627,12 +789,10 @@
 
       private System.Windows.Forms.Label label1;
       private System.Windows.Forms.Label label2;
-      private System.Windows.Forms.Label label3;
       private System.Windows.Forms.NumericUpDown numericUpDownMinZoom;
       private System.Windows.Forms.NumericUpDown numericUpDownMaxZoom;
       private System.Windows.Forms.Label label4;
       private System.Windows.Forms.TextBox textBoxMapName;
-      private System.Windows.Forms.NumericUpDown numericUpDownZoom4Display;
       private System.Windows.Forms.Label label5;
       private System.Windows.Forms.ComboBox comboBoxProvider;
       private System.Windows.Forms.Label label6;
@@ -671,5 +831,19 @@
       private System.Windows.Forms.CheckBox checkBoxHillShading;
       private System.Windows.Forms.Label label19;
       private System.Windows.Forms.NumericUpDown numericUpDownHillShadingAlpha;
+      private GroupBox groupBoxMulti;
+      private ListBox listBoxMaps;
+      private Button buttonMultiMapAdd;
+      private Button buttonMultiMapDelete;
+      private Button buttonMultiMapDown;
+      private Button buttonMultiMapUp;
+      private GroupBox groupBox1;
+      private TabControl tabControlExtended;
+      private TabPage tabPageKmz;
+      private TabPage tabPageGarmin;
+      private TabPage tabPageWMS;
+      private TabPage tabPageMulti;
+      private TabPage tabPageEmpty;
+      private Button buttonCancel;
    }
 }

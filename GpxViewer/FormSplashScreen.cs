@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-
-namespace GpxViewer {
+﻿namespace GpxViewer {
    public partial class FormSplashScreen : Form {
 
 

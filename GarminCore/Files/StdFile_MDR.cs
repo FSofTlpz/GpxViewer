@@ -30,7 +30,6 @@ diesem Programm erhalten haben. Falls nicht, siehe
 <http://www.gnu.org/licenses/>. 
 */
 using System;
-using System.IO;
 
 namespace GarminCore.Files {
 
@@ -270,41 +269,41 @@ MDR32/33 StreetAddress Words Table
       public UInt16 SortId2;
       public byte[] Unknown_x1B = { 0x0E, 0 };
 
-      public DataBlockWithRecordsize Mdr1;
+      public DataBlockWithRecordsize? Mdr1;
       public byte[] Unknown_x27 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr2;
+      public DataBlockWithRecordsize? Mdr2;
       public byte[] Unknown_x35 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr3;
+      public DataBlockWithRecordsize? Mdr3;
       public byte[] Unknown_x43 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr4;
+      public DataBlockWithRecordsize? Mdr4;
       public byte[] Unknown_x51 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr5;
+      public DataBlockWithRecordsize? Mdr5;
       public byte[] Unknown_x5F = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr6;
+      public DataBlockWithRecordsize? Mdr6;
       public byte[] Unknown_x6D = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr7;
+      public DataBlockWithRecordsize? Mdr7;
       public byte[] Unknown_x7B = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr8;
+      public DataBlockWithRecordsize? Mdr8;
       public byte[] Unknown_x89 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr9;
+      public DataBlockWithRecordsize? Mdr9;
       public byte[] Unknown_x97 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlock Mdr10;
+      public DataBlock? Mdr10;
       public byte[] Unknown_xA3 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr11;
+      public DataBlockWithRecordsize? Mdr11;
       public byte[] Unknown_xB1 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr12;
+      public DataBlockWithRecordsize? Mdr12;
       public byte[] Unknown_xBF = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr13;
+      public DataBlockWithRecordsize? Mdr13;
       public byte[] Unknown_xCD = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr14;
+      public DataBlockWithRecordsize? Mdr14;
       public byte[] Unknown_xDB = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlock Mdr15;
+      public DataBlock? Mdr15;
       public byte Unknown_xE7 = 0x0;
-      public DataBlockWithRecordsize Mdr16;
+      public DataBlockWithRecordsize? Mdr16;
       public byte[] Unknown_xF2 = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlock Mdr17;
+      public DataBlock? Mdr17;
       public byte[] Unknown_xFE = { 0x0, 0x0, 0x0, 0x0 };
-      public DataBlockWithRecordsize Mdr18;
+      public DataBlockWithRecordsize? Mdr18;
       public byte[] Unknown_x10C = { 0x0, 0x0, 0x0, 0x0 };
       public byte[] Unknown_x110 = { };
 
@@ -314,7 +313,7 @@ MDR32/33 StreetAddress Words Table
       /// liefert den PostHeader-Datenbereich
       /// </summary>
       /// <returns></returns>
-      public DataBlock PostHeaderDataBlock { get; private set; }
+      public DataBlock? PostHeaderDataBlock { get; private set; }
 
       enum InternalFileSections {
          PostHeaderData = 0,
@@ -606,41 +605,41 @@ MDR32/33 StreetAddress Words Table
             bw.Write(SortId1);
             bw.Write(SortId2);
             bw.Write(Unknown_x1B);
-            Mdr1.Write(bw);
+            Mdr1?.Write(bw);
             bw.Write(Unknown_x27);
-            Mdr2.Write(bw);
+            Mdr2?.Write(bw);
             bw.Write(Unknown_x35);
-            Mdr3.Write(bw);
+            Mdr3?.Write(bw);
             bw.Write(Unknown_x43);
-            Mdr4.Write(bw);
+            Mdr4?.Write(bw);
             bw.Write(Unknown_x51);
-            Mdr5.Write(bw);
+            Mdr5?.Write(bw);
             bw.Write(Unknown_x5F);
-            Mdr6.Write(bw);
+            Mdr6?.Write(bw);
             bw.Write(Unknown_x6D);
-            Mdr7.Write(bw);
+            Mdr7?.Write(bw);
             bw.Write(Unknown_x7B);
-            Mdr8.Write(bw);
+            Mdr8?.Write(bw);
             bw.Write(Unknown_x89);
-            Mdr9.Write(bw);
+            Mdr9?.Write(bw);
             bw.Write(Unknown_x97);
-            Mdr10.Write(bw);
+            Mdr10?.Write(bw);
             bw.Write(Unknown_xA3);
-            Mdr11.Write(bw);
+            Mdr11?.Write(bw);
             bw.Write(Unknown_xB1);
-            Mdr12.Write(bw);
+            Mdr12?.Write(bw);
             bw.Write(Unknown_xBF);
-            Mdr13.Write(bw);
+            Mdr13?.Write(bw);
             bw.Write(Unknown_xCD);
-            Mdr14.Write(bw);
+            Mdr14?.Write(bw);
             bw.Write(Unknown_xDB);
-            Mdr15.Write(bw);
+            Mdr15?.Write(bw);
             Unknown_xE7 = bw.ReadByte();
-            Mdr16.Write(bw);
+            Mdr16?.Write(bw);
             bw.Write(Unknown_xF2);
-            Mdr17.Write(bw);
+            Mdr17?.Write(bw);
             bw.Write(Unknown_xFE);
-            Mdr18.Write(bw);
+            Mdr18?.Write(bw);
             bw.Write(Unknown_x10C);
 
             if (Headerlength > 0x110) {

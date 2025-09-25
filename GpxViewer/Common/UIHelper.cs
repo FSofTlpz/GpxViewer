@@ -1,34 +1,56 @@
-﻿using System;
-using System.Text;
-using System.IO;
+﻿using System.Text;
 using System.Diagnostics;
-#if Android
-using Xamarin.Forms;
-using System.Threading.Tasks;
-#else
-using System.Drawing;
-using System.Windows.Forms;
-#endif
 
-#if Android
+#if ANDROID
 namespace TrackEddi.Common {
 #else
 namespace GpxViewer.Common {
 #endif
 
-   internal static class UIHelper {
+   public static class UIHelper {
+
+      public class BusyEventArgs {
+
+         /// <summary>
+         /// kann null sein
+         /// </summary>
+#if ANDROID
+         public readonly Page? Page;
+#else
+         public readonly Form? Page;
+#endif
+
+         public readonly bool Busy;
+
+         public BusyEventArgs(
+#if ANDROID
+                  Page? page,
+#else
+                  Form? page,
+#endif
+                  bool busy) {
+            Page = page;
+            Busy = busy;
+         }
+
+      }
+
+      /// <summary>
+      /// der Busy-Status soll gesetzt werden
+      /// </summary>
+      public static event EventHandler<BusyEventArgs>? SetBusyStatusEvent;
 
       /// <summary>
       /// kann gesetzt werden, wenn der Parameter 'logfile' nicht verwendet werden soll (logfile == null)
       /// </summary>
-      static public string ExceptionLogfile = null;
+      static public string? ExceptionLogfile = null;
 
-#if Android
+#if ANDROID
 
       /// <summary>
       /// kann gesetzt werden, wenn der Parameter 'page' nicht verwendet werden soll (page == null)
       /// </summary>
-      static public Page ParentPage = null;
+      static public Page? ParentPage = null;
 
       /// <summary>
       /// zeigt einen Info-Text an
@@ -36,12 +58,12 @@ namespace GpxViewer.Common {
       /// <param name="page"></param>
       /// <param name="txt"></param>
       /// <param name="caption"></param>
-      static public async Task ShowInfoMessage(Page page, string txt, string caption = "Info") {
+      static public async Task ShowInfoMessage(Page? page, string txt, string caption = "Info") {
          if (page == null)
             page = ParentPage;
          if (page != null) {
             try {
-               await FSofTUtils.Xamarin.Helper.MessageBox(page,
+               await FSofTUtils.OSInterface.Helper.MessageBox(page,
                                                           caption,
                                                           txt,
                                                           "weiter");
@@ -66,38 +88,43 @@ namespace GpxViewer.Common {
       /// <param name="ex"></param>
       /// <param name="exit">wenn true, dann Prog sofort abbrechen</param>
       /// <returns></returns>
-      static public async Task ShowExceptionMessage(Page page, Exception ex, string logfile, bool exit) =>
+      static public async Task ShowExceptionMessage(Page page, Exception ex, string? logfile, bool exit) =>
          await ShowExceptionMessage(page, null, "Fehler", ex, logfile, exit);
 
-      static public async Task ShowExceptionMessage(Page page, string caption, Exception ex, string logfile, bool exit) {
+      static public async Task ShowExceptionMessage(Page page, string caption, Exception ex, string? logfile, bool exit) =>
          await ShowExceptionMessage(page, null, caption, ex, logfile, exit);
-      }
 
-      static public async Task ShowExceptionMessage(Page page, string message, string caption, Exception ex, string logfile, bool exit) {
+      static public async Task ShowExceptionMessage(Page page, string? message, string caption, Exception ex, string? logfile, bool exit) {
          if (message == null)
             message = "";
-         message += getExceptionMessage(ex);
-
-         if (string.IsNullOrEmpty(logfile))
-            logfile = ExceptionLogfile;
-
-         if (!string.IsNullOrEmpty(logfile))
-            try {
-               File.AppendAllText(logfile, DateTime.Now.ToString("G") + " " + caption + ": " + message);
-            } catch { }
-
-         await ShowErrorMessage(page, caption, message);
+         message += GetExceptionMessage(ex);
+         Message2Logfile(caption, message, logfile);
+         await ShowErrorMessage(page, message, caption);
          if (exit) {
-            System.Diagnostics.Process.GetCurrentProcess().Kill();
+            Process.GetCurrentProcess().Kill();
             Environment.Exit(0);
          }
       }
 
-      static public async Task<bool> ShowYesNoQuestion_StdIsYes(Page page, string txt, string caption) =>
-         await FSofTUtils.Xamarin.Helper.MessageBox(page, caption, txt, "ja", "nein");
+      /// <summary>
+      /// Ja/Nein-Frage; NUR bei expliziter Auswahl von "Ja" wird true geliefert
+      /// </summary>
+      /// <param name="page"></param>
+      /// <param name="txt"></param>
+      /// <param name="caption"></param>
+      /// <returns></returns>
+      static public async Task<bool> ShowYesNoQuestion_RealYes(Page page, string txt, string caption) =>
+         await FSofTUtils.OSInterface.Helper.MessageBox(page, caption, txt, "ja", "nein");
 
-      static public async Task<bool> ShowYesNoQuestion_StdIsNo(Page page, string txt, string caption) =>
-         await FSofTUtils.Xamarin.Helper.MessageBox(page, caption, txt, "nein", "ja");
+      /// <summary>
+      /// Ja/Nein-Frage; NUR bei expliziter Auswahl von "Nein" wird true geliefert
+      /// </summary>
+      /// <param name="page"></param>
+      /// <param name="txt"></param>
+      /// <param name="caption"></param>
+      /// <returns></returns>
+      static public async Task<bool> ShowYesNoQuestion_RealNo(Page page, string txt, string caption) =>
+         await FSofTUtils.OSInterface.Helper.MessageBox(page, caption, txt, "nein", "ja");
 
 #else
 
@@ -130,16 +157,16 @@ namespace GpxViewer.Common {
                                       MessageBoxDefaultButton.Button1,
                                       Color.FromArgb(255, 220, 220));
 
-      static public void ShowExceptionMessage(Form mainform, Exception ex, string logfile, bool exit) =>
+      static public void ShowExceptionMessage(Form? mainform, Exception ex, string? logfile, bool exit) =>
          ShowExceptionMessage(mainform, null, "Fehler", ex, logfile, exit);
 
-      static public void ShowExceptionMessage(Form mainform, string caption, Exception ex, string logfile, bool exit) =>
+      static public void ShowExceptionMessage(Form? mainform, string caption, Exception ex, string? logfile, bool exit) =>
          ShowExceptionMessage(mainform, null, caption, ex, logfile, exit);
 
-      static public void ShowExceptionMessage(Form mainform, string message, string caption, Exception ex, string logfile, bool exit) {
+      static public void ShowExceptionMessage(Form? mainform, string? message, string caption, Exception ex, string? logfile, bool exit) {
          if (message == null)
             message = "";
-         message += getExceptionMessage(ex);
+         message += GetExceptionMessage(ex);
 
          if (string.IsNullOrEmpty(logfile))
             logfile = ExceptionLogfile;
@@ -159,43 +186,94 @@ namespace GpxViewer.Common {
       /// nach Möglichkeit "ausführliche" Anzeige einer Exception
       /// </summary>
       /// <param name="ex"></param>
-      static public void ShowExceptionError(Exception ex, string logfile = null) =>
+      static public void ShowExceptionError(Exception ex, string? logfile = null) =>
          ShowExceptionMessage(null, ex, logfile, false);
 
-      static public bool ShowYesNoQuestion_IsYes(string txt, string caption) =>
+      /// <summary>
+      /// Ja/Nein-Frage; NUR bei expliziter Auswahl von "Ja" wird true geliefert ("Nein" ist voreingestellt)
+      /// </summary>
+      /// <param name="txt"></param>
+      /// <param name="caption"></param>
+      /// <returns></returns>
+      static public bool ShowYesNoQuestion_RealYes(string txt, string caption) =>
          FSofTUtils.MyMessageBox.Show(txt,
                                       caption,
                                       MessageBoxButtons.YesNo,
                                       MessageBoxIcon.Question,
                                       MessageBoxDefaultButton.Button2) == DialogResult.Yes;
 
+      /// <summary>
+      /// Ja/Nein-Frage; NUR bei expliziter Auswahl von "Nein" wird true geliefert ("Ja" ist voreingestellt)
+      /// </summary>
+      /// <param name="txt"></param>
+      /// <param name="caption"></param>
+      /// <returns></returns>
+      static public bool ShowYesNoQuestion_RealNo(string txt, string caption) =>
+         FSofTUtils.MyMessageBox.Show(txt,
+                                      caption,
+                                      MessageBoxButtons.YesNo,
+                                      MessageBoxIcon.Question,
+                                      MessageBoxDefaultButton.Button1) == DialogResult.No;
+
 #endif
 
-      static string getExceptionMessage(Exception ex) {
+      static public void Message2Logfile(string? theme, string? message, string? logfile) {
+         if (string.IsNullOrEmpty(logfile))
+            logfile = ExceptionLogfile;
+
+         if (!string.IsNullOrEmpty(logfile)) {
+            if (theme == null)
+               theme = string.Empty;
+            else
+               theme = " " + theme;
+            if (message == null)
+               message = string.Empty;
+            try {
+               File.AppendAllText(logfile, DateTime.Now.ToString("O") + " " + theme + ": " + message);
+            } catch { }
+         }
+      }
+
+
+      static public string GetExceptionMessage(Exception? ex) {
          StringBuilder sb = new StringBuilder();
 
-         do {
+         if (ex != null)
+            do {
 
-            sb.AppendLine(ex.Message);
-            sb.AppendLine();
-
-            if (!string.IsNullOrEmpty(ex.StackTrace)) {
+               sb.AppendLine(ex.Message);
                sb.AppendLine();
-               sb.AppendLine("StackTrace:");
-               sb.AppendLine(ex.StackTrace);
-            }
 
-            if (!string.IsNullOrEmpty(ex.Source)) {
-               sb.AppendLine();
-               sb.AppendLine("Source:");
-               sb.AppendLine(ex.Source);
-            }
+               if (!string.IsNullOrEmpty(ex.StackTrace)) {
+                  sb.AppendLine();
+                  sb.AppendLine("StackTrace:");
+                  sb.AppendLine(ex.StackTrace);
+               }
 
-            ex = ex.InnerException;
-         } while (ex != null);
+               if (!string.IsNullOrEmpty(ex.Source)) {
+                  sb.AppendLine();
+                  sb.AppendLine("Source:");
+                  sb.AppendLine(ex.Source);
+               }
+
+               ex = ex.InnerException;
+            } while (ex != null);
 
          return sb.ToString();
       }
 
+      /// <summary>
+      /// löst das <see cref="SetBusyStatusEvent"/> aus
+      /// </summary>
+      /// <param name="page"></param>
+      /// <param name="busy"></param>
+      static public void SetBusyStatus(
+#if ANDROID
+                           Page? page,
+#else
+                           Form? page,
+#endif
+                           bool busy = true) =>
+         SetBusyStatusEvent?.Invoke(null, new BusyEventArgs(page, busy));
    }
 }

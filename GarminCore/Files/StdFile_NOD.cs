@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GarminCore.Files {
+﻿namespace GarminCore.Files {
    /// <summary>
    /// Infos über die Verbindungsknoten der Highways (z.Z. nur Behandlung von Rohdaten)
    /// </summary>

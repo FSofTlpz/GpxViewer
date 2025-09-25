@@ -1,9 +1,7 @@
-﻿#if Android
-using System;
-using System.Collections.Generic;
-using Xamarin.Forms;
-
+﻿using FSofTUtilsAssembly = FSofTUtils;
+#if ANDROID || ANDROID2
 namespace TrackEddi.Common {
+#if ANDROID2
 
    public class AppData {
 
@@ -14,36 +12,28 @@ namespace TrackEddi.Common {
       #region private Funktionen
 
       static bool Get(string name, bool def) {
-         if (Application.Current.Properties.ContainsKey(name))
-            return Convert.ToBoolean(Application.Current.Properties[name]);
-         return def;
+         return Preferences.Get(name, def);
       }
 
       static string Get(string name, string def) {
-         if (Application.Current.Properties.ContainsKey(name))
-            return Application.Current.Properties[name].ToString().Trim();
-         return def;
+         return Preferences.Get(name, def).Trim();
       }
 
       static int Get(string name, int def) {
-         if (Application.Current.Properties.ContainsKey(name))
-            try {
-               return Convert.ToInt32(Application.Current.Properties[name]);
-            } catch { }
-         return def;
+         return Preferences.Get(name, def);
       }
 
       static double Get(string name, double def) {
-         if (Application.Current.Properties.ContainsKey(name))
-            try {
-               return Convert.ToDouble(Application.Current.Properties[name]);
-            } catch { }
-         return def;
+         return Preferences.Get(name, def);
       }
 
-      static void Set(string name, object value) {
-         Application.Current.Properties[name] = value;
-      }
+      static void Set(string name, int value) => Preferences.Set(name, value);
+
+      static void Set(string name, double value) => Preferences.Set(name, value);
+
+      static void Set(string name, bool value) => Preferences.Set(name, value);
+
+      static void Set(string name, string value) => Preferences.Set(name, value);
 
       static void SetList<T>(string name, List<T> lst, string separator = "\n") {
          Set(name, string.Join(separator, lst));
@@ -51,7 +41,7 @@ namespace TrackEddi.Common {
 
       static List<T> GetList<T>(string name, string separator = "\n") {
          List<T> lst = new List<T>();
-         string txt = Get(name, null);
+         string txt = Get(name, string.Empty);
          if (!string.IsNullOrEmpty(txt))
             foreach (string item in txt.Split(new string[] { separator }, StringSplitOptions.None)) {
                lst.Add((T)Convert.ChangeType(item, typeof(T)));
@@ -93,36 +83,42 @@ namespace TrackEddi.Common {
       #endregion
 
 #else
-using FSofTUtilsAssembly = FSofTUtils;
-using System.Collections.Generic;
-
-namespace GpxViewer.Common {
    public class AppData : FSofTUtilsAssembly.AppData {
 
-      public AppData(string name, string folder = null) : base(name, false, "persist.xml", folder) { }
+      public AppData(string name, string? folder = null) : base(name, false, "persist.xml", folder) {
+         LastFullSaveFilename = "";
+      }
 
+#endif
+
+#else
+namespace GpxViewer.Common {
+
+      public class AppData : FSofTUtilsAssembly.AppData {
+
+      public AppData(string name, string? folder = null) : base(name, false, "persist.xml", folder) { }
+#endif
+
+#if !ANDROID || (ANDROID && !ANDROID2)
       #region private Funktionen
 
-      string Get(string name, string def) =>
-         data.Get(name, def);
+      string? Get(string name, string def) => data != null ? data.Get(name, def) : def;
 
-      bool Get(string name, bool def) =>
-         data.Get(name, def);
+      bool Get(string name, bool def) => data != null ? data.Get(name, def) : def;
 
-      int Get(string name, int def) =>
-         data.Get(name, def);
+      int Get(string name, int def) => data != null ? data.Get(name, def) : def;
 
-      double Get(string name, double def) =>
-         data.Get(name, def);
+      double Get(string name, double def) => data != null ? data.Get(name, def) : def;
 
-      List<T> GetList<T>(string name, string separator = "\n") =>
-        data.GetList<T>(name, separator);
+      List<T> GetList<T>(string name, string separator = "\n") {
+         List<T>? lst = data?.GetList<T>(name, separator);
+         return lst != null ? lst : new List<T>();
+      }
 
-      void Set(string name, object value) =>
-         data.Set(name, value);
+      void Set(string name, object value) => data?.Set(name, value);
 
       void SetList<T>(string name, List<T> lst, string separator = "\n") =>
-         data.SetList(name, lst, separator);
+         data?.SetList(name, lst, separator);
 
       #endregion
 
@@ -132,7 +128,7 @@ namespace GpxViewer.Common {
       /// bei Programmbeendigung verwendeter Kartenname
       /// </summary>
       public string LastMapname {
-         get => Get(nameof(LastMapname), "");
+         get => Get(nameof(LastMapname), "") ?? string.Empty;
          set => Set(nameof(LastMapname), value);
       }
 
@@ -204,7 +200,7 @@ namespace GpxViewer.Common {
          set => Set(nameof(IsCreated), value);
       }
 
-#if Android
+#if ANDROID
 
       /// <summary>
       /// Anzeige von GPX-Infos
@@ -218,7 +214,7 @@ namespace GpxViewer.Common {
       /// letzter verwendeter Pfad für Öffnen oder Speichern einer GPX-Datei
       /// </summary>
       public string LastLoadSavePath {
-         get => Get(nameof(LastLoadSavePath), "");
+         get => Get(nameof(LastLoadSavePath), "") ?? string.Empty;
          set => Set(nameof(LastLoadSavePath), value);
       }
 
@@ -226,12 +222,12 @@ namespace GpxViewer.Common {
       /// letzter Dateiname zum speichern einer GPX-Datei
       /// </summary>
       public string LastFullSaveFilename {
-         get => Get(nameof(LastFullSaveFilename), "");
+         get => Get(nameof(LastFullSaveFilename), "") ?? string.Empty;
          set => Set(nameof(LastFullSaveFilename), value);
       }
 
       public string LastSearchPattern {
-         get => Get(nameof(LastSearchPattern), "");
+         get => Get(nameof(LastSearchPattern), "") ?? string.Empty;
          set => Set(nameof(LastSearchPattern), value);
       }
 
@@ -256,10 +252,15 @@ namespace GpxViewer.Common {
          set => Set(nameof(LastLocationLongitude), value);
       }
 
+      public string LastGpxSearchPath {
+         get => Get(nameof(LastGpxSearchPath), "") ?? string.Empty;
+         set => Set(nameof(LastGpxSearchPath), value);
+      }
+
 #else
 
       public string LastPicturePath {
-         get => Get(nameof(LastPicturePath), "");
+         get => Get(nameof(LastPicturePath), "") ?? string.Empty;
          set => Set(nameof(LastPicturePath), value);
       }
 

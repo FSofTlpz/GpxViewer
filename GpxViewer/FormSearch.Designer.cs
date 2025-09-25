@@ -23,146 +23,163 @@
       /// the contents of this method with the code editor.
       /// </summary>
       private void InitializeComponent() {
-         this.components = new System.ComponentModel.Container();
-         this.textBox1 = new System.Windows.Forms.TextBox();
-         this.label1 = new System.Windows.Forms.Label();
-         this.listView_Result = new System.Windows.Forms.ListView();
-         this.columnGeoName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-         this.columnInfo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-         this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-         this.ToolStripMenuItem_ShowPosition = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_ShowArea = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_ShowPositionAndMarker = new System.Windows.Forms.ToolStripMenuItem();
-         this.ToolStripMenuItem_ShowAreaAndMarker = new System.Windows.Forms.ToolStripMenuItem();
-         this.button_Start = new System.Windows.Forms.Button();
-         this.contextMenuStrip1.SuspendLayout();
-         this.SuspendLayout();
+         components = new System.ComponentModel.Container();
+         textBox1 = new TextBox();
+         label1 = new Label();
+         listView_Result = new ListView();
+         columnGeoName = new ColumnHeader();
+         columnInfo1 = new ColumnHeader();
+         contextMenuStrip1 = new ContextMenuStrip(components);
+         ToolStripMenuItem_ShowPosition = new ToolStripMenuItem();
+         ToolStripMenuItem_ShowArea = new ToolStripMenuItem();
+         ToolStripMenuItem_ShowPositionAndMarker = new ToolStripMenuItem();
+         ToolStripMenuItem_ShowAreaAndMarker = new ToolStripMenuItem();
+         toolStripSeparator1 = new ToolStripSeparator();
+         ToolStripMenuItem_Copy = new ToolStripMenuItem();
+         ToolStripMenuItem_CopyAll = new ToolStripMenuItem();
+         button_Start = new Button();
+         contextMenuStrip1.SuspendLayout();
+         SuspendLayout();
          // 
          // textBox1
          // 
-         this.textBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.textBox1.Location = new System.Drawing.Point(74, 10);
-         this.textBox1.Name = "textBox1";
-         this.textBox1.Size = new System.Drawing.Size(245, 20);
-         this.textBox1.TabIndex = 1;
-         this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+         textBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+         textBox1.Location = new Point(87, 11);
+         textBox1.Margin = new Padding(4);
+         textBox1.Name = "textBox1";
+         textBox1.Size = new Size(303, 23);
+         textBox1.TabIndex = 1;
+         textBox1.TextChanged += textBox1_TextChanged;
          // 
          // label1
          // 
-         this.label1.AutoSize = true;
-         this.label1.Location = new System.Drawing.Point(13, 13);
-         this.label1.Name = "label1";
-         this.label1.Size = new System.Drawing.Size(52, 13);
-         this.label1.TabIndex = 0;
-         this.label1.Text = "Suchtext:";
+         label1.AutoSize = true;
+         label1.Location = new Point(15, 15);
+         label1.Margin = new Padding(4, 0, 4, 0);
+         label1.Name = "label1";
+         label1.Size = new Size(56, 15);
+         label1.TabIndex = 0;
+         label1.Text = "Suchtext:";
          // 
          // listView_Result
          // 
-         this.listView_Result.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-         this.listView_Result.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnGeoName,
-            this.columnInfo1});
-         this.listView_Result.ContextMenuStrip = this.contextMenuStrip1;
-         this.listView_Result.FullRowSelect = true;
-         this.listView_Result.GridLines = true;
-         this.listView_Result.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-         this.listView_Result.HideSelection = false;
-         this.listView_Result.Location = new System.Drawing.Point(16, 53);
-         this.listView_Result.MultiSelect = false;
-         this.listView_Result.Name = "listView_Result";
-         this.listView_Result.Size = new System.Drawing.Size(384, 166);
-         this.listView_Result.TabIndex = 3;
-         this.listView_Result.UseCompatibleStateImageBehavior = false;
-         this.listView_Result.View = System.Windows.Forms.View.Details;
-         this.listView_Result.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listView_Result_MouseDoubleClick);
+         listView_Result.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+         listView_Result.Columns.AddRange(new ColumnHeader[] { columnGeoName, columnInfo1 });
+         listView_Result.ContextMenuStrip = contextMenuStrip1;
+         listView_Result.FullRowSelect = true;
+         listView_Result.GridLines = true;
+         listView_Result.HeaderStyle = ColumnHeaderStyle.Nonclickable;
+         listView_Result.Location = new Point(18, 61);
+         listView_Result.Margin = new Padding(4);
+         listView_Result.MultiSelect = false;
+         listView_Result.Name = "listView_Result";
+         listView_Result.Size = new Size(466, 191);
+         listView_Result.TabIndex = 3;
+         listView_Result.UseCompatibleStateImageBehavior = false;
+         listView_Result.View = View.Details;
+         listView_Result.MouseDoubleClick += listView_Result_MouseDoubleClick;
          // 
          // columnGeoName
          // 
-         this.columnGeoName.Text = "Name";
+         columnGeoName.Text = "Name";
          // 
          // columnInfo1
          // 
-         this.columnInfo1.Text = "Info";
+         columnInfo1.Text = "Info";
          // 
          // contextMenuStrip1
          // 
-         this.contextMenuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-         this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripMenuItem_ShowPosition,
-            this.ToolStripMenuItem_ShowArea,
-            this.ToolStripMenuItem_ShowPositionAndMarker,
-            this.ToolStripMenuItem_ShowAreaAndMarker});
-         this.contextMenuStrip1.Name = "contextMenuStrip1";
-         this.contextMenuStrip1.Size = new System.Drawing.Size(268, 92);
-         this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
+         contextMenuStrip1.ImageScalingSize = new Size(20, 20);
+         contextMenuStrip1.Items.AddRange(new ToolStripItem[] { ToolStripMenuItem_ShowPosition, ToolStripMenuItem_ShowArea, ToolStripMenuItem_ShowPositionAndMarker, ToolStripMenuItem_ShowAreaAndMarker, toolStripSeparator1, ToolStripMenuItem_Copy, ToolStripMenuItem_CopyAll });
+         contextMenuStrip1.Name = "contextMenuStrip1";
+         contextMenuStrip1.Size = new Size(296, 166);
+         contextMenuStrip1.Opening += contextMenuStrip1_Opening;
          // 
          // ToolStripMenuItem_ShowPosition
          // 
-         this.ToolStripMenuItem_ShowPosition.Name = "ToolStripMenuItem_ShowPosition";
-         this.ToolStripMenuItem_ShowPosition.Size = new System.Drawing.Size(267, 22);
-         this.ToolStripMenuItem_ShowPosition.Text = "Position anzeigen";
-         this.ToolStripMenuItem_ShowPosition.Click += new System.EventHandler(this.ToolStripMenuItem_ShowPosition_Click);
+         ToolStripMenuItem_ShowPosition.Name = "ToolStripMenuItem_ShowPosition";
+         ToolStripMenuItem_ShowPosition.Size = new Size(295, 26);
+         ToolStripMenuItem_ShowPosition.Text = "Position anzeigen";
+         ToolStripMenuItem_ShowPosition.Click += ToolStripMenuItem_ShowPosition_Click;
          // 
          // ToolStripMenuItem_ShowArea
          // 
-         this.ToolStripMenuItem_ShowArea.Name = "ToolStripMenuItem_ShowArea";
-         this.ToolStripMenuItem_ShowArea.Size = new System.Drawing.Size(267, 22);
-         this.ToolStripMenuItem_ShowArea.Text = "Gebiet anzeigen";
-         this.ToolStripMenuItem_ShowArea.Click += new System.EventHandler(this.ToolStripMenuItem_ShowArea_Click);
+         ToolStripMenuItem_ShowArea.Name = "ToolStripMenuItem_ShowArea";
+         ToolStripMenuItem_ShowArea.Size = new Size(295, 26);
+         ToolStripMenuItem_ShowArea.Text = "Gebiet anzeigen";
+         ToolStripMenuItem_ShowArea.Click += ToolStripMenuItem_ShowArea_Click;
          // 
          // ToolStripMenuItem_ShowPositionAndMarker
          // 
-         this.ToolStripMenuItem_ShowPositionAndMarker.Name = "ToolStripMenuItem_ShowPositionAndMarker";
-         this.ToolStripMenuItem_ShowPositionAndMarker.Size = new System.Drawing.Size(267, 22);
-         this.ToolStripMenuItem_ShowPositionAndMarker.Text = "Position anzeigen und Marker setzen";
-         this.ToolStripMenuItem_ShowPositionAndMarker.Click += new System.EventHandler(this.ToolStripMenuItem_ShowPositionAndMarker_Click);
+         ToolStripMenuItem_ShowPositionAndMarker.Name = "ToolStripMenuItem_ShowPositionAndMarker";
+         ToolStripMenuItem_ShowPositionAndMarker.Size = new Size(295, 26);
+         ToolStripMenuItem_ShowPositionAndMarker.Text = "Position anzeigen und Marker setzen";
+         ToolStripMenuItem_ShowPositionAndMarker.Click += ToolStripMenuItem_ShowPositionAndMarker_Click;
          // 
          // ToolStripMenuItem_ShowAreaAndMarker
          // 
-         this.ToolStripMenuItem_ShowAreaAndMarker.Name = "ToolStripMenuItem_ShowAreaAndMarker";
-         this.ToolStripMenuItem_ShowAreaAndMarker.Size = new System.Drawing.Size(267, 22);
-         this.ToolStripMenuItem_ShowAreaAndMarker.Text = "Gebiet anzeigen und Marker setzen";
-         this.ToolStripMenuItem_ShowAreaAndMarker.Click += new System.EventHandler(this.ToolStripMenuItem_ShowAreaAndMarker_Click);
+         ToolStripMenuItem_ShowAreaAndMarker.Name = "ToolStripMenuItem_ShowAreaAndMarker";
+         ToolStripMenuItem_ShowAreaAndMarker.Size = new Size(295, 26);
+         ToolStripMenuItem_ShowAreaAndMarker.Text = "Gebiet anzeigen und Marker setzen";
+         ToolStripMenuItem_ShowAreaAndMarker.Click += ToolStripMenuItem_ShowAreaAndMarker_Click;
+         // 
+         // toolStripSeparator1
+         // 
+         toolStripSeparator1.Name = "toolStripSeparator1";
+         toolStripSeparator1.Size = new Size(292, 6);
+         // 
+         // ToolStripMenuItem_Copy
+         // 
+         ToolStripMenuItem_Copy.Image = Properties.Resources.copy;
+         ToolStripMenuItem_Copy.Name = "ToolStripMenuItem_Copy";
+         ToolStripMenuItem_Copy.Size = new Size(295, 26);
+         ToolStripMenuItem_Copy.Text = "Text in die Zwischenablage kopieren";
+         ToolStripMenuItem_Copy.Click += ToolStripMenuItem_Copy_Click;
+         // 
+         // ToolStripMenuItem_CopyAll
+         // 
+         ToolStripMenuItem_CopyAll.Name = "ToolStripMenuItem_CopyAll";
+         ToolStripMenuItem_CopyAll.Size = new Size(295, 26);
+         ToolStripMenuItem_CopyAll.Text = "alle Texte in die Zwischenablage kopieren";
+         ToolStripMenuItem_CopyAll.Click += ToolStripMenuItem_CopyAll_Click;
          // 
          // button_Start
          // 
-         this.button_Start.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-         this.button_Start.Enabled = false;
-         this.button_Start.Location = new System.Drawing.Point(325, 8);
-         this.button_Start.Name = "button_Start";
-         this.button_Start.Size = new System.Drawing.Size(75, 23);
-         this.button_Start.TabIndex = 2;
-         this.button_Start.Text = "suchen";
-         this.button_Start.UseVisualStyleBackColor = true;
-         this.button_Start.Click += new System.EventHandler(this.button_Start_Click);
+         button_Start.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+         button_Start.Enabled = false;
+         button_Start.Location = new Point(397, 9);
+         button_Start.Margin = new Padding(4);
+         button_Start.Name = "button_Start";
+         button_Start.Size = new Size(88, 26);
+         button_Start.TabIndex = 2;
+         button_Start.Text = "suchen";
+         button_Start.UseVisualStyleBackColor = true;
+         button_Start.Click += button_Start_Click;
          // 
          // FormSearch
          // 
-         this.AcceptButton = this.button_Start;
-         this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-         this.ClientSize = new System.Drawing.Size(412, 231);
-         this.Controls.Add(this.button_Start);
-         this.Controls.Add(this.listView_Result);
-         this.Controls.Add(this.label1);
-         this.Controls.Add(this.textBox1);
-         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
-         this.KeyPreview = true;
-         this.Name = "FormSearch";
-         this.ShowInTaskbar = false;
-         this.Text = "Suche nach geografischen Objekten";
-         this.Load += new System.EventHandler(this.FormGarminInfo_Load);
-         this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormGarminInfo_KeyDown);
-         this.contextMenuStrip1.ResumeLayout(false);
-         this.ResumeLayout(false);
-         this.PerformLayout();
-
+         AcceptButton = button_Start;
+         AutoScaleDimensions = new SizeF(7F, 15F);
+         AutoScaleMode = AutoScaleMode.Font;
+         ClientSize = new Size(498, 266);
+         Controls.Add(button_Start);
+         Controls.Add(listView_Result);
+         Controls.Add(label1);
+         Controls.Add(textBox1);
+         FormBorderStyle = FormBorderStyle.SizableToolWindow;
+         KeyPreview = true;
+         Margin = new Padding(4);
+         Name = "FormSearch";
+         ShowInTaskbar = false;
+         Text = "Suche nach geografischen Objekten";
+         Load += FormGarminInfo_Load;
+         KeyDown += FormGarminInfo_KeyDown;
+         contextMenuStrip1.ResumeLayout(false);
+         ResumeLayout(false);
+         PerformLayout();
       }
 
-        #endregion
+      #endregion
       private System.Windows.Forms.TextBox textBox1;
       private System.Windows.Forms.Label label1;
       private System.Windows.Forms.ListView listView_Result;
@@ -174,5 +191,8 @@
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowArea;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowPositionAndMarker;
       private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_ShowAreaAndMarker;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_Copy;
+      private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+      private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem_CopyAll;
    }
 }

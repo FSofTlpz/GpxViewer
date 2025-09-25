@@ -38,10 +38,10 @@ namespace GarminCore {
       /// <summary>
       /// Text des Objektes
       /// </summary>
-      public string Text { get; set; }
+      public string? Text { get; set; }
 
 
-      public GeoObject(int type, string txt) {
+      public GeoObject(int type, string? txt) {
          Type = type;
          Text = txt;
       }

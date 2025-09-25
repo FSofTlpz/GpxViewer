@@ -19,7 +19,7 @@ namespace GarminCore {
       /// <summary>
       /// zu Grunde liegender Basisstream
       /// </summary>
-      Stream stream;
+      Stream? stream;
 
       /// <summary>
       /// externe Streams werden beim Dipose NICHT geschlossen
@@ -53,7 +53,7 @@ namespace GarminCore {
       /// <summary>
       /// Daten für einen für <see cref="MemoryStream"/> fester Länge
       /// </summary>
-      public byte[] InMemoryData { get; protected set; }
+      public byte[]? InMemoryData { get; protected set; }
 
       /// <summary>
       /// liefert oder setzt das Standard-Encoding
@@ -76,16 +76,16 @@ namespace GarminCore {
       /// akt. Länge des Streams
       /// </summary>
       public long Length {
-         get => Length4Part > 0 ? Length4Part : stream.Length;
-         set => stream.SetLength(value);
+         get => Length4Part > 0 ? Length4Part : stream != null ? stream.Length : 0;
+         set => stream?.SetLength(value);
       }
 
       /// <summary>
       /// akt. Position im Stream (berücksichtigt <see cref="Offset4Part"/>)
       /// </summary>
       public long Position {
-         get => stream.Position - Offset4Part;
-         set => stream.Position = Offset4Part + value;
+         get => stream != null ? stream.Position - Offset4Part : -1;
+         set { if (stream != null) stream.Position = Offset4Part + value; }
       }
 
       /// <summary>
@@ -103,7 +103,7 @@ namespace GarminCore {
       /// </summary>
       /// <param name="stream"></param>
       /// <param name="encoding"></param>
-      public BinaryReaderWriter(Stream stream, Encoding encoding = null) {
+      public BinaryReaderWriter(Stream stream, Encoding? encoding = null) {
          this.stream = stream;
          isexternstream = true;
          if (encoding != null)
@@ -115,7 +115,7 @@ namespace GarminCore {
       /// </summary>
       /// <param name="br"></param>
       /// <param name="encoding"></param>
-      public BinaryReaderWriter(BinaryReaderWriter br, Encoding encoding = null) {
+      public BinaryReaderWriter(BinaryReaderWriter br, Encoding? encoding = null) {
          stream = br.stream;
          isexternstream = true;
          if (encoding != null)
@@ -129,7 +129,7 @@ namespace GarminCore {
       /// <param name="read"></param>
       /// <param name="write"></param>
       /// <param name="encoding"></param>
-      public BinaryReaderWriter(string filename, bool read, bool write = false, bool create = false, Encoding encoding = null) {
+      public BinaryReaderWriter(string filename, bool read, bool write = false, bool create = false, Encoding? encoding = null) {
          if (read) {
             if (write)
                stream = File.Open(filename, create ? FileMode.Create : FileMode.Open, FileAccess.ReadWrite, FileShare.None);
@@ -145,7 +145,7 @@ namespace GarminCore {
       /// erzeugt ein Objekt, das auf einem MemoryStream variabler Länge basiert
       /// </summary>
       /// <param name="encoding"></param>
-      public BinaryReaderWriter(Encoding encoding = null) {
+      public BinaryReaderWriter(Encoding? encoding = null) {
          stream = new MemoryStream();
          if (encoding != null)
             StandardEncoding = encoding;
@@ -158,7 +158,7 @@ namespace GarminCore {
       /// <param name="startindex"></param>
       /// <param name="count"></param>
       /// <param name="encoding"></param>
-      public BinaryReaderWriter(byte[] buffer, int startindex, int count, Encoding encoding = null, bool writable = true) {
+      public BinaryReaderWriter(byte[] buffer, int startindex, int count, Encoding? encoding = null, bool writable = true) {
          InMemoryData = buffer;
          stream = new MemoryStream(InMemoryData, startindex, count, writable);
          if (encoding != null)
@@ -170,11 +170,13 @@ namespace GarminCore {
       /// </summary>
       /// <param name="filename"></param>
       /// <param name="encoding"></param>
-      public BinaryReaderWriter(string filename, Encoding encoding = null) {
+      public BinaryReaderWriter(string filename, Encoding? encoding = null) {
          FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
          InMemoryData = new byte[fs.Length];
-         fs.Read(InMemoryData, 0, InMemoryData.Length);
+         int len = fs.Read(InMemoryData, 0, InMemoryData.Length);
          fs.Close();
+         if (len != InMemoryData.Length)
+            throw new Exception(nameof(BinaryReaderWriter) + ": Nicht genug Daten gelesen.");
 
          stream = new MemoryStream(InMemoryData, 0, InMemoryData.Length, false);
 
@@ -385,7 +387,11 @@ namespace GarminCore {
       /// <param name="buff"></param>
       /// <returns></returns>
       static public byte[] ReadBytes(BinaryReaderWriter br, byte[] buff) {
-         br.stream.Read(buff, 0, buff.Length);
+         int len = 0;
+         if (br.stream != null)
+            len = br.stream.Read(buff, 0, buff.Length);
+         if (len != buff.Length)
+            throw new Exception(nameof(BinaryReaderWriter) + "." + nameof(ReadBytes) + "(): Nicht genug Daten gelesen.");
          if (br.XOR != 0)
             for (int i = 0; i < buff.Length; i++)
                buff[i] ^= br.XOR;
@@ -397,8 +403,8 @@ namespace GarminCore {
       /// </summary>
       /// <returns></returns>
       static public byte ReadByte(BinaryReaderWriter br) {
-         int b = br.stream.ReadByte() ^ br.XOR;
-         if (b == -1)
+         int b = br.stream != null ? br.stream.ReadByte() ^ br.XOR : -1;
+         if (b < 0)
             throw new IOException("End of file");
          return (byte)b;
       }
@@ -426,7 +432,7 @@ namespace GarminCore {
       /// </summary>
       /// <param name="encoding"></param>
       /// <returns></returns>
-      public char ReadChar(Encoding encoding = null) {
+      public char ReadChar(Encoding? encoding = null) {
          if (readChar(encoding ?? StandardEncoding, ref m_1char_buffer))
             return m_1char_buffer[0];
          throw new EndOfStreamException();
@@ -438,7 +444,7 @@ namespace GarminCore {
       /// <param name="count"></param>
       /// <param name="encoding"></param>
       /// <returns></returns>
-      public char[] ReadChars(int count = 0, Encoding encoding = null) {
+      public char[] ReadChars(int count = 0, Encoding? encoding = null) {
          if (count > 0) {
             char[] full = new char[count];
             int chars = readCharBytes(encoding ?? StandardEncoding, full, count);
@@ -496,7 +502,7 @@ namespace GarminCore {
          while (true) {    // ein einzelnes Zeichen ermitteln
             // Der Puffer muss nur für 1 Zeichen ausreichen. Dafür sollten 8 Byte mehr als genug sein.
             //CheckBuffer(pos + 1);
-            int read_byte = stream.ReadByte();
+            int read_byte = stream != null ? stream.ReadByte() : -1;
             if (read_byte == -1)    /* EOF */
                return false;
             m_buffer[pos++] = (byte)(((byte)read_byte) ^ XOR);
@@ -530,7 +536,7 @@ namespace GarminCore {
       /// <param name="maxlen"></param>
       /// <param name="encoder"></param>
       /// <returns></returns>
-      public string ReadString(int maxlen = 0, Encoding encoder = null) {
+      public string ReadString(int maxlen = 0, Encoding? encoder = null) {
          List<byte> dat = new List<byte>();
          byte b;
          int len = maxlen > 0 ? maxlen : int.MaxValue;
@@ -587,8 +593,8 @@ namespace GarminCore {
       /// abstrakte Basisklasse für Datenstrukturen
       /// </summary>
       abstract public class DataStruct {
-         public abstract void Read(BinaryReaderWriter br, object data);
-         public abstract void Write(BinaryReaderWriter bw, object data);
+         public abstract void Read(BinaryReaderWriter br, object? data);
+         public abstract void Write(BinaryReaderWriter bw, object? data);
       }
 
       /// <summary>
@@ -603,7 +609,9 @@ namespace GarminCore {
       /// <param name="extdata">Liste der Zusatzdaten oder null; enthält die Liste nur 1 Objekt, so wird dieses Objekt für ALLE eingelesenen Daten verwendet</param>
       /// <param name="offsets">Liste für die Speicherung der Offsets und des Datensatzindex bzgl. des Blocks</param>
       /// <returns></returns>
-      public List<T> ReadArray<T>(DataBlock bl, IList<object> extdata = null, SortedList<uint, int> offsets = null) where T : DataStruct, new() {
+      public List<T> ReadArray<T>(DataBlock bl,
+                                  IList<object>? extdata = null,
+                                  SortedList<uint, int>? offsets = null) where T : DataStruct?, new() {
          List<T> lst = new List<T>();
          if (bl.Length > 0) {
             uint start = bl.Offset;
@@ -613,7 +621,7 @@ namespace GarminCore {
                offsets.Clear();
             int ds_data = 0;
             int ds_offs = 0;
-            object constdata = extdata != null && extdata.Count > 0 ?
+            object? constdata = extdata != null && extdata.Count > 0 ?
                                                       extdata[0] :
                                                       null;
             while (Position < end) {
@@ -645,9 +653,8 @@ namespace GarminCore {
          return lst;
       }
 
-      public int Read(byte[] data, int offset, int count) {
-         return stream.Read(data, offset, count);
-      }
+      public int Read(byte[] data, int offset, int count) =>
+         stream != null ? stream.Read(data, offset, count) : 0;
 
       #endregion
 
@@ -671,27 +678,27 @@ namespace GarminCore {
          Write((byte)((v >> 16) & 0xff));
       }
 
-      public void Write(byte value) => stream.WriteByte(value);
+      public void Write(byte value) => stream?.WriteByte(value);
 
-      public void Write(byte[] value) => stream.Write(value, 0, value.Length);
+      public void Write(byte[] value) => stream?.Write(value, 0, value.Length);
 
-      public void Write(byte[] value, int offset, int length) => stream.Write(value, offset, length);
+      public void Write(byte[] value, int offset, int length) => stream?.Write(value, offset, length);
 
       public void Write(bool value) {
          m_buffer[0] = (byte)(value ? 1 : 0);
-         stream.Write(m_buffer, 0, 1);
+         stream?.Write(m_buffer, 0, 1);
       }
 
       public void Write(short value) {
          m_buffer[0] = (byte)value;
          m_buffer[1] = (byte)(value >> 8);
-         stream.Write(m_buffer, 0, 2);
+         stream?.Write(m_buffer, 0, 2);
       }
 
       public void Write(ushort value) {
          m_buffer[0] = (byte)value;
          m_buffer[1] = (byte)(value >> 8);
-         stream.Write(m_buffer, 0, 2);
+         stream?.Write(m_buffer, 0, 2);
       }
 
       public void Write(int value) {
@@ -699,7 +706,7 @@ namespace GarminCore {
          m_buffer[1] = (byte)(value >> 8);
          m_buffer[2] = (byte)(value >> 16);
          m_buffer[3] = (byte)(value >> 24);
-         stream.Write(m_buffer, 0, 4);
+         stream?.Write(m_buffer, 0, 4);
       }
 
       public void Write(uint value) {
@@ -707,7 +714,7 @@ namespace GarminCore {
          m_buffer[1] = (byte)(value >> 8);
          m_buffer[2] = (byte)(value >> 16);
          m_buffer[3] = (byte)(value >> 24);
-         stream.Write(m_buffer, 0, 4);
+         stream?.Write(m_buffer, 0, 4);
       }
 
       public void Write(long value) {
@@ -719,7 +726,7 @@ namespace GarminCore {
          m_buffer[5] = (byte)(value >> 40);
          m_buffer[6] = (byte)(value >> 48);
          m_buffer[7] = (byte)(value >> 56);
-         stream.Write(m_buffer, 0, 8);
+         stream?.Write(m_buffer, 0, 8);
       }
 
       public void Write(ulong value) {
@@ -731,7 +738,7 @@ namespace GarminCore {
          m_buffer[5] = (byte)(value >> 40);
          m_buffer[6] = (byte)(value >> 48);
          m_buffer[7] = (byte)(value >> 56);
-         stream.Write(m_buffer, 0, 8);
+         stream?.Write(m_buffer, 0, 8);
       }
 
       //public unsafe void Write(float value) {
@@ -761,7 +768,7 @@ namespace GarminCore {
       /// </summary>
       /// <param name="value"></param>
       /// <param name="encoding"></param>
-      public void Write(char value, Encoding encoding = null) {
+      public void Write(char value, Encoding? encoding = null) {
          if (encoding == null)
             encoding = StandardEncoding;
          m_1char_buffer[0] = value;
@@ -773,7 +780,7 @@ namespace GarminCore {
       /// </summary>
       /// <param name="value"></param>
       /// <param name="encoding"></param>
-      public void Write(char[] value, Encoding encoding = null) {
+      public void Write(char[] value, Encoding? encoding = null) {
          if (encoding == null)
             encoding = StandardEncoding;
          Write(encoding.GetBytes(value));
@@ -786,7 +793,7 @@ namespace GarminCore {
       /// <param name="text"></param>
       /// <param name="encoder"></param>
       /// <param name="bEnding0"></param>
-      public void WriteString(string text, Encoding encoding = null, bool bEnding0 = true) {
+      public void WriteString(string text, Encoding? encoding = null, bool bEnding0 = true) {
          if (encoding == null)
             encoding = StandardEncoding;
          Write(encoding.GetBytes(text));
@@ -809,17 +816,17 @@ namespace GarminCore {
                break;
 
             case SeekOrigin.Current:
-               pos = stream.Position + pos;
+               pos = stream != null ? stream.Position + pos : 0;
                break;
 
             case SeekOrigin.End:
-               pos = stream.Length - pos - 1;
+               pos = stream != null ? stream.Length - pos - 1 : 0;
                break;
          }
-         return stream.Seek(pos, SeekOrigin.Begin) - Offset4Part;
+         return stream != null ? stream.Seek(pos, SeekOrigin.Begin) - Offset4Part : 0;
       }
 
-      public void Flush() => stream.Flush();
+      public void Flush() => stream?.Flush();
 
       /// <summary>
       /// kopiert die restlichen Bytes des Streams
@@ -831,9 +838,10 @@ namespace GarminCore {
       /// kopiert die restlichen Bytes des Streams
       /// </summary>
       /// <param name="stream"></param>
-      public void CopyTo(Stream stream) {
-         this.stream.Seek(0, SeekOrigin.Begin);
-         this.stream.CopyTo(stream);
+      public void CopyTo(Stream? stream) {
+         this.stream?.Seek(0, SeekOrigin.Begin);
+         if (stream != null)
+            this.stream?.CopyTo(stream);
       }
 
       /// <summary>
@@ -842,7 +850,7 @@ namespace GarminCore {
       /// <returns></returns>
       public byte[] ToArray() {
          MemoryStream ms = new MemoryStream();
-         stream.CopyTo(ms);
+         stream?.CopyTo(ms);
          return ms.ToArray();
       }
 
